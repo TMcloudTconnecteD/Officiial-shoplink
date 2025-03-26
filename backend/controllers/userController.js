@@ -33,7 +33,8 @@ const hashedPassword = await bcrypt.hash(password, salt);
 
 
         } catch (error) {
-            res.status(400); throw new Error("User not created!💔")
+            res.status(400)
+             throw new Error("User not created!💔")
             
     }
 
@@ -64,4 +65,16 @@ if (isPasswordValid) {
 }}
 
 });
-export {createUser, logUser};
+
+const logoutCurrentUser = asyncHandler(async (req, res) => {
+    
+    res.cookie("jwt", "", {
+        httpOnly: true,
+        expires: new Date(0),
+
+    })
+    res.status(200).send("Logged out successfully!👋")
+
+})
+
+export {createUser, logUser, logoutCurrentUser};

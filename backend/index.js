@@ -12,7 +12,7 @@ import userRoutes from './routes/userRoutes.js';
 dotenv.config();
 const port = process.env.PORT || 8000;
 console.log("MONGO_URI:", process.env.MONGO_URI);
-console.clear();
+
 connectDB();
 
 

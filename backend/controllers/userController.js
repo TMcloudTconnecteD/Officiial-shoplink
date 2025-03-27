@@ -21,7 +21,7 @@ const hashedPassword = await bcrypt.hash(password, salt);
     const newUser = new User({username, email, password: hashedPassword});
 
         try {
-            await newUser.save();
+            await newUser.save()
             createToken(res, newUser._id)
             res.status(201).json({
                 _id: newUser._id,
@@ -77,4 +77,12 @@ const logoutCurrentUser = asyncHandler(async (req, res) => {
 
 })
 
-export {createUser, logUser, logoutCurrentUser};
+const getAllUsers = asyncHandler(async (req, res) => {
+const users = await User.find({});
+res.status(200).json(users)
+
+
+
+})
+
+export {createUser, logUser, logoutCurrentUser, getAllUsers};

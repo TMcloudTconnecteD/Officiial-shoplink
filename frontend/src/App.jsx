@@ -1,18 +1,20 @@
 import React from 'react'
-import HoverMe from './components/HoverMe'
-import Test1windicss from './components/Test1windicss'
+
+import { Outlet } from 'react-router'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import Navigation from './pages/Auth/Navigation'
 
 const App = () => {
   return (
-    <div><h1 className='min-h-screen flex items-center justify-center text-4xl'
-    >WindiCss!!WE made it baby!👸</h1>
+    <>
+        <ToastContainer />
+        <Navigation  />
+        < main className='bg-gray-100 py-3' >
+        <Outlet />
+        </main>
     
-    
-    < HoverMe />
-    <Test1windicss />
-    
-    
-    </div>
+    </>
   )
 }
 

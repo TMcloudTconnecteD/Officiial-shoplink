@@ -2,7 +2,6 @@ import asyncHandler from "../middlewares/asyncHandler.js";
 import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import createToken from "../utils/createToken.js";
-import e from "express";
 
 
 const createUser = asyncHandler(async (req, res) => {
@@ -192,4 +191,13 @@ if (user) {
 
 })
 
-export {createUser, logUser, logoutCurrentUser, getAllUsers, getCurrentUserProfile, updateCurrentUserProfile, deleteUserById, getUserById, updateUserById};
+export {createUser, 
+        logUser,
+        logoutCurrentUser,
+        getAllUsers,
+        getCurrentUserProfile,
+        updateCurrentUserProfile,
+        deleteUserById,
+        getUserById,
+        updateUserById
+    };

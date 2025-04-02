@@ -24,6 +24,25 @@ const Profile = () => {
   }, [userInfo.email, userInfo.username])
 
   const dispatch = useDispatch()
+
+  const submitForm = async(e) => {
+        e.preventDefault()
+        if (password !== confirmedPassword) {
+            toast.error('Pass Code does not match!')
+            
+        } else {
+            try {
+                const res = await updateProfile({_id: userInfo._id, username, email, password}).unwrap()
+                dispatch(setCredentials({...res}))
+                toast.success('profile update successful✔')
+            } catch (error) {
+                toast.error(error?.data?.message || error.message)
+                
+            }
+        }
+
+
+  }
   
     return (
     <div className='container mx-auto p-4 mt-[10rem] '>
@@ -32,7 +51,7 @@ const Profile = () => {
            
            <h2 className="text-2xl font-semibold mb-4">Update Profile!🐾</h2>
 
-<form  >
+<form onSubmit={submitForm} >
     <div className="mb-4">
         <label  className="block text-white mb-2">User Name</label>
     <input type="text"

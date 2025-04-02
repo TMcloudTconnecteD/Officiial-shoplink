@@ -4,4 +4,9 @@ import WindiCSS from 'vite-plugin-windicss'
 
 export default defineConfig({
   plugins: [react(), WindiCSS()],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8000'
+    }
+  }
 })

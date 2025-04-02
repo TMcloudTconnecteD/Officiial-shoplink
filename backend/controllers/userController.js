@@ -74,7 +74,8 @@ const logoutCurrentUser = asyncHandler(async (req, res) => {
         expires: new Date(0),
 
     })
-    res.status(200).send("Logged out successfully!👋")
+    //CHECK FOR POSSBLY WRTNG RES,SEND LOGGED OUT SUCCESSFULLY....
+    res.status(200).json("Logged out successfully!👋")
 
 })
 

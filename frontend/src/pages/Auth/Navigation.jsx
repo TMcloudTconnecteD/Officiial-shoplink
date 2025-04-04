@@ -128,7 +128,7 @@ const Navigation = () => {
 
 
                                         <li>
-                                        <Link to='/admin/dashboard' 
+                                        <Link to='/admin' 
                                         className='block px-4 py-2 hover:bg-gray-100' >Admin Dash!🚫
                                         </Link>
                                         </li>

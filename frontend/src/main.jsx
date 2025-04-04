@@ -11,6 +11,8 @@ import Register from './pages/Auth/Register.jsx'
 //privateroutes
 import PrivateRoutes from './components/PrivateRoutes.jsx'
 import Profile from './pages/Users/Profile.jsx'
+import AdminRoutes from './pages/Admin/AdminRoutes.jsx'
+import UserList from './pages/Admin/UserList.jsx'
 
 
 
@@ -18,11 +20,18 @@ import Profile from './pages/Users/Profile.jsx'
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<App />} >
+        <Route path = '/login' element = {<Login />} />
+        <Route path = '/register' element = {<Register />} />
+
          <Route path='' element={<PrivateRoutes />}>
              <Route path='/profile' element={<Profile />} />
           </Route>
-         <Route path = '/login' element = {<Login />} />
-         <Route path = '/register' element = {<Register />} />
+         
+         {/* admin routes */}
+        
+         <Route path='/admin' element={<AdminRoutes />}>
+            <Route path='users' element={<UserList />} />
+         </Route>
     </Route>
   )
 )

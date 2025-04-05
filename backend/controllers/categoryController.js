@@ -1,3 +1,4 @@
+import { tracingChannel } from "diagnostics_channel";
 import asyncHandler from "../middlewares/asyncHandler.js";
 import Category from "../models/categoryModel.js";
 
@@ -29,5 +30,41 @@ const createCategory = asyncHandler(async (req, res) => {
 
 })
 
+     const updateCategory = asyncHandler(async (req, res) => {
+        try {
+            const {name} = req.body;
+            const {categoryId} = req.params;
+            const category = await Category.findOne({_id: categoryId})
 
-export   {createCategory};
+            if (!category) {
+                return res.status(404).json({error: "Category not found"})
+
+            }
+            category.name = name;
+            const updatedCategory = await category.save();
+            res.json(updatedCategory)
+
+
+            } catch (error) {
+            console.error(error)
+            res.status(500).json({ error:"Error updating category(This is an internal server error!)"})
+
+
+        }
+     })
+   
+
+        const deleteCategory = asyncHandler(async (req, res) => {
+                try {
+                    const deleted = await Category.findByIdAndRemove(req.params.categoryId)
+                    res.json(deleted)
+
+                } catch (error) {
+                    console.error(error)
+                    res.status(500).json({ error:"Error deleting category(This is an internal server error!)"})
+
+                }
+        })
+
+
+export   {createCategory, updateCategory, deleteCategory};

@@ -66,5 +66,34 @@ const createCategory = asyncHandler(async (req, res) => {
                 }
         })
 
+            const categoryList = asyncHandler(async (req, res) => {
 
-export   {createCategory, updateCategory, deleteCategory};
+                try {
+                    const allCategories = await Category.find({})
+                    res.json(allCategories)
+
+                    
+                } catch (error) {
+                    console.log(error)
+                    return res.status(400).json({ error:"Error fetching categories(This is an internal server error!)"})
+
+                }
+            })
+
+
+
+            const readCategory = asyncHandler(async (req, res) => {
+                try {
+                    const category = await Category.findOne({_id: req.params.categoryId})
+                    res.json(category)
+
+                    
+                } catch (error) {
+                   console.log(error)
+                   return res.status(400).json({ error:"Error fetching category(This is an internal server error!)"})
+ 
+                }
+
+            })
+
+export   {createCategory, updateCategory, deleteCategory, categoryList, readCategory};

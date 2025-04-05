@@ -49,7 +49,7 @@ const Navigation = () => {
   return (
     <div style={{zIndex: 999}} 
          className= {`${showSidebar ? 'hidden' : 'flex'}
-         xl:flex lg:flex md:hidden sm:hidden flex-col justify-between p-4
+         xl:flex lg:flex md:flex sm:flex flex-col justify-between p-4
          text-white bg-black w-[4%] hover:w-[15] h-[100vh] fixed `} 
          id='navigation-container'>
             <div className="flex flex-col justify-center space-y-4">
@@ -117,19 +117,21 @@ const Navigation = () => {
                                         <>
                                         
 
+                                       
+
+
+
                                         <li>
-                                        <Link to='/admin/logout'
-                                        onClick={logoutHandler} 
-                                        className='block px-4 py-2 hover:bg-gray-100' > 
-                                            Logout
+                                        <Link to='/admin/users' 
+                                        className='block px-4 py-2 hover:bg-gray-100' >Admin Dash!
                                         </Link>
                                         </li>
 
-
-
                                         <li>
-                                        <Link to='/admin' 
-                                        className='block px-4 py-2 hover:bg-gray-100' >Admin Dash!🚫
+                                        <Link to='/logout'
+                                        onClick={logoutHandler} 
+                                        className='block px-4 py-2 hover:bg-gray-100' > 
+                                            Logout
                                         </Link>
                                         </li>
 
@@ -168,7 +170,7 @@ const Navigation = () => {
                                         </li>
 
                                         <li>
-                                        <Link to='/admin/profile' 
+                                        <Link to='/profile' 
                                         className='block px-4 py-2 hover:bg-gray-100' >
                                             
                                              Profile
@@ -176,7 +178,16 @@ const Navigation = () => {
                                         </li>
 
 
-                                     
+                                        <li>
+                                        <Link to='/logout'
+                                        onClick={logoutHandler} 
+                                        className='block px-4 py-2 hover:bg-gray-100' > 
+                                            Logout
+                                        </Link>
+                                        </li>
+
+
+
                                         </>
                                     )}
                                        <li>
@@ -188,7 +199,7 @@ const Navigation = () => {
                                         </li>
 
                                         <li>
-                                        <Link to='/admin/logout'
+                                        <Link to='/logout'
                                         onClick={logoutHandler} 
                                         className='block px-4 py-2 hover:bg-gray-100' > 
                                             Logout

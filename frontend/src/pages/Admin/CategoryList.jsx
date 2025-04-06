@@ -112,7 +112,7 @@ const handleDeleteCategory = async () => {
         <div className="flex flex-wrap">
             {categories?.map(category => (
                 <div key={category._id} className="bg-gray-200 p-4 m-2 rounded-lg shadow-md w-[30%]">
-                    <h2 className="text-lg font-semibold">{category.name}</h2>
+                    <h2 className="text-lg font-semibold">{/*category.name*/}</h2>
                     <button 
                     className="bg-blue-500 text-orange border border-pink-500 py-2 px-4 rounded-lg m-3 
                     hover:bg-orange-500 hover:text-white focus:outline-none focus:ring-orange-500"
@@ -121,7 +121,11 @@ const handleDeleteCategory = async () => {
                         selectedCategory(category)
                         setUpdatingName(category.name)}}}
                     >{category.name}</button>
-                    <button onClick={() => handleDeleteCategory(category._id)} className="bg-red-500 text-white py-1 px-3 rounded-lg mt-2">Delete</button>
+                    <button onClick={() => {
+                        setSelectedCategory(category)
+                        handleDeleteCategory(category._id)} }
+                        className="bg-red-500 text-white py-1 px-3 rounded-lg mt-2">
+                            X </button>
                 </div>
             ))}
         </div>

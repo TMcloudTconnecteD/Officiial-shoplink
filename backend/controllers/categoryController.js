@@ -56,7 +56,7 @@ const createCategory = asyncHandler(async (req, res) => {
 
         const deleteCategory = asyncHandler(async (req, res) => {
                 try {
-                    const deleted = await Category.findByIdAndRemove(req.params.categoryId)
+                    const deleted = await Category.findByIdAndDelete(req.params.categoryId)
                     res.json(deleted)
 
                 } catch (error) {

@@ -123,7 +123,7 @@ const updateHandler = async (id) => {
                                 </div>
                             ):( 
                                 <div className="flex items-center">
-                                    {user.name}{''}
+                                    {user.username}{''}
                                     <button onClick={() => toggleEdit(user._id, user.username, user.email)}>
                                         <FaEdit className='ml-[1rem]' />
 

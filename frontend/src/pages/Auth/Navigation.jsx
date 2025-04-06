@@ -50,7 +50,7 @@ const Navigation = () => {
     <div style={{zIndex: 999}} 
          className= {`${showSidebar ? 'hidden' : 'flex'}
          xl:flex lg:flex md:flex sm:flex flex-col justify-between p-4
-         text-white bg-black w-[4%] hover:w-[15] h-[100vh] fixed `} 
+         text-white bg-black w-[4%] hover:w-[15] h-[100%] fixed `} 
          id='navigation-container'>
             <div className="flex flex-col justify-center space-y-4">
         <Link to = '/' className='flex  items-center transition-transform transform hover:translate-x-2'>
@@ -143,7 +143,7 @@ const Navigation = () => {
                                         </li>
 
                                         <li>
-                                        <Link to='/admin/categorylist' 
+                                        <Link to='/admin/categories' 
 
                                         className='block px-4 py-2 hover:bg-gray-100' > 
                                             Category

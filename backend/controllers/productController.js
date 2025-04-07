@@ -1,5 +1,5 @@
 import asyncHandler from "../middlewares/asyncHandler.js";
-import product from "../models/productModel.js";
+import Product from "../models/productModel.js";
 
 const createProduct = asyncHandler(async (req, res) => {
   //res.send ('hallo')
@@ -11,24 +11,24 @@ const createProduct = asyncHandler(async (req, res) => {
           // console.log(name, description, price, category, quantity,brand)
             switch (true) {
                 case !name:
-                    return res.json({name: "Name is required, come on!"})
+                    return res.json({error: "Name is required, come on!"})
                 case !description:
-                    return res.json({description: "Description is required, come on!"})
+                    return res.json({error: "Description is required, come on!"})
                 case !price:
-                    return res.json({price: "Price is required, come on!"})
+                    return res.json({error: "Price is required, come on!"})
                 case !category:
-                    return res.json({category: "Category is required, come on!"})
+                    return res.json({error: "Category is required, come on!"})
                 case !quantity:
-                    return res.json({quantity: "Quantity is required, come on!"})
+                    return res.json({error: "Quantity is required, come on!"})
                 case !brand:
-                    return res.json({brand: "Brand is required, come on!"})
+                    return res.json({error: "Brand is required, come on!"})
 
 
 
             }
-          const newProduct = new product({...req.fields})   
-            await newProduct.save()
-            res.json(newProduct)
+          const product = new Product({...req.fields})   
+            await product.save()
+            res.json(product)
 
         } catch (error) {
             console.error(error)
@@ -44,26 +44,25 @@ const updateProduct = asyncHandler(async (req, res) => {
           // console.log(name, description, price, category, quantity,brand)
             switch (true) {
                 case !name:
-                    return res.json({name: "Name is required, come on!"})
+                    return res.json({error: "Name is required, come on!"})
                 case !description:
-                    return res.json({description: "Description is required, come on!"})
+                    return res.json({error: "Description is required, come on!"})
                 case !price:
-                    return res.json({price: "Price is required, come on!"})
+                    return res.json({error: "Price is required, come on!"})
                 case !category:
-                    return res.json({category: "Category is required, come on!"})
+                    return res.json({error: "Category is required, come on!"})
                 case !quantity:
-                    return res.json({quantity: "Quantity is required, come on!"})
+                    return res.json({error: "Quantity is required, come on!"})
                 case !brand:
-                    return res.json({brand: "Brand is required, come on!"})
+                    return res.json({error: "Brand is required, come on!"})
 
 
 
             }
-             const product = await product
-             .findByIdAndUpdate(req.params.id , 
+             const product = await Product.findByIdAndUpdate(req.params.id , 
                 {...req.fields} , 
                 {new: true})
-                await product.save()
+                await product.save();
             res.json(product)
 
 
@@ -77,7 +76,7 @@ const updateProduct = asyncHandler(async (req, res) => {
 const deleteProduct = asyncHandler(async (req, res) => {
     try {
 
-        const product = await product.findByIdAndDelete(req.params.id)
+        const product = await Product.findByIdAndDelete(req.params.id)
         res.json(product)
         
     } catch (error) {
@@ -94,8 +93,8 @@ const fetchProducts = asyncHandler(async (req, res) => {
         const keyword = req.query.keyword ?
          {name: {$regex: req.query.keyword, 
             $options: "i"}} : {}
-            const count = await product.countDocuments({...keyword})
-            const products = await product.find({...keyword})
+            const count = await Product.countDocuments({...keyword})
+            const products = await Product.find({...keyword})
             .limit(pageSize)
             res.json({products,
                  page: 1,
@@ -111,7 +110,7 @@ const fetchProducts = asyncHandler(async (req, res) => {
 
 const fetchProductsbyId = asyncHandler(async (req, res) => {
     try {
-        const product = await product.findById(req.params.id)
+        const product = await Product.findById(req.params.id)
         if (product) {
             return res.json(product)
             
@@ -131,7 +130,7 @@ const fetchProductsbyId = asyncHandler(async (req, res) => {
 const fetchAllProducts = asyncHandler(async (req, res) => {
     try {
         
-        await product.find({})
+        const products = await Product.find({})
         .populate("category")
         .limit(10)
         .sort({createdAt: -1})
@@ -141,7 +140,7 @@ const fetchAllProducts = asyncHandler(async (req, res) => {
 
     } catch (error) {
         console.error(error)
-        res.status(500).json({error: "Error getting product"}) 
+        res.status(500).json({error: "Error getting products"}) 
 
         
     }
@@ -151,7 +150,7 @@ const fetchAllProducts = asyncHandler(async (req, res) => {
 const createProductReviews = asyncHandler(async (req, res) => {
     try {
         const {rating, comment} = req.body
-        const product = await product.findById(req.params.id)
+        const product = await Product.findById(req.params.id)
 
         if (product) {
             const alreadyReviewed = product.reviews.find(r => r.user.toString() === req.user._id.toString())
@@ -188,7 +187,7 @@ const fetchTopProducts = asyncHandler(async (req, res) => {
     try {
         
 
-        const products = await product.find({}).sort({rating: -1}).limit(4)
+        const products = await Product.find({}).sort({rating: -1}).limit(4)
         res.json(products)
 
 
@@ -204,7 +203,7 @@ const fetchNewProducts = asyncHandler(async (req, res) => {
     try {
        
         
-        const products = await product.find({}).sort({_id: -1}).limit(5)
+        const products = await Product.find({}).sort({_id: -1}).limit(5)
         res.json(products)
 
 

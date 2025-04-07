@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useCreateProductMutation, useUploadProductImageMutation } from '../../redux/Api/productApiSlice';
 import { useFetchCategoriesQuery } from '../../redux/Api/categoryApiSlice';
 import { toast } from 'react-toastify';
-import product from '../../../../backend/models/productModel';
+import AdminMenu from './AdminMenu';
+//import product from '../../../../backend/models/productModel';
 
 const ProductList = () => {
 const [image, setImage] = useState('')
@@ -24,7 +25,7 @@ const { data: categories } = useFetchCategoriesQuery()
 // console.log(categories)
 
 const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
         
         const productData = new FormData()
@@ -40,7 +41,7 @@ const handleSubmit = async (e) => {
 
 
         const { data } = await createProduct(productData)
-            if (data?.error) {
+            if (data.error) {
                 toast.error('Cannot create Product, try again')
 
 
@@ -95,6 +96,7 @@ const uploadFileHandler = async (e) => {
 }
 return (
     <div className="max-w-6xl mx-auto mt-20 px-4">
+      <AdminMenu />
       <div className="bg-white rounded-2xl shadow-xl p-6 md:p-10">
         <h2 className="text-2xl font-bold mb-6 text-gray-800">Create Product 🗽</h2>
   
@@ -207,7 +209,7 @@ return (
   
           <div className="mt-10 text-center">
             <button
-              type="submit"
+              onClick={handleSubmit}
               className="bg-pink-500 hover:bg-pink-600 text-white px-8 py-3 rounded-lg font-semibold shadow-md transition-all"
             >
               Submit

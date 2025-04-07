@@ -55,7 +55,7 @@ const Navigation = () => {
          text-white bg-black w-[4%] hover:w-[15] h-[100%] fixed `} 
          id='navigation-container'>
             <div className="flex flex-col justify-center space-y-4">
-        <Link to = '/' className='flex  items-center transition-transform transform hover:translate-x-2 text-orange-500'>
+        <Link to = '/admin/allproductslist' className='flex  items-center transition-transform transform hover:translate-x-2 text-orange-500'>
 
         <AiOutlineHome className='mr-2 mt-[3rem]  size={26} text-orange-500'/>
         <span className="hidden nav-item-name mt-[3rem]">Home</span>{" "}
@@ -161,7 +161,7 @@ const Navigation = () => {
                                         </li>
 
                                         <li>
-                                        <Link to='/admin/productlist' 
+                                        <Link to='admin/productlist' 
                                         onClick={handleOptionClick}
                                         className='block px-4 py-2 hover:bg-gray-100' >
                                             Products

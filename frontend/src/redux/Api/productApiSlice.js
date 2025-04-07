@@ -1,5 +1,5 @@
-import { get } from "mongoose";
-import { createProduct } from "../../../../backend/controllers/productController";
+
+
 import { PRODUCT_URL, UPLOAD_URL } from "../features/constants.js";
 import { apiSlice } from "./apiSlice.js";
 
@@ -15,7 +15,7 @@ export const productApiSlice = apiSlice.injectEndpoints({
             }),
 
             keepUnusedDataFor: 5,
-            providesTags:['Product'],
+            providesTags:['Products'],
         }),
 
 
@@ -23,7 +23,7 @@ export const productApiSlice = apiSlice.injectEndpoints({
             query:(productId) => `${PRODUCT_URL}/${productId}`,
             providesTags:(result,error,productId) => [
                 {type: 'Product', id: productId},
-            ]
+            ],
         }),
 
 
@@ -41,10 +41,10 @@ export const productApiSlice = apiSlice.injectEndpoints({
         }),
 
         createProduct: builder.mutation({
-            query: (newProduct) => ({
-                url: PRODUCT_URL,
+            query: (productData) => ({
+                url: `${PRODUCT_URL}`,
                 method: 'POST',
-                body: newProduct,
+                body: productData,
             }),
             invalidatesTags: ['Product'],
         }),

@@ -43,7 +43,9 @@ const Navigation = () => {
         }
     }
 
-
+    const handleOptionClick = () => {
+        setDropDownOpen(false); // Closes the dropdown when an option is clicked
+    };
 
 
   return (
@@ -53,28 +55,28 @@ const Navigation = () => {
          text-white bg-black w-[4%] hover:w-[15] h-[100%] fixed `} 
          id='navigation-container'>
             <div className="flex flex-col justify-center space-y-4">
-        <Link to = '/' className='flex  items-center transition-transform transform hover:translate-x-2'>
+        <Link to = '/' className='flex  items-center transition-transform transform hover:translate-x-2 text-orange-500'>
 
-        <AiOutlineHome className='mr-2 mt-[3rem]' size={26}/>
+        <AiOutlineHome className='mr-2 mt-[3rem]  size={26} text-orange-500'/>
         <span className="hidden nav-item-name mt-[3rem]">Home</span>{" "}
         </Link>
 
-        <Link to = '/shop' className='flex  items-center transition-transform transform hover:translate-x-2'>
+        <Link to = '/shop' className='flex  items-center transition-transform transform hover:translate-x-2 text-orange-500'>
 
-<AiOutlineShopping className='mr-2 mt-[3rem]' size={26}/>
+<AiOutlineShopping className='mr-2 mt-[3rem] text-orange-500 size={26}'/>
 <span className="hidden nav-item-name mt-[3rem]">Shop</span>{" "}
 </Link>
 
-<Link to = '/cart' className='flex  items-center transition-transform transform hover:translate-x-2'>
+<Link to = '/cart' className='flex  items-center transition-transform transform hover:translate-x-2 text-orange-500'>
 
-<AiOutlineShoppingCart className='mr-2 mt-[3rem]' size={26}/>
+<AiOutlineShoppingCart className='mr-2 mt-[3rem] text-orange-500 size={26}'/>
 <span className="hidden nav-item-name mt-[3rem]">Cart</span>{" "}
 </Link>
 
 
-<Link to = '/favorite' className='flex  items-center transition-transform transform hover:translate-x-2'>
+<Link to = '/favorite' className='flex  items-center transition-transform transform hover:translate-x-2 text-orange-500'>
 
-<FaHeart className='mr-2 mt-[3rem]' size={26}/>
+<FaHeart className='mr-2 mt-[3rem] text-orange-500 size={26}'/>
 <span className="hidden nav-item-name mt-[3rem] " >Favorite</span>{" "}
 </Link>
 
@@ -110,8 +112,9 @@ const Navigation = () => {
                         </button>
 
                             {dropdownOpen &&  userInfo &&(
-                                <ul className={`absolute right-0 mr-14 space-y-2 bg-wheat text-gray-600
-                                    ${!userInfo.isAdmin ? '-top-20' : '-top-40'}`} >
+                                <ul className={`absolute  right-[-5rem] w-[11rem] bg-white text-gray-800 p-2 rounded shadow-lg space-y-2 z-50 transition-all duration-300 ease-in-out origin-top-right
+                                    ${dropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}
+                                    ${!userInfo.isAdmin ? 'top-16' : '-top-28'} max-h-60 overflow-y-auto`} >
 
                                     {userInfo.isAdmin &&  (
                                         <>
@@ -123,68 +126,65 @@ const Navigation = () => {
 
                                         <li>
                                         <Link to='/admin/users' 
-                                        className='block px-4 py-2 hover:bg-gray-100' >Admin Dash!
+                                        onClick={handleOptionClick}
+                                        className='block px-4 py-2 hover:bg-gray-100 text-orange-500' >Users!
+                                        
                                         </Link>
                                         </li>
 
                                         <li>
                                         <Link to='/logout'
                                         onClick={logoutHandler} 
-                                        className='block px-4 py-2 hover:bg-gray-100' > 
+                                        className='block px-4 py-2 hover:bg-gray-100 text-orange-500' > 
                                             Logout
                                         </Link>
                                         </li>
 
-                                        <li>
-                                        <Link to='/admin/productlist' 
-                                        className='block px-4 py-2 hover:bg-gray-100' >
-                                            Products
-                                        </Link>
-                                        </li>
 
                                         <li>
                                         <Link to='/admin/categories' 
+                                        onClick={handleOptionClick}
 
-                                        className='block px-4 py-2 hover:bg-gray-100' > 
+                                        className='block px-4 py-2 hover:bg-gray-100 text-orange-500' > 
                                             Category
 
                                         </Link>
                                         </li>
 
                                         <li>
-                                        <Link to='/admin/ordrerlist' 
+                                        <Link to='/profile' 
+                                        onClick={handleOptionClick}
+                                        className='block px-4 py-2 hover:bg-gray-100 text-orange-500' >
+                                            
+                                             Profile
+                                        </Link>
+                                        </li>
 
+                                        <li>
+                                        <Link to='/admin/productlist' 
+                                        onClick={handleOptionClick}
+                                        className='block px-4 py-2 hover:bg-gray-100' >
+                                            Products
+                                        </Link>
+                                        </li> 
+                                            
+                                       
+
+                                        <li>
+                                        <Link to='/admin/ordrerlist' 
+                                        onClick={handleOptionClick}
                                         className='block px-4 py-2 hover:bg-gray-100' > 
                                             Orders
 
                                         </Link>
                                         </li>
 
-                                        <li>
-                                        <Link to='/admin/userslist' 
+                                       
 
-                                        className='block px-4 py-2 hover:bg-gray-100' > 
-                                            Users
-
-                                        </Link>
-                                        </li>
-
-                                        <li>
-                                        <Link to='/profile' 
-                                        className='block px-4 py-2 hover:bg-gray-100' >
-                                            
-                                             Profile
-                                        </Link>
-                                        </li>
+                                        
 
 
-                                        <li>
-                                        <Link to='/logout'
-                                        onClick={logoutHandler} 
-                                        className='block px-4 py-2 hover:bg-gray-100' > 
-                                            Logout
-                                        </Link>
-                                        </li>
+                                       
 
 
 
@@ -192,7 +192,8 @@ const Navigation = () => {
                                     )}
                                        <li>
                                         <Link to='/profile' 
-                                        className='block px-4 py-2 hover:bg-gray-100' >
+                                        onClick={handleOptionClick}
+                                        className='block px-4 py-2 hover:bg-gray-100 text-orange-500' >
                                             
                                              Profile
                                         </Link>
@@ -201,7 +202,7 @@ const Navigation = () => {
                                         <li>
                                         <Link to='/logout'
                                         onClick={logoutHandler} 
-                                        className='block px-4 py-2 hover:bg-gray-100' > 
+                                        className='block px-4 py-2 hover:bg-gray-100 text-orange-500' > 
                                             Logout
                                         </Link>
                                         </li>

@@ -1,6 +1,11 @@
 import React, { useState } from 'react'
 import { FaTimes } from 'react-icons/fa'
-import { NavLink } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useLogoutMutation } from '../../redux/api/usersApiSlice.js'
+import { logout } from '../../redux/features/auth/authSlice.js'
+import { Link } from 'react-router-dom'
+
 
 const AdminMenu = () => {
 
@@ -11,6 +16,24 @@ const AdminMenu = () => {
     }
 
 
+             const dispatch = useDispatch()
+                const navigate = useNavigate()
+                const [logoutApiCall] = useLogoutMutation()
+
+ const logoutHandler = async () => {
+        try {
+          const response =  await logoutApiCall().unwrap();
+          console.log('logout success', response)
+            // Optionally, you can show a success message or perform any other actions here
+
+            dispatch(logout());
+            navigate('/login');
+            } catch (error) {
+           console.error('Logout Failed', error)
+           alert('Logout failed. Please try again.')
+ 
+        }
+    }
 
   return (
     <>
@@ -83,6 +106,14 @@ const AdminMenu = () => {
                     })}>ManageOrders</NavLink>
 
                 </li>
+
+                <li>
+                                                        <Link to='/logout'
+                                                        onClick={logoutHandler} 
+                                                        className='block px-4 py-2 hover:bg-gray-100 text-orange-500' > 
+                                                            Logout
+                                                        </Link>
+                                                        </li>
             </ul>
         </section>
 

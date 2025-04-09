@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Loader from '../../components/Loader';
 import { toast } from 'react-toastify';
-import { useGetUsersQuery, useDeleteUserMutation,  useUpdateUserMutation} from '../../redux/Api/usersApiSlice';
+import { useGetUsersQuery, useDeleteUserMutation,  useUpdateUserMutation} from '../../redux/api/usersApiSlice';
 import Messages from '../../components/Messages';
 import { FaCheck, FaEdit, FaTimes, FaTrash } from 'react-icons/fa';
 

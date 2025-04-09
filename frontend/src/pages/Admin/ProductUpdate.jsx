@@ -6,8 +6,8 @@ import {
   useDeleteProductMutation,
   useGetProductByIdQuery,
   useUploadProductImageMutation,
-} from "../../redux/Api/productApiSlice";
-import { useFetchCategoriesQuery } from "../../redux/Api/categoryApiSlice";
+} from "../../redux/api/productApiSlice";
+import { useFetchCategoriesQuery } from "../../redux/api/categoryApiSlice";
 import { toast } from "react-toastify";
 import { Pencil, Trash2 } from "lucide-react";
 
@@ -78,12 +78,22 @@ const AdminProductUpdate = () => {
       formData.append("brand", brand);
       formData.append("countInStock", stock);
 
-      const result = await updateProduct({ productId: params._id, formData }).unwrap();
+       const data = await updateProduct({ productId: params._id, formData })
 
-      toast.success("Product successfully updated", { position: "top-right", autoClose: 2000 });
-      navigate("/admin/allproductslist");
+       if (data?.error) {
+        toast.error(data.error, {
+            position: "top-right", autoClose: 3000
+        });
+      } else {
+        toast.success(`Product successfully updated`, {
+            position: "top-right", autoClose: 3000
+        });
+        navigate("/admin/allproductslist");
+      }
+
+
     } catch (err) {
-      console.error("Update Error:", err);
+      console.log("Update Error:", err);
       const errorMessage = err?.data?.message || err?.error || "Product update failed. Try again.";
       toast.error(errorMessage, { position: "top-right", autoClose: 3000 });
     }

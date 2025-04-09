@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
-import { useCreateProductMutation, useUploadProductImageMutation } from '../../redux/Api/productApiSlice';
-import { useFetchCategoriesQuery } from '../../redux/Api/categoryApiSlice';
+import { useCreateProductMutation, useUploadProductImageMutation } from '../../redux/api/productApiSlice';
+import { useFetchCategoriesQuery } from '../../redux/api/categoryApiSlice';
 import { toast } from 'react-toastify';
 import AdminMenu from './AdminMenu';
 //import product from '../../../../backend/models/productModel';

@@ -7,16 +7,16 @@ import Product from "./Products/Product";
 
 const Home = () => {
   const { keyword } = useParams();
-  const { data, isLoading, isError } = useGetProductsQuery({ keyword });
+  const { data, isLoading, error } = useGetProductsQuery({ keyword });
 
   return (
     <>
       {!keyword ? <Header /> : null}
       {isLoading ? (
         <Loader />
-      ) : isError ? (
+      ) : error ? (
         <Message variant="danger">
-          {isError?.data.message || isError.error}
+          {error?.data.message || error.error}
         </Message>
       ) : (
         <>

@@ -70,7 +70,7 @@ const Navigation = () => {
 <span className="hidden nav-item-name mt-[3rem]">Shop</span>{" "}
 </Link>
 
-<Link to="/cart" className="flex relative">
+<Link to="/cart" className="flex relative text-orange-500">
           <div className="flex items-center transition-transform transform hover:translate-x-2">
             <AiOutlineShoppingCart className="mt-[3rem] mr-2 text-orange-500" size={26} />
             <span className="hidden nav-item-name mt-[3rem]">Cart</span>{" "}
@@ -87,7 +87,7 @@ const Navigation = () => {
           </div>
         </Link>
 
-        <Link to="/favorite" className="flex relative">
+        <Link to="/favorite" className="flex relative text-orange-500">
           <div className="flex justify-center items-center transition-transform transform hover:translate-x-2">
             <FaHeart className="mt-[3rem] mr-2 text-orange-500" size={20} />
             <span className="hidden nav-item-name mt-[3rem]">
@@ -234,16 +234,16 @@ const Navigation = () => {
             {!userInfo && (
                 <ul>
                 <li>
-                    <Link to='/login' className='flex items-center transition-transform transform hover:translate-x-2'>
-                        <AiOutlineLogin className='mr-2 mt-[3rem]' size={26}/>
+                    <Link to='/login' className='flex items-center transition-transform transform hover:translate-x-2 text-orange-500'>
+                        <AiOutlineLogin className='mr-2 mt-[3rem] text-white' size={26}/>
                         <span className="hidden nav-item-name mt-[3rem]">Login</span>{" "}
                     </Link>
                 </li>
     
     
                 <li>
-                    <Link to='/register' className='flex items-center transition-transform transform hover:translate-x-2'>
-                        <AiOutlineUserAdd className='mr-2 mt-[3rem]' size={26}/>
+                    <Link to='/register' className='flex items-center transition-transform transform hover:translate-x-2 text-orange-500'>
+                        <AiOutlineUserAdd className='mr-2 mt-[3rem] text-pink-500' size={26}/>
                         <span className="hidden nav-item-name mt-[3rem]">Register</span>{" "}
                     </Link>
                 </li>

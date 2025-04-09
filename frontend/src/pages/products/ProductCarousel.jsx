@@ -34,8 +34,8 @@ const ProductCarousel = () => {
         </Message>
       ) : (
         <div className="flex justify-end">
-          <div className="w-full lg:w-1/2">
-            <Slider {...settings} className="w-full">
+          <div className="w-1/2 lg:w-1/2">
+            <Slider {...settings} className="w-full color-black">
               {products.map(
                 ({
                   image,
@@ -67,7 +67,7 @@ const ProductCarousel = () => {
                           $ {price}
                         </p>
                         <p className="mt-4 text-gray-500 dark:text-gray-300 w-full lg:w-[25rem]">
-                          {description.substring(0, 170)} ...
+                          {description.substring(0, 50)} ...
                         </p>
                       </div>
 

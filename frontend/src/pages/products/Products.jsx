@@ -66,8 +66,8 @@ const Products = () => {
   return (
     <>
       {/* Header / Go Back Link */}
-      <div className="container mx-auto px-4 mt-4">
-        <Link className="text-pink-600 font-semibold hover:underline" to="/">
+      <div className="container mx-auto px-4 mt-4 py-4 flex justify-between items-center">
+        <Link className="text-pink-600 font-semibold hover:underline " to="/">
           Go Back
         </Link>
       </div>

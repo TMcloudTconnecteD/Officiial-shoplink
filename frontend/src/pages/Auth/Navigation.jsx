@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import {AiOutlineHome, AiOutlineUserAdd, AiOutlineShopping, AiOutlineLogin, AiOutlineShoppingCart} from 'react-icons/ai'
+import {AiOutlineHome, AiOutlineUserAdd, AiOutlineShopping, AiOutlineLogin, AiOutlineShoppingCart, AiOutlineShop} from 'react-icons/ai'
 import {FaHeart} from 'react-icons/fa'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
@@ -69,6 +69,13 @@ const Navigation = () => {
 <AiOutlineShopping className='mr-2 mt-[3rem] text-orange-500 'size={26}/>
 <span className="hidden nav-item-name mt-[3rem]">Shop</span>{" "}
 </Link>
+
+<Link to = '/Admin/shops' className='flex  items-center transition-transform transform hover:translate-x-2 text-orange-500'>
+
+<AiOutlineShop className='mr-2 mt-[3rem] text-orange-500 color-green-500'size={26}/>
+<span className="hidden nav-item-name mt-[3rem]">Mall</span>{" "}
+</Link>
+
 
 <Link to="/cart" className="flex relative text-orange-500">
           <div className="flex items-center transition-transform transform hover:translate-x-2">
@@ -200,7 +207,7 @@ const Navigation = () => {
 
                                        
                                         <li>
-                                        <Link to='/Admin/shops' 
+                                        <Link to='/Admin/myshops' 
                                         onClick={handleOptionClick}
                                         className='block px-4 py-2 hover:bg-gray-100 text-orange-500' > 
                                             Super Admin

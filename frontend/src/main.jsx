@@ -24,7 +24,7 @@ import ProductDetails from "./pages/products/ProductDetails.jsx";
 import Cart from "./pages/Cart.jsx";
 import Shop from "./pages/Shop.jsx";
 import Malls from './pages/Malls.jsx'
-
+import AddShop from './pages/shops/AddShop.jsx'
 
 
 const router = createBrowserRouter(
@@ -51,7 +51,8 @@ const router = createBrowserRouter(
             <Route path='productlist/:pageNumber' element={<ProductList />} />
             <Route path='allproductslist' element={<AllProducts />} />
             <Route path='product/update/:_id' element={<ProductUpdate />} />
-            <Route path='shops' element={<Malls />} />
+            <Route path='myshops' element={<Malls />} />
+            <Route path='shops' element={< AddShop/>} />
          </Route>
     </Route>
   )

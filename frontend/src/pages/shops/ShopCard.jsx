@@ -19,7 +19,7 @@ const ShopCard = ({ shop }) => {
   return (
     <div className="max-w-sm bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform transform hover:scale-105">
       <section className="relative">
-        <Link to={`/shop/${shop._id}`}>
+        <Link to={`/shops/${shop._id}`}>
           <span className="absolute top-3 left-3 bg-pink-100 text-pink-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-pink-900 dark:text-pink-300">
             {shop.name}
           </span>

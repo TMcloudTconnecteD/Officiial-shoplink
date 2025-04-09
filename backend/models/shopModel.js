@@ -10,7 +10,7 @@ const shopSchema = new mongoose.Schema({
     maxLength: 50,
     unique: true,
   },
-  logo: {
+  image: {
     type: String,
     default: "", // Optional shop image/logo URL
   },

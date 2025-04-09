@@ -1,18 +1,15 @@
-import { SHOP_URL } from "../features/constants";  // Make sure to update with the correct URL constant
+import { SHOP_URL, UPLOAD_URL } from "../features/constants";  // Make sure to update with the correct URL constant
 import { apiSlice } from "./apiSlice";
 
 export const shopApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         // Fetch all shops with optional filters
         fetchShops: builder.query({
-            query: ({ checked, radio, priceFilter }) => ({
+            query: () => ({
                 url: `${SHOP_URL}/shops`,
                 method: 'GET',
-                params: { 
-                    checked, 
-                    radio, 
-                    price: priceFilter,
-                },
+               
+                
             }),
         }),
 
@@ -49,8 +46,25 @@ export const shopApiSlice = apiSlice.injectEndpoints({
                 method: 'GET',
             }),
         }),
+   
+
+
+// Export hooks for usage in functional components  
+        uploadShopImage: builder.mutation({
+            query: (data) => ({
+
+                url: `${UPLOAD_URL}`,
+                method: 'POST',
+                body: data,
+
+
+
+                
+            }),
+        }),
+
     }),
-});
+});  
 
 export const {
     useCreateShopMutation,
@@ -58,4 +72,6 @@ export const {
     useDeleteShopMutation,
     useFetchShopsQuery,
     useFetchShopsByCategoryQuery,
+    useUploadShopImageMutation,
+
 } = shopApiSlice;

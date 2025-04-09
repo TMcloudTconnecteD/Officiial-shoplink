@@ -64,7 +64,7 @@ const ProductCarousel = () => {
                           {name}
                         </h2>
                         <p className="mt-2 text-xl font-bold text-pink-600">
-                          $ {price}
+                          KES {price}
                         </p>
                         <p className="mt-4 text-gray-500 dark:text-gray-300 w-full lg:w-[25rem]">
                           {description.substring(0, 50)} ...

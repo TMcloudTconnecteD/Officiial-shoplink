@@ -7,6 +7,8 @@ const initialState = {
   radio: [],
   brandCheckboxes: {},
   checkedBrands: [],
+  shops: [],              // 🆕 all shops
+  selectedShop: null,     // 🆕 currently selected shop
 };
 
 const shopSlice = createSlice({
@@ -28,6 +30,12 @@ const shopSlice = createSlice({
     setSelectedBrand: (state, action) => {
       state.selectedBrand = action.payload;
     },
+    setShops: (state, action) => {
+      state.shops = action.payload;
+    },
+    setSelectedShop: (state, action) => {
+      state.selectedShop = action.payload;
+    },
   },
 });
 
@@ -37,6 +45,8 @@ export const {
   setChecked,
   setRadio,
   setSelectedBrand,
+  setShops,           // 🆕 export action
+  setSelectedShop,    // 🆕 export action
 } = shopSlice.actions;
 
 export default shopSlice.reducer;

@@ -73,7 +73,7 @@ const AllProducts = () => {
                             </svg>
                           </Link>
                           <p className="text-lg font-semibold text-gray-800">
-                            ${product?.price}
+                            KES {product?.price}
                           </p>
                         </div>
                       </div>

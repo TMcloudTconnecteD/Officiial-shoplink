@@ -1,0 +1,61 @@
+import { SHOP_URL } from "../features/constants";  // Make sure to update with the correct URL constant
+import { apiSlice } from "./apiSlice";
+
+export const shopApiSlice = apiSlice.injectEndpoints({
+    endpoints: (builder) => ({
+        // Fetch all shops with optional filters
+        fetchShops: builder.query({
+            query: ({ checked, radio, priceFilter }) => ({
+                url: `${SHOP_URL}/shops`,
+                method: 'GET',
+                params: { 
+                    checked, 
+                    radio, 
+                    price: priceFilter,
+                },
+            }),
+        }),
+
+        // Create a new shop
+        createShop: builder.mutation({
+            query: (newShop) => ({
+                url: `${SHOP_URL}`,
+                method: 'POST',
+                body: newShop,
+            }),
+        }),
+
+        // Update an existing shop
+        updateShop: builder.mutation({
+            query: ({ shopId, updatedShop }) => ({
+                url: `${SHOP_URL}/${shopId}`,
+                method: 'PUT',
+                body: updatedShop,
+            }),
+        }),
+
+        // Delete a shop
+        deleteShop: builder.mutation({
+            query: (shopId) => ({
+                url: `${SHOP_URL}/${shopId}`,
+                method: 'DELETE',
+            }),
+        }),
+
+        // Fetch shops by category filter
+        fetchShopsByCategory: builder.query({
+            query: (category) => ({
+                url: `${SHOP_URL}/shops/category/${category}`,
+                method: 'GET',
+            }),
+        }),
+    }),
+});
+
+export const {
+    useCreateShopMutation,
+    useUpdateShopMutation,
+    useDeleteShopMutation,
+    useFetchShopsQuery,
+    useFetchShopsByCategoryQuery,
+} = shopApiSlice;

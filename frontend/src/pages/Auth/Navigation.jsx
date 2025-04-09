@@ -199,7 +199,14 @@ const Navigation = () => {
                                         </li>
 
                                        
+                                        <li>
+                                        <Link to='/Admin/shops' 
+                                        onClick={handleOptionClick}
+                                        className='block px-4 py-2 hover:bg-gray-100 text-orange-500' > 
+                                            Super Admin
 
+                                        </Link>
+                                        </li>
                                         
 
 
@@ -208,7 +215,18 @@ const Navigation = () => {
 
 
                                         </>
-                                    )} 
+                                    ) }
+                                    {userInfo.isAdmin.isSuperAdmin && (
+                                        <li>
+                                        <Link to='/Admin/shops' 
+                                        onClick={handleOptionClick}
+                                        className='block px-4 py-2 hover:bg-gray-100 text-orange-500' > 
+                                            Super Admin
+
+                                        </Link>
+                                        </li>
+                                    )}
+                                    
                                        <li>
                                         <Link to='/profile' 
                                         onClick={handleOptionClick}

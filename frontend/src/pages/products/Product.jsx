@@ -25,7 +25,7 @@ const Product = ({ product }) => {
           <h2 className="flex justify-between items-center text-lg font-semibold text-gray-800 dark:text-gray-100">
             <span>{product.name}</span>
             <span className="bg-pink-100 text-pink-800 text-sm font-semibold px-3 py-1 rounded-full dark:bg-pink-800 dark:text-white">
-              ${product.price}
+              KES{product.price}
             </span>
           </h2>
         </Link>

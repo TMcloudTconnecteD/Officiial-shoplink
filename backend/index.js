@@ -8,7 +8,7 @@ import connectDB from './config/db.js';
 
 import userRoutes from './routes/userRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
-
+import shopRoutes from './routes/shopRoutes.js';
  import productRoutes from './routes/productRoutes.js';
  import uploadRoutes from './routes/uploadRoutes.js';
 dotenv.config();
@@ -26,6 +26,7 @@ app.use('/api/users', userRoutes)
 app.use('/api/category', categoryRoutes)
 app.use('/api/products', productRoutes)
 app.use('/api/uploads', uploadRoutes)
+app.use('/api/shops', shopRoutes)
 
 const __dirname = path.resolve();
 app.use('/uploads', express.static(path.join(__dirname + '/uploads')))

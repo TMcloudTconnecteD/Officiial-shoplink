@@ -3,7 +3,7 @@ import { useGetProductsQuery } from "../redux/api/productApiSlice";
 import Loader from "../components/Loader";
 import Message from "../components/Message";
 import Header from "../components/Header";
-import Product from "./Products/Product";
+import Product from "./products/Product";
 
 const Home = () => {
   const { keyword } = useParams();
@@ -16,7 +16,7 @@ const Home = () => {
         <Loader />
       ) : error ? (
         <Message variant="danger">
-          {error?.data.message || error.error}
+          {error?.data?.message || error.error}
         </Message>
       ) : (
         <>

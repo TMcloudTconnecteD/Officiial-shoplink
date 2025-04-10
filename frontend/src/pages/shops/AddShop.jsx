@@ -6,13 +6,13 @@ import { toast } from 'react-toastify';
 import AdminMenu from '../../pages/Admin/AdminMenu';
 
 const CreateShop = () => {
-  const [shopName, setShopName] = useState('');
+  const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [location, setLocation] = useState('');
   const [countryCode, setCountryCode] = useState('+254');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [shopImage, setShopImage] = useState('');
+  const [image, setImage] = useState('');
   const [imageUrl, setImageUrl] = useState(null);
   const navigate = useNavigate();
 
@@ -26,19 +26,19 @@ const CreateShop = () => {
     try {
       const contactInfo = `${countryCode}${phoneNumber}`;
       const shopData = new FormData();
-        shopData.append('shopName', shopName);
+        shopData.append('name', name);
         shopData.append('description', description);
         shopData.append('category', category);
         shopData.append('location', location);
         shopData.append('contactInfo', contactInfo);
-        shopData.append('shopImage', shopImage);
+        shopData.append('image', image);
         
 
       const { data } = await createShop(shopData);
       if (data.error) {
         toast.error('Cannot create Shop, try again');
       } else {
-        toast.success(`${data.shopName} created successfully`);
+        toast.success(`${data.name} created successfully`);
         navigate('/');
       }
     } catch (error) {
@@ -49,12 +49,12 @@ const CreateShop = () => {
 
   const uploadFileHandler = async (e) => {
     const formData = new FormData();
-    formData.append('shopImage', e.target.files[0]);
+    formData.append('image', e.target.files[0]);
 
     try {
       const res = await uploadShopImage(formData).unwrap();
       toast.success(res.message);
-      setShopImage(res.shopImage);
+      setImage(res.shopImage);
       setImageUrl(res.shopImage);
     } catch (error) {
       toast.error(error?.data?.message || error.error);
@@ -79,10 +79,10 @@ const CreateShop = () => {
 
         <div className="mb-6">
           <label className="block cursor-pointer bg-pink-100 hover:bg-pink-200 text-pink-600 font-semibold py-3 px-4 text-center rounded-xl shadow-sm transition-all duration-200">
-            {shopImage ? shopImage.name : 'Upload Shop Image'}
+            {image ? image.name : 'Upload Shop Image'}
             <input
               type="file"
-              name="shopImage"
+              name="image"
               accept="image/*"
               onChange={uploadFileHandler}
               className="hidden"
@@ -96,8 +96,8 @@ const CreateShop = () => {
               <label className="block text-sm font-medium mb-1">Shop Name</label>
               <input
                 type="text"
-                value={shopName}
-                onChange={(e) => setShopName(e.target.value)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="Shop name"
                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
               />

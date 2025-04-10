@@ -26,6 +26,12 @@ import Shop from "./pages/Shop.jsx";
 import Malls from './pages/Malls.jsx'
 import AddShop from './pages/shops/AddShop.jsx'
 
+import Shipping from "./pages/Orders/Shipping.jsx";
+import PlaceOrder from "./pages/Orders/PlaceOrder.jsx";
+import Order from "./pages/Orders/Order.jsx";
+import OrderList from "./pages/Admin/OrderList.jsx";
+import { PayPalScriptProvider } from "@paypal/react-paypal-js";
+import AdminDashboard from "./pages/Admin/AdminDashboard.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -40,6 +46,9 @@ const router = createBrowserRouter(
 
          <Route path='' element={<PrivateRoutes />}>
              <Route path='/profile' element={<Profile />} />
+             <Route path="/shipping" element={<Shipping />} />
+        <Route path="/placeorder" element={<PlaceOrder />} />
+        <Route path="/order/:id" element={<Order />} />
           </Route>
          
          {/* admin routes */}
@@ -51,8 +60,10 @@ const router = createBrowserRouter(
             <Route path='productlist/:pageNumber' element={<ProductList />} />
             <Route path='allproductslist' element={<AllProducts />} />
             <Route path='product/update/:_id' element={<ProductUpdate />} />
-            <Route path='myshops' element={<Malls />} />
-            <Route path='shops' element={< AddShop/>} />
+            <Route path='all' element={<Malls />} />
+            <Route path='addshop' element={< AddShop/>} />
+            <Route path="orderlist" element={<OrderList />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
          </Route>
     </Route>
   )

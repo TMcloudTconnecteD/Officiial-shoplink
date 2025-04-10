@@ -1,6 +1,6 @@
 import Shop from "../models/shopModel.js";
 import Category from "../models/categoryModel.js"; // Assuming you have Category model to validate category ID
-import { authenticate, authorizeAdmin } from "../middlewares/authMiddlewares.js";
+
 
 // Create a new shop
 export const createShop = async (req, res) => {
@@ -12,7 +12,7 @@ export const createShop = async (req, res) => {
     // Create a new shop
     const shop = new Shop({
       name: req.body.name,
-      logo: req.body.logo || "", // Optional logo
+      image: req.body.image || "", // Optional logo
       category: req.body.category,
       location: req.body.location,
       owner: req.user._id, // Linking the logged-in user as the shop owner
@@ -70,7 +70,7 @@ export const deleteShop = async (req, res) => {
 // Fetch all shops (admin only)
 export const fetchAllShops = async (req, res) => {
   try {
-    const shops = await Shop.find();
+    const shops = await Shop.find({});
     res.status(200).json(shops);
   } catch (error) {
     res.status(400).json({ message: error.message });

@@ -12,7 +12,7 @@ const shopSchema = new mongoose.Schema({
   },
   image: {
     type: String,
-    default: "", // Optional shop image/logo URL
+    required:true, // Optional shop image/logo URL
   },
   category: {
     type: ObjectId,

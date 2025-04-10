@@ -70,7 +70,7 @@ const Navigation = () => {
 <span className="hidden nav-item-name mt-[3rem]">Shop</span>{" "}
 </Link>
 
-<Link to = '/Admin/shops' className='flex  items-center transition-transform transform hover:translate-x-2 text-orange-500'>
+<Link to = '/Admin/addshop' className='flex  items-center transition-transform transform hover:translate-x-2 text-orange-500'>
 
 <AiOutlineShop className='mr-2 mt-[3rem] text-orange-500 color-green-500'size={26}/>
 <span className="hidden nav-item-name mt-[3rem]">Mall</span>{" "}
@@ -207,7 +207,7 @@ const Navigation = () => {
 
                                        
                                         <li>
-                                        <Link to='/Admin/myshops' 
+                                        <Link to='/Admin/all' 
                                         onClick={handleOptionClick}
                                         className='block px-4 py-2 hover:bg-gray-100 text-orange-500' > 
                                             Super Admin

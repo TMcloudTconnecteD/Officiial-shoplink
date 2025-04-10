@@ -6,7 +6,7 @@ export const shopApiSlice = apiSlice.injectEndpoints({
         // Fetch all shops with optional filters
         fetchShops: builder.query({
             query: () => ({
-                url: `${SHOP_URL}/shops`,
+                url: `${SHOP_URL}/all`,
                 method: 'GET',
                
                 
@@ -16,7 +16,7 @@ export const shopApiSlice = apiSlice.injectEndpoints({
         // Create a new shop
         createShop: builder.mutation({
             query: (newShop) => ({
-                url: `${SHOP_URL}`,
+                url: `${SHOP_URL}/addshop`,
                 method: 'POST',
                 body: newShop,
             }),

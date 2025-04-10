@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import Ratings from "./Ratings";
 import { useGetTopProductsQuery } from "../../redux/api/productApiSlice";
-import SmallProduct from "././SmallProduct";
+import SmallProduct from "./SmallProducts";
 import Loader from "../../components/Loader";
 
 const ProductTabs = ({

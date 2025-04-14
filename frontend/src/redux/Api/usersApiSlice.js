@@ -51,7 +51,7 @@ export const usersApiSlice = apiSlice.injectEndpoints({
                 url: USERS_URL,
               }),
               providesTags: ['User'],
-              keepUnusedDataFor: 5,
+              keepUnusedDataFor: 50,
             }),
 
             deleteUser: builder.mutation({
@@ -71,7 +71,7 @@ export const usersApiSlice = apiSlice.injectEndpoints({
 
 
             }), 
-            keepUnusedDataFor: 5,
+            keepUnusedDataFor: 50,
 
 
           }),

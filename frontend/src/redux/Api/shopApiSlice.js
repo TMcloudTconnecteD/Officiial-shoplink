@@ -11,15 +11,20 @@ export const shopApiSlice = apiSlice.injectEndpoints({
                
                 
             }),
+            validatesTags: ['Shop'],
+
+            keepUnusedDataFor: 50,
+            
         }),
 
         // Create a new shop
         createShop: builder.mutation({
             query: (newShop) => ({
-                url: `${SHOP_URL}/addshop`,
+                url: `${SHOP_URL}`,
                 method: 'POST',
                 body: newShop,
             }),
+            invalidatesTags: ['Shop'],
         }),
 
         // Update an existing shop

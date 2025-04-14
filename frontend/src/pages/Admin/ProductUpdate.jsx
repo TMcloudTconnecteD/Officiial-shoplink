@@ -13,7 +13,7 @@ import { Pencil, Trash2 } from "lucide-react";
 
 // 👇🏾 Loader Component (your custom one)
 const Loader = () => (
-  <div className="flex justify-center items-center min-h-[30vh]">
+  <div className="flex justify-center bg-black items-center min-h-[30vh]">
     <div className="loader animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-cyan-400"></div>
   </div>
 );
@@ -36,7 +36,7 @@ const AdminProductUpdate = () => {
   const [category, setCategory] = useState("");
   const [quantity, setQuantity] = useState("");
   const [brand, setBrand] = useState("");
-  const [stock, setStock] = useState("");
+  const [inStock, setInStock] = useState("");
 
   useEffect(() => {
     if (productData && productData._id) {
@@ -47,7 +47,7 @@ const AdminProductUpdate = () => {
       setQuantity(productData.quantity);
       setBrand(productData.brand);
       setImage(productData.image);
-      setStock(productData.countInStock);
+      setInStock(productData.inStock);
     }
   }, [productData]);
 
@@ -76,7 +76,7 @@ const AdminProductUpdate = () => {
       formData.append("category", category);
       formData.append("quantity", quantity);
       formData.append("brand", brand);
-      formData.append("countInStock", stock);
+      formData.append("inStock", inStock);
 
        const data = await updateProduct({ productId: params._id, formData })
 
@@ -187,8 +187,8 @@ const AdminProductUpdate = () => {
               <input
                 type="number"
                 placeholder="Stock"
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
+                value={inStock}
+                onChange={(e) => setInStock(e.target.value)}
                 className="p-3 bg-[#101011] border border-cyan-600 rounded-lg"
               />
 

@@ -11,7 +11,7 @@ export default defineConfig({
       '/uploads': 'http://localhost:8000',
     },
     allowedHosts: [
-      "30e4-129-222-187-43.ngrok-free.app ", // current ngrok domain
+      "   aee8-105-163-0-218.ngrok-free.app ", // current ngrok domain
       '.ngrok-free.app',                     // wildcard for future ngrok links
     ],
   },

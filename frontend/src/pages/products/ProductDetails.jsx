@@ -71,7 +71,7 @@ const ProductDetails = () => {
           to="/"
           className="text-pink-600 font-semibold hover:underline"
         >
-          Go Back
+          Go Back 
         </Link>
       </div>
 
@@ -134,7 +134,7 @@ const ProductDetails = () => {
                     {product.quantity}
                   </h1>
                   <h1 className="flex items-center mb-3 w-[10rem]">
-                    <FaBox className="mr-2 text-pink-600" /> In Stock: {product.countInStock}
+                    <FaBox className="mr-2 text-pink-600" /> In Stock: {product.inStock}
                   </h1>
                 </div>
               </div>
@@ -142,17 +142,17 @@ const ProductDetails = () => {
               <div className="flex flex-wrap items-center justify-between">
                 <Ratings
                   value={product.rating}
-                  text={`${product.numReviews} reviews`}
+                  text={`${product.numReviews} review(s)`}
                 />
 
-                {product.countInStock > 0 && (
+                {product.inStock > 0 && (
                   <div>
                     <select
                       value={qty}
                       onChange={(e) => setQty(e.target.value)}
                       className="p-2 w-[6rem] rounded-md bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-200"
                     >
-                      {[...Array(product.countInStock).keys()].map((x) => (
+                      {[...Array(product.inStock).keys()].map((x) => (
                         <option key={x + 1} value={x + 1}>
                           {x + 1}
                         </option>
@@ -165,7 +165,7 @@ const ProductDetails = () => {
               <div className="btn-container mt-4">
                 <button
                   onClick={addToCartHandler}
-                  disabled={product.countInStock === 0}
+                  disabled={product.inStock === 0}
                   className="bg-pink-600 hover:bg-pink-700 text-white py-2 px-4 rounded-lg transition-all disabled:opacity-50"
                 >
                   Add To Cart

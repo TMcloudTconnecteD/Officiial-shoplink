@@ -1,109 +1,159 @@
 import Shop from "../models/shopModel.js";
-import Category from "../models/categoryModel.js"; // Assuming you have Category model to validate category ID
+import Category from "../models/categoryModel.js";
+import asyncHandler from "../middlewares/asyncHandler.js";
 
-
-// Create a new shop
-export const createShop = async (req, res) => {
+// ✅ Create a new mall/shop
+const createShop = asyncHandler(async (req, res) => {
   try {
-    // Validate category
-    const category = await Category.findById(req.body.category);
-    if (!category) return res.status(400).json({ message: "Invalid category ID" });
+    const { name, category, location, owner, phone } = req.fields;
+    const image = req.file?.path;
 
-    // Create a new shop
-    const shop = new Shop({
-      name: req.body.name,
-      image: req.body.image || "", // Optional logo
-      category: req.body.category,
-      location: req.body.location,
-      owner: req.user._id, // Linking the logged-in user as the shop owner
+    switch (true) {
+      case !name:
+        return res.json({ error: "Name is required, come on!" });
+      case !location:
+        return res.json({ error: "Location is required, come on!" });
+      case !owner:
+        return res.json({ error: "Owner is required, come on!" });
+      case !phone:
+        return res.json({ error: "Phone No. is required, come on!" });
+      case !category:
+        return res.json({ error: "Category is required, come on!" });
+    }
+
+    const validCategory = await Category.findById(category);
+    if (!validCategory) {
+      return res.status(400).json({ error: "Invalid category ID" });
+    }
+
+    const mall = new Shop({
+      ...req.fields,
+      image,
     });
 
-    const savedShop = await shop.save();
-    res.status(201).json(savedShop);
+    await mall.save();
+    res.json(mall);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error(error);
+    res.status(400).json({ error: error.message });
   }
-};
+});
 
-// Update an existing shop
-export const updateShop = async (req, res) => {
+// ✅ Update existing mall
+const updateShop = asyncHandler(async (req, res) => {
   try {
-    const shop = await Shop.findById(req.params.id);
-    if (!shop) return res.status(404).json({ message: "Shop not found" });
+    const { name, location, owner, phone, category } = req.fields;
+    const image = req.file?.path;
 
-    // Only the shop owner can update it
-    if (shop.owner.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Not allowed to update this shop" });
+    switch (true) {
+      case !name:
+        return res.json({ error: "Name is required, come on!" });
+      case !location:
+        return res.json({ error: "Location is required, come on!" });
+      case !owner:
+        return res.json({ error: "Owner is required, come on!" });
+      case !phone:
+        return res.json({ error: "Phone No. is required, come on!" });
+      case !category:
+        return res.json({ error: "Category is required, come on!" });
     }
 
-    // Update shop details
-    shop.name = req.body.name || shop.name;
-    shop.logo = req.body.logo || shop.logo;
-    shop.category = req.body.category || shop.category;
-    shop.location = req.body.location || shop.location;
-
-    const updatedShop = await shop.save();
-    res.json(updatedShop);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-
-// Delete a shop
-export const deleteShop = async (req, res) => {
-  try {
-    const shop = await Shop.findById(req.params.id);
-    if (!shop) return res.status(404).json({ message: "Shop not found" });
-
-    // Only the owner can delete the shop
-    if (shop.owner.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Not allowed to delete this shop" });
+    const validCategory = await Category.findById(category);
+    if (!validCategory) {
+      return res.status(400).json({ error: "Invalid category ID" });
     }
 
-    await shop.remove();
-    res.status(200).json({ message: "Shop deleted successfully" });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
+    const updateData = {
+      ...req.fields,
+    };
+    if (image) updateData.image = image;
 
-// Fetch all shops (admin only)
-export const fetchAllShops = async (req, res) => {
-  try {
-    const shops = await Shop.find({});
-    res.status(200).json(shops);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
+    const mall = await Shop.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+    });
 
-// Fetch a single shop by ID
-export const fetchShopById = async (req, res) => {
-  try {
-    const shop = await Shop.findById(req.params.id);
-    if (!shop) return res.status(404).json({ message: "Shop not found" });
-    res.status(200).json(shop);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
+    if (!mall) {
+      return res.status(404).json({ error: "Mall not found" });
+    }
 
-// Fetch shops by category
-export const fetchShopsByCategory = async (req, res) => {
-  try {
-    const shops = await Shop.find({ category: req.params.categoryId });
-    res.status(200).json(shops);
+    res.json(mall);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error(error);
+    res.status(400).json({ error: error.message });
   }
-};
+});
 
-// Fetch all shops owned by the current user (owner)
-export const fetchUserShops = async (req, res) => {
+// ✅ Delete a mall
+const deleteShop = asyncHandler(async (req, res) => {
   try {
-    const shops = await Shop.find({ owner: req.user._id });
-    res.status(200).json(shops);
+    const mall = await Shop.findByIdAndDelete(req.params.id);
+    if (!mall) {
+      return res.status(404).json({ error: "Mall not found" });
+    }
+    res.json({ message: "Mall deleted successfully", mall });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({ error: "Error deleting mall" });
   }
+});
+
+// ✅ Fetch paginated mall list (optionally filtered by keyword)
+const fetchShops = asyncHandler(async (req, res) => {
+  try {
+    const pageSize = 6;
+    const keyword = req.query.keyword
+      ? { name: { $regex: req.query.keyword, $options: "i" } }
+      : {};
+
+    const count = await Shop.countDocuments({ ...keyword });
+    const malls = await Shop.find({ ...keyword }).limit(pageSize);
+
+    res.json({
+      malls,
+      page: 1,
+      pages: Math.ceil(count / pageSize),
+      hasMore: false,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error getting malls" });
+  }
+});
+
+// ✅ Fetch mall by ID
+const fetchShopsById = asyncHandler(async (req, res) => {
+  try {
+    const mall = await Shop.findById(req.params.id);
+    if (!mall) {
+      return res.status(404).json({ error: "Mall not Found" });
+    }
+    res.json(mall);
+  } catch (error) {
+    console.error(error);
+    res.status(404).json({ error: "Mall not Found" });
+  }
+});
+
+// ✅ Fetch latest 10 malls with category populated
+const fetchAllShops = asyncHandler(async (req, res) => {
+  try {
+    const malls = await Shop.find({})
+      .populate("category")
+      .limit(10)
+      .sort({ createdAt: -1 });
+    res.json(malls);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error getting malls" });
+  }
+});
+
+// ✅ Export all functions
+export {
+  createShop,
+  updateShop,
+  deleteShop,
+  fetchShops,
+  fetchShopsById,
+  fetchAllShops,
 };

@@ -14,7 +14,7 @@ export const productApiSlice = apiSlice.injectEndpoints({
                 
             }),
 
-            keepUnusedDataFor: 5,
+            keepUnusedDataFor: 50,
             providesTags:['Products'],
         }),
 
@@ -36,7 +36,7 @@ export const productApiSlice = apiSlice.injectEndpoints({
         getProductDetails: builder.query({
             query: (productId) =>({ 
                 url: `${PRODUCT_URL}/${productId}`}),
-           keepUnusedDataFor: 5,
+           keepUnusedDataFor: 50,
             
         }),
 
@@ -80,7 +80,7 @@ export const productApiSlice = apiSlice.injectEndpoints({
             query: () => ({
                 url: `${PRODUCT_URL}/top`,
                 method: 'GET',
-                keepUnusedDataFor: 5,
+                keepUnusedDataFor: 50,
             }),
             
         }),
@@ -89,7 +89,7 @@ export const productApiSlice = apiSlice.injectEndpoints({
             query: () => ({
                 url: `${PRODUCT_URL}/new`,
                 method: 'GET',
-                keepUnusedDataFor: 5,
+                keepUnusedDataFor: 50,
             }),
             
         }),

@@ -29,9 +29,9 @@ const ProductTabs = ({
 
   return (
     <div className="flex flex-col md:flex-row">
-      <section className="mr-[5rem]">
+      <section className="mr-[5rem] ">
         <div
-          className={`flex-1 p-4 cursor-pointer text-lg ${
+          className={`flex-1 p-4 text-white cursor-pointer bg-green-500 text-lg ${
             activeTab === 1 ? "font-bold" : ""
           }`}
           onClick={() => handleTabClick(1)}
@@ -39,7 +39,7 @@ const ProductTabs = ({
           Write Your Review
         </div>
         <div
-          className={`flex-1 p-4 cursor-pointer text-lg ${
+          className={`flex-1 p-4 text-white cursor-pointer bg-orange-400 text-lg ${
             activeTab === 2 ? "font-bold" : ""
           }`}
           onClick={() => handleTabClick(2)}
@@ -47,7 +47,7 @@ const ProductTabs = ({
           All Reviews
         </div>
         <div
-          className={`flex-1 p-4 cursor-pointer text-lg ${
+          className={`flex-1 p-4 text-white cursor-pointer bg-[#1A1A1A] text-lg ${
             activeTab === 3 ? "font-bold" : ""
           }`}
           onClick={() => handleTabClick(3)}
@@ -123,7 +123,7 @@ const ProductTabs = ({
               {product.reviews.map((review) => (
                 <div
                   key={review._id}
-                  className="bg-[#1A1A1A] p-4 rounded-lg xl:ml-[2rem] sm:ml-[0rem] xl:w-[50rem] sm:w-[24rem] mb-5"
+                  className="bg-blue-200 p-4 rounded-lg xl:ml-[2rem] sm:ml-[0rem] xl:w-[50rem] sm:w-[24rem] mb-5"
                 >
                   <div className="flex justify-between">
                     <strong className="text-[#B0B0B0]">{review.name}</strong>

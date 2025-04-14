@@ -11,6 +11,8 @@ import {
   FaStar,
   FaStore,
 } from "react-icons/fa";
+import Loader from "../../components/Loader";
+
 
 const ProductCarousel = () => {
   const { data: products, isLoading, error } = useGetTopProductsQuery();
@@ -23,19 +25,19 @@ const ProductCarousel = () => {
     slidesToScroll: 1,
     arrows: true,
     autoplay: true,
-    autoplaySpeed: 3000,
+    autoplaySpeed: 5000,
   };
 
   return (
     <div className="mb-8 container mx-auto px-4">
-      {isLoading ? null : error ? (
+      {isLoading ? <Loader /> : error ? (
         <Message variant="danger">
           {error?.data?.message || error.error}
         </Message>
       ) : (
         <div className="flex justify-end">
           <div className="w-1/2 lg:w-1/2">
-            <Slider {...settings} className="w-full color-black">
+            <Slider {...settings} className="w-full bg-purple-100 rounded-lg p-4">
               {products.map(
                 ({
                   image,
@@ -48,7 +50,7 @@ const ProductCarousel = () => {
                   numReviews,
                   rating,
                   quantity,
-                  countInStock,
+                  inStock,
                 }) => (
                   <div key={_id} className="px-2">
                     <img
@@ -98,7 +100,7 @@ const ProductCarousel = () => {
                           </h1>
                           <h1 className="flex items-center mb-3 text-gray-700 dark:text-gray-200">
                             <FaBox className="mr-2 text-pink-500" /> In Stock:{" "}
-                            {countInStock}
+                            {inStock}
                           </h1>
                         </div>
                       </div>

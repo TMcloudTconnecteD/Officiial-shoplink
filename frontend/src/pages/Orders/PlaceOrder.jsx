@@ -7,21 +7,20 @@ import ProgressSteps from "../../components/ProgressSteps";
 import Loader from "../../components/Loader";
 import { useCreateOrderMutation } from "../../redux/api/orderApiSlice";
 import { clearCartItems } from "../../redux/features/cart/cartSlice";
+import { FaMoneyCheckAlt } from "react-icons/fa";
 
 const PlaceOrder = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const cart = useSelector((state) => state.cart);
-
   const [createOrder, { isLoading, error }] = useCreateOrderMutation();
 
   useEffect(() => {
     if (!cart.shippingAddress.address) {
       navigate("/shipping");
     }
-  }, [cart.paymentMethod, cart.shippingAddress.address, navigate]);
-
-  const dispatch = useDispatch();
+  }, [cart.shippingAddress.address, navigate]);
 
   const placeOrderHandler = async () => {
     try {
@@ -34,10 +33,11 @@ const PlaceOrder = () => {
         taxPrice: cart.taxPrice,
         totalPrice: cart.totalPrice,
       }).unwrap();
+
       dispatch(clearCartItems());
       navigate(`/order/${res._id}`);
     } catch (error) {
-      toast.error(error);
+      toast.error(error?.message || "Error placing order");
     }
   };
 
@@ -71,7 +71,6 @@ const PlaceOrder = () => {
                         className="w-16 h-16 object-cover"
                       />
                     </td>
-
                     <td className="p-2">
                       <Link to={`/product/${item.product}`}>{item.name}</Link>
                     </td>
@@ -92,24 +91,24 @@ const PlaceOrder = () => {
           <div className="flex justify-between flex-wrap p-8 bg-purple-400">
             <ul className="text-lg">
               <li>
-                <span className="font-semibold mb-4">Items:</span> KES 
-                {cart.itemsPrice}
+                <span className="font-semibold mb-4">Items:</span> KES {cart.itemsPrice}
               </li>
               <li>
-                <span className="font-semibold mb-4">Shipping:</span> KES 
-                {cart.shippingPrice}
+                <span className="font-semibold mb-4">Shipping:</span> KES {cart.shippingPrice}
               </li>
               <li>
-                <span className="font-semibold mb-4">Tax:</span> KES 
-                 {cart.taxPrice}
+                <span className="font-semibold mb-4">Tax:</span> KES {cart.taxPrice}
               </li>
               <li>
-                <span className="font-semibold mb-4">Total:</span> KES 
-                {cart.totalPrice}
+                <span className="font-semibold mb-4">Total:</span> KES {cart.totalPrice}
               </li>
             </ul>
 
-            {error && <Message variant="danger">{error.data.message}</Message>}
+            {error && (
+              <Message variant="danger">
+                {error?.data?.message || error?.error || 'your network is crazy'}
+              </Message>
+            )}
 
             <div>
               <h2 className="text-2xl font-semibold mb-4">Shipping</h2>
@@ -127,13 +126,15 @@ const PlaceOrder = () => {
           </div>
 
           <button
-            type="button"
-            className="bg-pink-500 text-white py-2 px-4 rounded-full text-lg w-full mt-4"
-            disabled={cart.cartItems === 0}
-            onClick={placeOrderHandler}
-          >
-            Place Order
-          </button>
+  type="button"
+  className="bg-cyan-500 hover:bg-cyan-600 transition-all duration-300 transform hover:scale-105 text-white py-2 px-4 rounded-full text-lg w-full mt-4 flex items-center justify-center gap-2"
+  disabled={cart.cartItems.length === 0}
+  onClick={placeOrderHandler}
+>
+  <FaMoneyCheckAlt className="animate-spin text-xl" />
+  Place Order
+</button>
+
 
           {isLoading && <Loader />}
         </div>

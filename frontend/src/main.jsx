@@ -61,7 +61,7 @@ const router = createBrowserRouter(
             <Route path='allproductslist' element={<AllProducts />} />
             <Route path='product/update/:_id' element={<ProductUpdate />} />
             <Route path='all' element={<Malls />} />
-            <Route path='addshop' element={< AddShop/>} />
+            <Route path='shops' element={< AddShop/>} />
             <Route path="orderlist" element={<OrderList />} />
             <Route path="dashboard" element={<AdminDashboard />} />
          </Route>
@@ -71,7 +71,14 @@ const router = createBrowserRouter(
 
 createRoot(document.getElementById('root')).render(
   <Provider store={store}>
-      <RouterProvider router={router} />
+
+    <PayPalScriptProvider>
+
+    <RouterProvider router={router} />
+
+    </PayPalScriptProvider>
+      
+
     
   </Provider>
   

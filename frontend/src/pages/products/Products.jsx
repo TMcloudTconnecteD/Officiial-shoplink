@@ -124,7 +124,7 @@ const Products = () => {
                     <FaShoppingCart className="mr-2 text-pink-500" /> Quantity: {product.quantity}
                   </h1>
                   <h1 className="flex items-center mb-4 text-gray-700 dark:text-gray-200">
-                    <FaBox className="mr-2 text-pink-500" /> In Stock: {product.countInStock}
+                    <FaBox className="mr-2 text-pink-500" /> In Stock: {product.inStock}
                   </h1>
                 </div>
               </div>
@@ -132,14 +132,14 @@ const Products = () => {
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <Rating value={product.rating} text={`${product.numReviews} reviews`} />
 
-                {product.countInStock > 0 && (
+                {product.inStock > 0 && (
                   <div>
                     <select
                       value={qty}
                       onChange={(e) => setQty(Number(e.target.value))}
                       className="p-2 rounded-lg text-black w-24"
                     >
-                      {[...Array(product.countInStock).keys()].map((x) => (
+                      {[...Array(product.inStock).keys()].map((x) => (
                         <option key={x + 1} value={x + 1}>
                           {x + 1}
                         </option>
@@ -152,7 +152,7 @@ const Products = () => {
               <div className="btn-container">
                 <button
                   onClick={addToCartHandler}
-                  disabled={product.countInStock === 0}
+                  disabled={product.inStock === 0}
                   className="bg-pink-600 hover:bg-pink-700 text-white py-3 px-6 rounded-lg transition-all mt-2 disabled:opacity-50"
                 >
                   Add To Cart

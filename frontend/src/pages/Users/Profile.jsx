@@ -98,7 +98,7 @@ const Profile = () => {
                         Update
                 </button>
 
-                <Link to = '/user-orders' 
+                <Link to = '/shipping' 
                       className='bg-orange-500 text-white py-2 px-4 rounded hover:bg-purple-700 '>
                         My Orders..✈
                 </Link>

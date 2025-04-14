@@ -1,8 +1,8 @@
+
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useGetFilteredProductsQuery } from "../redux/api/productApiSlice";
+import { useGetFilteredProductsQuery, useGetProductsQuery } from "../redux/api/productApiSlice";
 import { useFetchCategoriesQuery } from "../redux/api/categoryApiSlice";
-
 import {
   setCategories,
   setProducts,
@@ -10,7 +10,10 @@ import {
 } from "../redux/features/shop/shopSlice";
 import Loader from "../components/Loader";
 import ProductCard from "./products/ProductCard";
-
+import MallCard from "../components/MallCard";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useLocation } from "react-router-dom";
 
 const Shop = () => {
   const dispatch = useDispatch();
@@ -18,168 +21,202 @@ const Shop = () => {
     (state) => state.shop
   );
 
-  const categoriesQuery = useFetchCategoriesQuery();
-  const [priceFilter, setPriceFilter] = useState("");
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const keyword = queryParams.get("keyword") || "";
 
-  const filteredProductsQuery = useGetFilteredProductsQuery({
-    checked,
-    radio,
+  const categoriesQuery = useFetchCategoriesQuery(undefined, {
+    refetchOnMountOrArgChange: false,
+    refetchOnReconnect: false,
   });
 
+  const [priceFilter, setPriceFilter] = useState("");
+
+  const filteredProductsQuery = useGetFilteredProductsQuery(
+    { checked, radio },
+    {
+      refetchOnMountOrArgChange: false,
+      refetchOnReconnect: false,
+      skip: keyword.length > 0, // skip filtered query if keyword search is active
+    }
+  );
+
+  const searchedProductsQuery = useGetProductsQuery(
+    { keyword },
+    {
+      refetchOnMountOrArgChange: false,
+      refetchOnReconnect: false,
+      skip: keyword.length === 0, // skip search query if no keyword
+    }
+  );
+
+  // Set categories
   useEffect(() => {
-    if (!categoriesQuery.isLoading) {
+    if (categoriesQuery.data) {
       dispatch(setCategories(categoriesQuery.data));
     }
   }, [categoriesQuery.data, dispatch]);
 
+  // Filter or search logic
   useEffect(() => {
-    if (!checked.length || !radio.length) {
-      if (!filteredProductsQuery.isLoading) {
-        // Filter products based on both checked categories and price filter
-        const filteredProducts = filteredProductsQuery.data.filter(
-          (product) => {
-            // Check if the product price includes the entered price filter value
-            return (
-              product.price.toString().includes(priceFilter) ||
-              product.price === parseInt(priceFilter, 10)
-            );
-          }
-        );  
+    if (keyword.length > 0) {
+      if (searchedProductsQuery.data) {
+        let filtered = searchedProductsQuery.data;
 
-        dispatch(setProducts(filteredProducts));
+        if (priceFilter) {
+          filtered = filtered.filter((p) =>
+            p.price.toString().includes(priceFilter)
+          );
+        }
+
+        dispatch(setProducts(filtered));
+
+        if (filtered.length === 0) {
+          toast.info("No products found matching your search.");
+        }
+      }
+    } else {
+      if (filteredProductsQuery.data) {
+        let filtered = filteredProductsQuery.data;
+
+        if (priceFilter) {
+          filtered = filtered.filter((p) =>
+            p.price.toString().includes(priceFilter)
+          );
+        }
+
+        dispatch(setProducts(filtered));
+
+        if (filtered.length === 0) {
+          toast.info("No products found matching your filters.");
+        }
       }
     }
-  }, [checked, radio, filteredProductsQuery.data, dispatch, priceFilter]);
-
-  const handleBrandClick = (brand) => {
-    const productsByBrand = filteredProductsQuery.data?.filter(
-      (product) => product.brand === brand
-    );
-    dispatch(setProducts(productsByBrand));
-  };
+  }, [
+    checked,
+    radio,
+    filteredProductsQuery.data,
+    searchedProductsQuery.data,
+    priceFilter,
+    dispatch,
+    keyword,
+  ]);
 
   const handleCheck = (value, id) => {
-    const updatedChecked = value
+    const updated = value
       ? [...checked, id]
       : checked.filter((c) => c !== id);
-    dispatch(setChecked(updatedChecked));
+    dispatch(setChecked(updated));
   };
 
-  // Add "All Brands" option to uniqueBrands
   const uniqueBrands = [
-    ...Array.from(
-      new Set(
-        filteredProductsQuery.data
-          ?.map((product) => product.brand)
-          .filter((brand) => brand !== undefined)
-      )
+    ...new Set(
+      (keyword.length > 0 ? searchedProductsQuery.data : filteredProductsQuery.data)
+        ?.map((p) => p.brand)
+        .filter((b) => b !== undefined)
     ),
   ];
 
-  const handlePriceChange = (e) => {
-    // Update the price filter state when the user types in the input filed
-    setPriceFilter(e.target.value);
+  const handleBrandClick = (brand) => {
+    const sourceData = keyword.length > 0 ? searchedProductsQuery.data : filteredProductsQuery.data;
+    const filtered = sourceData?.filter(
+      (p) => p.brand === brand
+    );
+    dispatch(setProducts(filtered));
+  };
+
+  const handlePriceChange = (e) => setPriceFilter(e.target.value);
+  const resetFilters = () => window.location.reload();
+  const handleMallClick = () => {
+    const sourceData = keyword.length > 0 ? searchedProductsQuery.data : filteredProductsQuery.data;
+    if (sourceData) {
+      dispatch(setProducts(sourceData));
+    }
   };
 
   return (
-    <>
-      <div className="container mx-auto">
-        <div className="flex md:flex-row">
-          <div className="bg-[#151515] p-3 mt-2 mb-2">
-            <h2 className="h4 text-center py-2 text-white  bg-black rounded-full mb-2">
-              Filter by Categories
-            </h2>
-
-            <div className="p-5 w-[15rem]">
-              {categories?.map((c) => (
-                <div key={c._id} className="mb-2">
-                  <div className="flex ietms-center mr-4">
-                    <input
-                      type="checkbox"
-                      id="red-checkbox"
-                      onChange={(e) => handleCheck(e.target.checked, c._id)}
-                      className="w-4 h-4 text-pink-600 bg-gray-100 border-gray-300 rounded focus:ring-pink-500 dark:focus:ring-pink-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                    />
-
-                    <label
-                      htmlFor="pink-checkbox"
-                      className="ml-2 text-sm font-medium text-white dark:text-gray-300"
-                    >
-                      {c.name}
-                    </label>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <h2 className="h4 text-center py-2 bg-black text-white rounded-full mb-2">
-              Filter by Brands
-            </h2>
-
-            <div className="p-5">
-              {uniqueBrands?.map((brand) => (
-                <>
-                  <div className="flex items-enter mr-4 mb-5">
-                    <input
-                      type="radio"
-                      id={brand}
-                      name="brand"
-                      onChange={() => handleBrandClick(brand)}
-                      className="w-4 h-4 text-pink-400 bg-gray-100 border-gray-300 focus:ring-pink-500 dark:focus:ring-pink-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                    />
-
-                    <label
-                      htmlFor="pink-radio"
-                      className="ml-2 text-sm font-medium text-white dark:text-gray-300"
-                    >
-                      {brand}
-                    </label>
-                  </div>
-                </>
-              ))}
-            </div>
-
-            <h2 className="h4 text-center py-2 bg-black text-white  rounded-full mb-2">
-              Filer by Price
-            </h2>
-
-            <div className="p-5 w-[15rem]">
-              <input
-                type="text"
-                placeholder="Enter Price"
-                value={priceFilter}
-                onChange={handlePriceChange}
-                className="w-full px-3 py-2 placeholder-gray-400 border rounded-lg focus:outline-none focus:ring focus:border-pink-300"
-              />
-            </div>
-
-            <div className="p-5 pt-0">
-              <button
-                className="w-full border my-4"
-                onClick={() => window.location.reload()}
-              >
-                Reset
-              </button>
-            </div>
+    <div className="container mx-auto px-4 py-4">
+      <ToastContainer position="top-right" autoClose={3000} />
+      <div className="flex flex-col lg:flex-row gap-4">
+        {/* Sidebar */}
+        <div className="bg-[#151515] text-white w-full lg:w-1/4 rounded-xl p-4 overflow-y-auto max-h-[85vh]">
+          <h2 className="text-lg font-bold">
+            Filter by Categories
+          </h2>
+          <div className="space-y-3">
+            {categories?.map((c) => (
+              <div key={c._id} className="flex items-center">
+                <input
+                  type="checkbox"
+                  onChange={(e) => handleCheck(e.target.checked, c._id)}
+                  className="w-4 h-4 text-pink-600 border-gray-300 rounded"
+                />
+                <label className="ml-2 text-sm">{c.name}</label>
+              </div>
+            ))}
           </div>
 
-          <div className="p-3">
-            <h2 className="h4 text-center mb-2">{products?.length} Products</h2>
-            <div className="flex flex-wrap">
-              {products.length === 0 ? (
-                <Loader />
-              ) : (
-                products?.map((p) => (
-                  <div className="p-3" key={p._id}>
-                    <ProductCard p={p} />
-                  </div>
-                ))
-              )}
-            </div>
+          <h2 className="text-lg font-bold bg-black p-2 rounded mt-6 mb-4 text-center">
+            Filter by Brands
+          </h2>
+          <div className="space-y-3">
+            {uniqueBrands?.map((brand) => (
+              <div key={brand} className="flex items-center">
+                <input
+                  type="radio"
+                  id={brand}
+                  name="brand"
+                  onChange={() => handleBrandClick(brand)}
+                  className="w-4 h-4 text-pink-400"
+                />
+                <label htmlFor={brand} className="ml-2 text-sm">
+                  {brand}
+                </label>
+              </div>
+            ))}
           </div>
+
+          <h2 className="text-lg font-bold bg-black p-2 rounded mt-6 mb-4 text-center">
+            Filter by Price
+          </h2>
+          <input
+            type="text"
+            placeholder="Enter price"
+            value={priceFilter}
+            onChange={handlePriceChange}
+            className="w-full px-3 py-2 text-black rounded"
+          />
+
+          <button
+            className="mt-4 w-full bg-pink-500 text-white rounded py-2"
+            onClick={resetFilters}
+          >
+            Reset
+          </button>
+        </div>
+
+        {/* Products */}
+        <div className="flex-1">
+          <div className="mb-6">
+            <MallCard onClick={handleMallClick} />
+          </div>
+
+          <h2 className="text-xl font-semibold text-center mb-4">
+            {products?.length} Products
+          </h2>
+
+          {filteredProductsQuery.isLoading ? (
+            <Loader />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {products.map((p) => (
+                <ProductCard key={p._id} p={p} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

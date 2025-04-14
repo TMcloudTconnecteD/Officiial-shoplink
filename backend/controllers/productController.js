@@ -132,7 +132,7 @@ const fetchAllProducts = asyncHandler(async (req, res) => {
         
         const products = await Product.find({})
         .populate("category")
-        .limit(10)
+        .limit(100)
         .sort({createdAt: -1})
         res.json(products)
 
@@ -160,7 +160,7 @@ const createProductReviews = asyncHandler(async (req, res) => {
                 
             }
             const review = {
-                name: req.user.name,
+                name: req.user.username,
                 rating: Number(rating),
                 comment,
                 user: req.user._id,

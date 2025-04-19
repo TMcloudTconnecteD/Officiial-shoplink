@@ -5,14 +5,15 @@ import Message from "../components/Message";
 import Header from "../components/Header";
 import Product from "./products/Product";
 import ProductCarousel from "./products/ProductCarousel";
+import HeaderUpdated from "../components/HeaderUpdated";
 
-const Home = () => {
+const HomeUpdated = () => {
   const { keyword } = useParams();
   const { data, isLoading, error } = useGetProductsQuery({ keyword });
 
   return (
     <>
-      {!keyword ? <Header /> : null}
+      {!keyword ? <HeaderUpdated /> : null}
       {!keyword ? <ProductCarousel /> : null}
       {isLoading ? (
         <Loader />
@@ -29,7 +30,7 @@ const Home = () => {
 
             <Link
               to="/shop"
-              className="bg-pink-600 font-bold rounded-full py-2 px-10 mr-[18rem] mt-[10rem]"
+              className="bg-pink-600 font-bold rounded-full py-2 px-10 mr-[18rem] mt-[10rem] animate-pulse shadow-lg shadow-pink-500/75"
             >
               Shop
             </Link>
@@ -50,4 +51,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default HomeUpdated;

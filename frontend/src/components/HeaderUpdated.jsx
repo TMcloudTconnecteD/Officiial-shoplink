@@ -3,8 +3,9 @@ import { AiOutlineHome, AiOutlineMenu, AiOutlineSearch, AiOutlineShop, AiOutline
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
-const Header = ({ onToggleSidebar }) => {
+const HeaderUpdated = ({ onToggleSidebar }) => {
   const { userInfo } = useSelector((state) => state.auth);
+  const { cartItems } = useSelector((state) => state.cart);
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleSearchChange = (e) => {
@@ -16,17 +17,19 @@ const Header = ({ onToggleSidebar }) => {
     // Implement search submit logic or navigation here if needed
   };
 
+  const cartCount = cartItems.reduce((acc, item) => acc + item.qty, 0);
+
   return (
     <header className="bg-gradient-to-r from-gray-900 via-black to-gray-900 text-yellow-400 shadow-lg p-4 flex flex-col sm:flex-row items-center justify-between sticky top-0 z-50 space-y-3 sm:space-y-0 border-4 border-red-500 sm:border-0">
       {/* Left: Logo and branding */}
       <div className="flex items-center space-x-4 flex-shrink-0">
         {/* Logo placeholder */}
-        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-tr from-orange-500 via-purple-400 to-blue-200 rounded-full flex items-center justify-center text-black font-extrabold text-2xl sm:text-3xl select-none shadow-lg animate-pulse">
+        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-tr from-yellow-500 via-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-black font-extrabold text-2xl sm:text-3xl select-none shadow-lg animate-pulse">
           S
         </div>
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-wide drop-shadow-lg">shoplink</h1>
-          <p className="text-xs sm:text-sm italic text-green-300 drop-shadow-md">..connecting dreams</p>
+          <p className="text-xs sm:text-sm italic text-yellow-300 drop-shadow-md">...connecting dreams</p>
         </div>
       </div>
 
@@ -67,12 +70,6 @@ const Header = ({ onToggleSidebar }) => {
           <span className="hidden sm:inline font-semibold tracking-wide"></span>
         </Link>
 
-        {/* Mall Link */}
-        <Link to='/mall' className='flex items-center transition-transform transform hover:translate-x-2 text-green-500 ml-4' title="All Malls/Shops">
-          <AiOutlineShop className='text-green-500' size={26} />
-          <span className="hidden sm:inline font-semibold tracking-wide ml-1">Malls</span>
-        </Link>
-
         {/* Cart Link */}
         <Link
           to="/cart"
@@ -81,8 +78,16 @@ const Header = ({ onToggleSidebar }) => {
         >
           <AiOutlineShoppingCart size={28} />
           <span className="hidden sm:inline font-semibold tracking-wide"></span>
-          {/* Optionally add cart count badge here if needed */}
+          {cartCount > 0 && (
+            <span className="absolute -top-2 -right-2 px-1 text-xs font-bold text-white bg-pink-500 rounded-full">
+              {cartCount}
+            </span>
+          )}
         </Link>
+         <Link to='/Admin/shops/all' className='flex items-center transition-transform transform hover:translate-x-2 text-green-500 ml-4' title="All Malls/Shops">
+                  <AiOutlineShop className='text-green-500' size={26} />
+                  <span className="hidden sm:inline font-semibold tracking-wide ml-1">Malls</span>
+                </Link>
 
         {/* User profile avatar */}
         <div className="relative group">
@@ -94,7 +99,7 @@ const Header = ({ onToggleSidebar }) => {
               <div className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-yellow-500 via-yellow-400 to-yellow-600 flex items-center justify-center text-black font-bold text-xl select-none shadow-lg">
                 {userInfo.username.charAt(0).toUpperCase()}
               </div>
-              <span className="hidden sm:block text-yellow-300 font-semibold drop-shadow-md">
+              <span className="hidden sm:block text-white font-semibold drop-shadow-md">
                 {userInfo.username}
               </span>
             </Link>
@@ -112,4 +117,4 @@ const Header = ({ onToggleSidebar }) => {
   );
 };
 
-export default Header;
+export default HeaderUpdated;

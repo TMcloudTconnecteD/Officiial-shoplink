@@ -6,9 +6,7 @@ const shopSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    trim: true,
-    maxLength: 50,
-    unique: true,
+   
   },
   image: {
     type: String,
@@ -24,12 +22,18 @@ const shopSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-  owner: {
-    type: ObjectId,
-    ref: "User", // Link to admin who created the shop
+  
+  
+  telephone: {
+    type: Number,
     required: true,
-  },
+   
+
+
+
+  }
+
 }, { timestamps: true });
 
-const Shop = mongoose.model("Shop", shopSchema);
-export default Shop;
+const mall = mongoose.model("Shop", shopSchema);
+export default mall;

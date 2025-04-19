@@ -1,5 +1,5 @@
-import { SHOP_URL, UPLOAD_URL } from "../features/constants";  // Make sure to update with the correct URL constant
-import { apiSlice } from "./apiSlice";
+import { SHOP_URL, UPLOAD_URL } from "../features/constants.js";  // Make sure to update with the correct URL constant
+import { apiSlice } from "./apiSlice.js";
 
 export const shopApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -11,35 +11,34 @@ export const shopApiSlice = apiSlice.injectEndpoints({
                
                 
             }),
-            validatesTags: ['Shop'],
-
             keepUnusedDataFor: 50,
+            providesTags: ['Shop'],
             
         }),
 
         // Create a new shop
         createShop: builder.mutation({
-            query: (newShop) => ({
+            query: (mallData) => ({
                 url: `${SHOP_URL}`,
                 method: 'POST',
-                body: newShop,
+                body: mallData,
             }),
             invalidatesTags: ['Shop'],
         }),
 
         // Update an existing shop
         updateShop: builder.mutation({
-            query: ({ shopId, updatedShop }) => ({
-                url: `${SHOP_URL}/${shopId}`,
+            query: ({ mallId, formData }) => ({
+                url: `${SHOP_URL}/${mallId}`,
                 method: 'PUT',
-                body: updatedShop,
+                body: formData,
             }),
         }),
 
         // Delete a shop
         deleteShop: builder.mutation({
-            query: (shopId) => ({
-                url: `${SHOP_URL}/${shopId}`,
+            query: (mallId) => ({
+                url: `${SHOP_URL}/${mallId}`,
                 method: 'DELETE',
             }),
         }),

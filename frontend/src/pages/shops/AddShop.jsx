@@ -1,49 +1,59 @@
 import React, { useState } from 'react';
+import ShopList from '../../components/ShopList.jsx';
+
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useCreateShopMutation, useUploadShopImageMutation } from '../../redux/api/shopApiSlice';
 import { useFetchCategoriesQuery } from '../../redux/api/categoryApiSlice';
-import { toast } from 'react-toastify';
-import AdminMenu from '../../pages/Admin/AdminMenu';
+import AdminMenu from '../Admin/AdminMenu';
+import Loader from '../../components/Loader.jsx';
 
-const CreateShop = () => {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [location, setLocation] = useState('');
-  const [countryCode, setCountryCode] = useState('+254');
-  const [phoneNumber, setPhoneNumber] = useState('');
+const AddShop = () => {
   const [image, setImage] = useState('');
   const [imageUrl, setImageUrl] = useState(null);
-  const navigate = useNavigate();
+  const [name, setName] = useState('');
+  const [location, setLocation] = useState('');
+  const [telephone, setTelephone] = useState('');
+  const [category, setCategory] = useState('');
+  const [countryCode, setCountryCode] = useState('+254');
+  const [isLoading, setIsLoading] = useState(false);
+  const[errors, setErrors] = useState({
+    name: '',
+    location: '',
+    telephone: '',
+  });
 
+  const navigate = useNavigate();
   const [uploadShopImage] = useUploadShopImageMutation();
   const [createShop] = useCreateShopMutation();
   const { data: categories } = useFetchCategoriesQuery();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setIsLoading(true);
     try {
-      const contactInfo = `${countryCode}${phoneNumber}`;
-      const shopData = new FormData();
-        shopData.append('name', name);
-        shopData.append('description', description);
-        shopData.append('category', category);
-        shopData.append('location', location);
-        shopData.append('contactInfo', contactInfo);
-        shopData.append('image', image);
-        
+      const mallData = new FormData();
+      mallData.append('image', image);
+      mallData.append('name', name);
+      mallData.append('location', location);
+      mallData.append('telephone', telephone);
+      mallData.append('category', category);
 
-      const { data } = await createShop(shopData);
-      if (data.error) {
-        toast.error('Cannot create Shop, try again');
+      const response = await createShop(mallData);
+
+      if (response.error) {
+        toast.error(response.error.data?.message || 'Cannot create mall, try again');
+      } else if (response.data) {
+        toast.success(`${response.data.name} created successfully`);
+        navigate('/Admin/shops/all'); // Corrected navigation path
       } else {
-        toast.success(`${data.name} created successfully`);
-        navigate('/');
+        toast.error('Unexpected error occurred');
       }
     } catch (error) {
       console.error(error);
-      toast.error('Error creating shop, try again');
+      toast.error('Failed to create shop');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -53,11 +63,11 @@ const CreateShop = () => {
 
     try {
       const res = await uploadShopImage(formData).unwrap();
-      toast.success(res.message);
-      setImage(res.shopImage);
-      setImageUrl(res.shopImage);
+      toast.success(res.message || 'Image uploaded');
+      setImage(res.image);
+      setImageUrl(res.image);
     } catch (error) {
-      toast.error(error?.data?.message || error.error);
+      toast.error(error?.data?.message || 'Image upload failed');
     }
   };
 
@@ -79,7 +89,7 @@ const CreateShop = () => {
 
         <div className="mb-6">
           <label className="block cursor-pointer bg-pink-100 hover:bg-pink-200 text-pink-600 font-semibold py-3 px-4 text-center rounded-xl shadow-sm transition-all duration-200">
-            {image ? image.name : 'Upload Shop Image'}
+            {image ? 'Change Shop Image' : 'Upload Shop Image'}
             <input
               type="file"
               name="image"
@@ -93,14 +103,25 @@ const CreateShop = () => {
         <form onSubmit={handleSubmit}>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium mb-1">Shop Name</label>
+              <label className="block text-sm font-medium mb-1">Shop Name {errors.name &&  <span className="text-red-500 text-xs"> - {errors.name}</span>}
+              </label>
               <input
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                   if (e.target.value.length > 50) {
+                      setErrors({...errors, name: 'Max 50 characters'});
+                    } else {
+                      setErrors({...errors, name: ''});
+                      setName(e.target.value);
+                    }
+                  }}
                 placeholder="Shop name"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+                className={`w-full p-3 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400`}
               />
+              <div className="text-xs text-gray-500 text-right mt-1">
+                {name.length}/50
+              </div>
             </div>
 
             <div>
@@ -126,30 +147,17 @@ const CreateShop = () => {
                   <option value="+1">🇺🇸 +1</option>
                   <option value="+44">🇬🇧 +44</option>
                   <option value="+91">🇮🇳 +91</option>
-                  {/* Add more as needed */}
                 </select>
                 <input
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  type="number"
+                  value={telephone}
+                  onChange={(e) => setTelephone(e.target.value)}
                   placeholder="712345678"
                   className="w-2/3 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
                 />
               </div>
             </div>
-          </div>
 
-          <div className="mt-6">
-            <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
-              rows={4}
-            />
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6 mt-6">
             <div>
               <label className="block text-sm font-medium mb-1">Category</label>
               <select
@@ -172,9 +180,10 @@ const CreateShop = () => {
           <div className="mt-10 text-center">
             <button
               type="submit"
-              className="bg-pink-500 hover:bg-pink-600 text-white px-8 py-3 rounded-lg font-semibold shadow-md transition-all"
+              disabled={isLoading}
+              className="bg-pink-500 hover:bg-pink-600 text-white px-8 py-3 rounded-lg font-semibold shadow-md transition-all disabled:opacity-50"
             >
-              Submit
+              {isLoading ? <Loader className='bg-green-200' /> : 'Submit'}
             </button>
           </div>
         </form>
@@ -183,4 +192,4 @@ const CreateShop = () => {
   );
 };
 
-export default CreateShop;
+export default AddShop;

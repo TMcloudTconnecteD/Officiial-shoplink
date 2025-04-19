@@ -1,24 +1,29 @@
 import Shop from "../models/shopModel.js";
-import Category from "../models/categoryModel.js";
-import asyncHandler from "../middlewares/asyncHandler.js";
+import Category from "../models/categoryModel.js"; // Added import for Category model
+import asyncHandler from "../middlewares/asyncHandler.js";// Make sure this is imported
 
 // ✅ Create a new mall/shop
 const createShop = asyncHandler(async (req, res) => {
   try {
-    const { name, category, location, owner, phone } = req.fields;
-    const image = req.file?.path;
+    console.log('create shop controller called');
+    console.log('req.fields:', req.fields);
+    console.log('req.body:', req.body);
+
+    // console.log(req.user._id)
+
+    const { name, location, telephone, category, image } = req.fields || req.body;
 
     switch (true) {
       case !name:
-        return res.json({ error: "Name is required, come on!" });
+        return res.status(400).json({ error: "Name is required, come on!" });
       case !location:
-        return res.json({ error: "Location is required, come on!" });
-      case !owner:
-        return res.json({ error: "Owner is required, come on!" });
-      case !phone:
-        return res.json({ error: "Phone No. is required, come on!" });
+        return res.status(400).json({ error: "Location is required, come on!" });
+      case !telephone:
+        return res.status(400).json({ error: "Phone No. is required, come on!" });
       case !category:
-        return res.json({ error: "Category is required, come on!" });
+        return res.status(400).json({ error: "Category is required, come on!" });
+      case !image:
+        return res.status(400).json({ error: "Image is required, come on!" });
     }
 
     const validCategory = await Category.findById(category);
@@ -26,15 +31,19 @@ const createShop = asyncHandler(async (req, res) => {
       return res.status(400).json({ error: "Invalid category ID" });
     }
 
+    // Convert telephone to number if it's a string
+    const telephoneNumber = Number(telephone);
+    if (isNaN(telephoneNumber)) {
+      return res.status(400).json({ error: "Telephone must be a number" });
+    }
+
     const mall = new Shop({
-      ...req.fields,
-      image,
-    });
+      ...req.fields || req.body }); // ✅ Auto-set the current logged-in user
 
     await mall.save();
     res.json(mall);
   } catch (error) {
-    console.error(error);
+    console.error(error, 'error creating shop');
     res.status(400).json({ error: error.message });
   }
 });
@@ -42,20 +51,19 @@ const createShop = asyncHandler(async (req, res) => {
 // ✅ Update existing mall
 const updateShop = asyncHandler(async (req, res) => {
   try {
-    const { name, location, owner, phone, category } = req.fields;
-    const image = req.file?.path;
+    const { name, location, telephone, category, image } = req.fields || req.body;
 
     switch (true) {
       case !name:
-        return res.json({ error: "Name is required, come on!" });
+        return res.status(400).json({ error: "Name is required, come on!" });
       case !location:
-        return res.json({ error: "Location is required, come on!" });
-      case !owner:
-        return res.json({ error: "Owner is required, come on!" });
-      case !phone:
-        return res.json({ error: "Phone No. is required, come on!" });
+        return res.status(400).json({ error: "Location is required, come on!" });
+      case !telephone:
+        return res.status(400).json({ error: "Phone No. is required, come on!" });
       case !category:
-        return res.json({ error: "Category is required, come on!" });
+        return res.status(400).json({ error: "Category is required, come on!" });
+      case !image:
+        return res.status(400).json({ error: "Image is required, come on!" });
     }
 
     const validCategory = await Category.findById(category);
@@ -63,19 +71,27 @@ const updateShop = asyncHandler(async (req, res) => {
       return res.status(400).json({ error: "Invalid category ID" });
     }
 
-    const updateData = {
-      ...req.fields,
-    };
-    if (image) updateData.image = image;
+    
 
-    const mall = await Shop.findByIdAndUpdate(req.params.id, updateData, {
-      new: true,
-    });
+    const mall = await Shop.findById(req.params.id);
 
     if (!mall) {
       return res.status(404).json({ error: "Mall not found" });
     }
 
+    // Optional: check if the user updating is the owner
+    if (mall.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    // Update fields
+    mall.name = name;
+    mall.location = location;
+    mall.telephone = telephone;
+    mall.category = category;
+    mall.image = image;
+
+    await mall.save();
     res.json(mall);
   } catch (error) {
     console.error(error);
@@ -86,10 +102,19 @@ const updateShop = asyncHandler(async (req, res) => {
 // ✅ Delete a mall
 const deleteShop = asyncHandler(async (req, res) => {
   try {
-    const mall = await Shop.findByIdAndDelete(req.params.id);
+    const mall = await Shop.findById(req.params.id);
+
     if (!mall) {
       return res.status(404).json({ error: "Mall not found" });
     }
+
+    // Optional: check if user is owner
+    if (mall.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    await mall.deleteOne();
+
     res.json({ message: "Mall deleted successfully", mall });
   } catch (error) {
     console.error(error);
@@ -97,7 +122,7 @@ const deleteShop = asyncHandler(async (req, res) => {
   }
 });
 
-// ✅ Fetch paginated mall list (optionally filtered by keyword)
+// ✅ Fetch paginated mall list
 const fetchShops = asyncHandler(async (req, res) => {
   try {
     const pageSize = 6;
@@ -148,7 +173,6 @@ const fetchAllShops = asyncHandler(async (req, res) => {
   }
 });
 
-// ✅ Export all functions
 export {
   createShop,
   updateShop,

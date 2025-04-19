@@ -8,9 +8,7 @@ import HeartIcon from "../../pages/products/HeartIcon";
 const ShopCard = ({ shop }) => {
   const dispatch = useDispatch();
 
-  // Assuming shop.products is an array of products for that shop
   const addToCartHandler = (product, qty) => {
-    // Add the specific product from the shop to the cart
     dispatch(addToCart({ ...product, qty }));
     toast.success("Item added to cart", {
       position: toast.POSITION.TOP_RIGHT,
@@ -27,7 +25,7 @@ const ShopCard = ({ shop }) => {
           </span>
           <img
             className="cursor-pointer w-full h-48 object-cover"
-            src={shop.image}  // Assuming shop has an image property
+            src={shop.image}  // Ensure this is a valid image URL or path
             alt={shop.name}
           />
         </Link>
@@ -38,8 +36,7 @@ const ShopCard = ({ shop }) => {
         <div className="flex justify-between items-start">
           <h5 className="text-xl font-semibold text-white">{shop.name}</h5>
           <p className="text-lg font-semibold text-pink-500">
-            {/* You can display the price range here if needed */}
-            {/* {shop.price?.toLocaleString("en-US", { style: "currency", currency: "KES" })} */}
+            {/* Price or other info can go here */}
           </p>
         </div>
 
@@ -70,13 +67,15 @@ const ShopCard = ({ shop }) => {
             </svg>
           </Link>
 
-          {/* This button adds a product (not the shop) to the cart */}
           <button
             className="p-2 rounded-full bg-pink-600 hover:bg-pink-700 text-white"
             onClick={() => {
-              // Example: add the first product from the shop to the cart
-              const product = shop.products[0];  // Assuming each shop has a 'products' array
-              addToCartHandler(product, 1);  // Adjust the quantity as needed
+              const product = shop.products?.[0];
+              if (product) {
+                addToCartHandler(product, 1);
+              } else {
+                toast.error("No products available in this shop");
+              }
             }}
           >
             <AiOutlineShoppingCart size={25} />

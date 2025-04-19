@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
+import Footer from './components/Footer.jsx'
 import 'virtual:windi.css'
 import { createRoutesFromElements, Route, RouterProvider } from 'react-router'
 import { createBrowserRouter } from 'react-router-dom'
@@ -22,9 +23,9 @@ import Favorites from "./pages/products/Favorites.jsx";
 import ProductDetails from "./pages/products/ProductDetails.jsx";
 
 import Cart from "./pages/Cart.jsx";
-import Shop from "./pages/Shop.jsx";
-import Malls from './pages/Malls.jsx'
+
 import AddShop from './pages/shops/AddShop.jsx'
+
 
 import Shipping from "./pages/Orders/Shipping.jsx";
 import PlaceOrder from "./pages/Orders/PlaceOrder.jsx";
@@ -32,17 +33,21 @@ import Order from "./pages/Orders/Order.jsx";
 import OrderList from "./pages/Admin/OrderList.jsx";
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import AdminDashboard from "./pages/Admin/AdminDashboard.jsx";
+import ShopUpdated from './pages/ShopUpdated.jsx'
+import HomeUpdated from './pages/HomeUpdated.jsx'
+import ShopList from './components/ShopList.jsx'
+import Mall from './pages/shops/Mall.jsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<App />} >
         <Route path = '/login' element = {<Login />} />
         <Route path = '/register' element = {<Register />} />
-        <Route index={true} path="/" element={<Home />} />
+        <Route index={true} path="/" element={<HomeUpdated />} />
         <Route path="/favorite" element={<Favorites />} />
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/cart" element={<Cart />} />
-        <Route path="/shop" element={<Shop />} />
+        <Route path="/shop" element={<ShopUpdated />} />
 
          <Route path='' element={<PrivateRoutes />}>
              <Route path='/profile' element={<Profile />} />
@@ -53,14 +58,14 @@ const router = createBrowserRouter(
          
          {/* admin routes */}
         
-         <Route path='/admin' element={<AdminRoutes />}>
+         <Route path='/admin' element={<AdminRoutes />} >
             <Route path='users' element={<UserList />} />
             <Route path='categories' element={<CategoryList />} />
             <Route path="productlist" element={<ProductList />} />
             <Route path='productlist/:pageNumber' element={<ProductList />} />
             <Route path='allproductslist' element={<AllProducts />} />
             <Route path='product/update/:_id' element={<ProductUpdate />} />
-            <Route path='all' element={<Malls />} />
+            <Route path='shops/all' element={<Mall />} />
             <Route path='shops' element={< AddShop/>} />
             <Route path="orderlist" element={<OrderList />} />
             <Route path="dashboard" element={<AdminDashboard />} />
@@ -74,12 +79,13 @@ createRoot(document.getElementById('root')).render(
 
     <PayPalScriptProvider>
 
-    <RouterProvider router={router} />
+    <>
+      <RouterProvider router={router} />
+      <Footer />
+    </>
 
     </PayPalScriptProvider>
       
-
-    
   </Provider>
   
   );

@@ -5,9 +5,14 @@ import WindiCSS from 'vite-plugin-windicss'
 export default defineConfig({
   plugins: [react(), WindiCSS()],
   server: {
+    host: '0.0.0.0',
     proxy: {
-      '/api': 'http://localhost:8000'
+      '/api': 'http://localhost:8000',
+      '/uploads': 'http://localhost:8000',
     },
-
-  }
+    allowedHosts: [
+      "    https://5a78-129-222-187-227.ngrok-free.app ", // current ngrok domain
+      '.ngrok-free.app',                     // wildcard for future ngrok links
+    ],
+  },
 })

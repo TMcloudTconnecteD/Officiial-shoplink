@@ -1,5 +1,3 @@
-
-
 import { PRODUCT_URL, UPLOAD_URL } from "../features/constants.js";
 import { apiSlice } from "./apiSlice.js";
 
@@ -11,13 +9,10 @@ export const productApiSlice = apiSlice.injectEndpoints({
                 params: {
                     keyword,
                 },
-                
             }),
-
             keepUnusedDataFor: 50,
             providesTags:['Products'],
         }),
-
 
         getProductById: builder.query({
             query:(productId) => `${PRODUCT_URL}/${productId}`,
@@ -26,18 +21,14 @@ export const productApiSlice = apiSlice.injectEndpoints({
             ],
         }),
 
-
         allProducts : builder.query({
             query: () =>  `${PRODUCT_URL}/allproducts`,
-                
-            
-
         }),
+
         getProductDetails: builder.query({
             query: (productId) =>({ 
                 url: `${PRODUCT_URL}/${productId}`}),
-           keepUnusedDataFor: 50,
-            
+            keepUnusedDataFor: 50,
         }),
 
         createProduct: builder.mutation({
@@ -58,7 +49,6 @@ export const productApiSlice = apiSlice.injectEndpoints({
             invalidatesTags: ['Product'],
         }),
 
-
         deleteProduct: builder.mutation({
             query: (productId) => ({
                 url: `${PRODUCT_URL}/${productId}`,
@@ -72,7 +62,6 @@ export const productApiSlice = apiSlice.injectEndpoints({
                 url: `${PRODUCT_URL}/${data.productId}/reviews`,
                 method: 'POST',
                 body: data,
-
             })
         }),
 
@@ -82,7 +71,6 @@ export const productApiSlice = apiSlice.injectEndpoints({
                 method: 'GET',
                 keepUnusedDataFor: 50,
             }),
-            
         }),
 
         getNewProducts: builder.query({
@@ -91,19 +79,13 @@ export const productApiSlice = apiSlice.injectEndpoints({
                 method: 'GET',
                 keepUnusedDataFor: 50,
             }),
-            
         }),
 
         uploadProductImage: builder.mutation({
             query: (data) => ({
-
                 url: `${UPLOAD_URL}`,
                 method: 'POST',
                 body: data,
-
-
-
-                
             }),
         }),
 
@@ -113,13 +95,18 @@ export const productApiSlice = apiSlice.injectEndpoints({
               method: "POST",
               body: { checked, radio },
             }),
-          }),
+        }),
 
+        // New query to get products by shop id
+        getProductsByShopId: builder.query({
+            query: (shopId) => `${PRODUCT_URL}/shop/${shopId}`,
+            providesTags: ['Products'],
+        }),
     })
-
 })
 
-export const { useGetProductByIdQuery,
+export const { 
+    useGetProductByIdQuery,
     useGetProductsQuery,
     useCreateProductMutation,
     useUpdateProductMutation,
@@ -131,5 +118,5 @@ export const { useGetProductByIdQuery,
     useAllProductsQuery,
     useUploadProductImageMutation,
     useGetFilteredProductsQuery,
-  } = productApiSlice;
-
+    useGetProductsByShopIdQuery,
+} = productApiSlice;

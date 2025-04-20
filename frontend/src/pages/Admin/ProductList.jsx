@@ -4,6 +4,7 @@ import { useCreateProductMutation, useUploadProductImageMutation } from '../../r
 import { useFetchCategoriesQuery } from '../../redux/api/categoryApiSlice';
 import { toast } from 'react-toastify';
 import AdminMenu from './AdminMenu';
+import { useFetchShopsQuery } from '../../redux/api/shopApiSlice';
 
 // Stock Indicator Component
 const StockIndicator = ({ stock }) => {
@@ -31,6 +32,7 @@ const ProductList = () => {
   const [brand, setBrand] = useState('');
   const [stock, setStock] = useState(0);
   const [imageUrl, setImageUrl] = useState(null);
+  const [shop, setShop] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({
     name: '',
@@ -43,6 +45,7 @@ const ProductList = () => {
   const [uploadProductImage] = useUploadProductImageMutation();
   const [createProduct] = useCreateProductMutation();
   const { data: categories } = useFetchCategoriesQuery();
+  const { data: malls } = useFetchShopsQuery();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,6 +61,7 @@ const ProductList = () => {
       productData.append('category', category);
       productData.append('brand', brand);
       productData.append('inStock', stock);
+      productData.append('shop', shop);
 
       const { data } = await createProduct(productData);
       if (data.error) {
@@ -220,6 +224,23 @@ const ProductList = () => {
                 {categories?.map(c => (
                   <option key={c._id} value={c._id}>
                     {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Shop</label>
+              <select
+                value={shop}
+                onChange={e => setShop(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+              >
+                <option disabled value="">Select Shop</option>
+                {malls?.map(m => (
+                  <option key={m._id} value={m._id}>
+                    {m.name}
                   </option>
                 ))}
               </select>

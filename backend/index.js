@@ -1,4 +1,3 @@
-//console.log('backendddd');
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import express from 'express';
@@ -24,7 +23,7 @@ const app = express()
 
 // Add CORS middleware
 const corsOptions = {
-  origin: ['http://localhost:3000', 'https://4dff-129-222-187-52.ngrok-free.app'], // Allow both localhost and ngrok URL
+  origin: ['http://localhost:8000', 'http://localhost:5173',' https://b075-129-222-187-221.ngrok-free.app'], // Added localhost:5173 and localtunnel URL
   credentials: true,
 };
 app.use(cors(corsOptions));

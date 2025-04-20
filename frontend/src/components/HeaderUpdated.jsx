@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AiOutlineHome, AiOutlineMenu, AiOutlineSearch, AiOutlineShop, AiOutlineShoppingCart } from 'react-icons/ai';
+import { AiOutlineHome, AiOutlineMenu, AiOutlineSearch, AiOutlineShop, AiOutlineShopping, AiOutlineShoppingCart } from 'react-icons/ai';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
@@ -66,7 +66,7 @@ const HeaderUpdated = ({ onToggleSidebar }) => {
       <div className="flex items-center space-x-6 flex-shrink-0">
         {/* Home Link */}
         <Link to='/shop' className='flex items-center transition-transform transform hover:translate-x-2 text-orange-500'>
-          <AiOutlineShop className=' text-orange-500' size={26} />
+          <AiOutlineShopping className=' text-orange-500' size={26} />
           <span className="hidden sm:inline font-semibold tracking-wide"></span>
         </Link>
 
@@ -84,7 +84,7 @@ const HeaderUpdated = ({ onToggleSidebar }) => {
             </span>
           )}
         </Link>
-         <Link to='/Admin/shops/all' className='flex items-center transition-transform transform hover:translate-x-2 text-green-500 ml-4' title="All Malls/Shops">
+         <Link to='/shops/all' className='flex items-center transition-transform transform hover:translate-x-2 text-green-500 ml-4' title="All Malls/Shops">
                   <AiOutlineShop className='text-green-500' size={26} />
                   <span className="hidden sm:inline font-semibold tracking-wide ml-1">Malls</span>
                 </Link>

@@ -13,7 +13,6 @@ import {
   usePayOrderMutation,
 } from "../../redux/api/orderApiSlice";
 import MpesaButton from "../../components/MpesaButton";
-import PhoneInput from "../../components/PhoneInput";
 
 const Order = () => {
   const { id: orderId } = useParams();
@@ -38,7 +37,6 @@ const Order = () => {
   } = useGetPaypalClientIdQuery();
 
   const [phone, setPhone] = useState("");
-  const [phoneError, setPhoneError] = useState(""); // Added phoneError state
 
   useEffect(() => {
     if (!errorPayPal && !loadingPayPal && paypal.clientId) {
@@ -225,22 +223,11 @@ const Order = () => {
                 <span className="font-semibold">Pay with M-Pesa</span>
               </div>
 
-              <PhoneInput
-                onValidNumber={(validPhone) => {
-                  setPhone(validPhone); // Store clean number like 0712345678
-                  setPhoneError(""); // Clear error
-                }}
-                onInvalidNumber={() => setPhoneError("Invalid phone number")}
-              />
-
-              {phoneError && (
-                <p className="text-red-500 text-sm mt-1">{phoneError}</p>
-              )}
-
               <MpesaButton
                 totalPrice={order.totalPrice}
                 orderId={order._id}
-                phoneNumber={phone}
+                initialPhone={phone}
+                onPhoneChange={setPhone}
                 onSuccess={() => {
                   toast.success("Payment initiated successfully!");
                   toast.info("Please wait while we verify your M-Pesa payment...");

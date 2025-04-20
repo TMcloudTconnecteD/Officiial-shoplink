@@ -3,11 +3,24 @@ import { toast } from "react-toastify";
 import Loader from "./Loader";
 import { useInitiateMpesaPaymentMutation, useCheckMpesaPaymentStatusQuery } from "../redux/api/mpesaApiSlice";
 
-const MpesaButton = ({ totalPrice, orderId, onSuccess }) => {
-  const [phoneNumber, setPhoneNumber] = useState("");
+const formatPhone = (value) => {
+  const digitsOnly = value.replace(/\D/g, "").slice(0, 10); // Max 10 digits
+  const parts = [];
+
+  if (digitsOnly.length > 0) parts.push(digitsOnly.slice(0, 4));
+  if (digitsOnly.length > 4) parts.push(digitsOnly.slice(4, 7));
+  if (digitsOnly.length > 7) parts.push(digitsOnly.slice(7, 10));
+
+  return parts.join(" ");
+};
+
+const isValidSafaricom = (number) => /^07[01249]\d{7}$/.test(number);
+
+const MpesaButton = ({ totalPrice, orderId, initialPhone = "", onPhoneChange, onSuccess }) => {
+  const [phoneNumber, setPhoneNumber] = useState(initialPhone);
   const [loading, setLoading] = useState(false);
   const [checkoutRequestId, setCheckoutRequestId] = useState(null);
-  const { data: paymentStatus, refetch } = useCheckMpesaPaymentStatusQuery(checkoutRequestId, {
+  const { data: paymentStatus } = useCheckMpesaPaymentStatusQuery(checkoutRequestId, {
     skip: !checkoutRequestId,
   });
   const [initiatePayment] = useInitiateMpesaPaymentMutation();
@@ -29,15 +42,31 @@ const MpesaButton = ({ totalPrice, orderId, onSuccess }) => {
     }
   }, [paymentStatus, onSuccess]);
 
+  const handleChange = (e) => {
+    const raw = e.target.value;
+    const digits = raw.replace(/\D/g, "").slice(0, 10);
+    const formatted = formatPhone(digits);
+    setPhoneNumber(formatted);
+
+    if (digits.length === 10) {
+      if (isValidSafaricom(digits)) {
+        onPhoneChange?.(digits);
+      } else {
+        toast.error("Invalid Safaricom number.");
+      }
+    }
+  };
+
   const handleMpesaPayment = async () => {
-    if (!phoneNumber || phoneNumber.length < 10) {
+    const digits = phoneNumber.replace(/\D/g, "");
+    if (!digits || digits.length < 10) {
       toast.error("Please enter a valid phone number");
       return;
     }
 
-    const formattedPhone = phoneNumber.startsWith("254")
-      ? phoneNumber
-      : phoneNumber.replace(/^0/, "254");
+    const formattedPhone = digits.startsWith("254")
+      ? digits
+      : digits.replace(/^0/, "254");
 
     try {
       setLoading(true);
@@ -82,8 +111,8 @@ const MpesaButton = ({ totalPrice, orderId, onSuccess }) => {
           id="mpesa-number"
           type="tel"
           value={phoneNumber}
-          onChange={(e) => setPhoneNumber(e.target.value)}
-          placeholder="e.g. 0712345678"
+          onChange={handleChange}
+          placeholder="e.g. 0712 345 678"
           pattern="[0-9]{10,13}"
           inputMode="numeric"
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"

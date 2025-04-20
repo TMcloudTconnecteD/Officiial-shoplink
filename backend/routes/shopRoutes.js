@@ -22,6 +22,6 @@ router.route("/:id")
 
 // Route for fetching all shops (admin only)
 router.route("/all")
-  .get(authenticate, authorizeAdmin,  fetchAllShops);
+  .get(authenticate,   fetchAllShops);
 
 export default router;

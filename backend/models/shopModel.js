@@ -6,11 +6,10 @@ const shopSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-   
   },
   image: {
     type: String,
-    required:true, // Optional shop image/logo URL
+    required: true, // Optional shop image/logo URL
   },
   category: {
     type: ObjectId,
@@ -22,17 +21,15 @@ const shopSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-  
-  
   telephone: {
     type: Number,
     required: true,
-   
-
-
-
-  }
-
+  },
+  owner: {
+    type: ObjectId,
+    ref: "User",
+    required: true,
+  },
 }, { timestamps: true });
 
 const mall = mongoose.model("Shop", shopSchema);

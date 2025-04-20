@@ -1,46 +1,42 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from "react";
+import ShopPortfolio from "./ShopPortfolio";
+import ShopCard from "../pages/shops/shopCard.jsx";
+import { useGetProductsQuery } from "../redux/api/productApiSlice";
+import { useFetchShopsQuery } from "../redux/api/shopApiSlice";
 
 const ShopList = () => {
-  const [shops, setShops] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [selectedShop, setSelectedShop] = useState(null);
+  const { data: shops = [], isLoading: shopsLoading } = useFetchShopsQuery();
+  const { data: products = [], isLoading: productsLoading } = useGetProductsQuery();
 
-  useEffect(() => {
-    const fetchShops = async () => {
-      try {
-        const response = await fetch('/api/shops/all', {
-          credentials: 'include',
-        });
-        if (!response.ok) {
-          throw new Error('Failed to fetch shops');
-        }
-        const data = await response.json();
-        setShops(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Filter products by selected shop
+  const shopProducts = selectedShop
+    ? products.filter((p) => p.shop === selectedShop._id)
+    : [];
 
-    fetchShops();
-  }, []);
-
-  if (loading) return <p>Loading shops...</p>;
-  if (error) return <p>Error: {error}</p>;
-
-  if (shops.length === 0) return <p>No shops found.</p>;
+  if (shopsLoading || productsLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>
-      <h2>Shop List</h2>
-      <ul>
-        {shops.map((shop) => (
-          <li key={shop._id}>
-            <strong>{shop.name}</strong> - {shop.location} - {shop.telephone}
-          </li>
-        ))}
-      </ul>
+      {!selectedShop ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {shops.map((shop) => (
+            <ShopCard
+              key={shop._id}
+              shop={shop}
+              onViewShop={() => setSelectedShop(shop)}
+            />
+          ))}
+        </div>
+      ) : (
+        <ShopPortfolio
+          shop={selectedShop}
+          products={shopProducts}
+          onClose={() => setSelectedShop(null)}
+        />
+      )}
     </div>
   );
 };

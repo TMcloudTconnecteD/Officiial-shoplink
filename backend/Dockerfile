@@ -1,7 +1,7 @@
 # Backend Dockerfile
 FROM node:18-alpine
 
-WORKDIR /app
+WORKDIR /app/backend
 
 COPY package.json package-lock.json ./
 RUN npm install
@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["node", "index.js"]
+CMD ["npm", "run", "backend"]

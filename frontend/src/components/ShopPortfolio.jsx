@@ -30,15 +30,17 @@ const ShopPortfolio = ({ shop, products, onClose }) => {
             href={`mailto:${shop.owner.email}`}
             className="flex items-center justify-center space-x-2 bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600 transition"
           >
+           
+            <span>Send Email.. </span>
             <FaEnvelope />
-            <span>Email: {shop.owner.email}</span>
           </a>
           <a
-            href={`tel:${shop.owner.telephone}`}
+            href={`tel:${shop.telephone}`}
             className="flex items-center justify-center space-x-2 bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600 transition"
           >
+            
+            <span>Call Seller.. </span>
             <FaPhone />
-            <span>Call: {shop.owner.telephone}</span>
           </a>
         </div>
         <button
@@ -67,7 +69,7 @@ const ShopPortfolio = ({ shop, products, onClose }) => {
                 className="w-full h-40 object-cover rounded-md mb-3"
               />
               <h4 className="text-lg font-medium text-gray-900">{product.name}</h4>
-              <p className="text-sm text-gray-600 mt-1">${product.price}</p>
+              <p className="text-sm  text-gray-600 mt-1">KES {product.price}</p>
 
               <div className="mt-auto flex justify-between items-center space-x-2">
                 <Link

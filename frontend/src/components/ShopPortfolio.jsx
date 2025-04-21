@@ -1,6 +1,6 @@
 import React from "react";
 import ProductCarousel from "../pages/products/ProductCarousel";
-import { FaEnvelope, FaPhone } from "react-icons/fa";
+import { FaCartPlus, FaEnvelope, FaPhone } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../redux/features/cart/cartSlice";
 import { Link } from "react-router-dom";
@@ -80,9 +80,9 @@ const ShopPortfolio = ({ shop, products, onClose }) => {
                 </Link>
                 <button
                   onClick={() => addToCartHandler(product)}
-                  className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition text-sm"
+                  className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition text-sm"
                 >
-                  Add to Cart
+                  <FaCartPlus />
                 </button>
                 <HeartIcon product={product} />
               </div>

@@ -8,7 +8,7 @@ function calcPrices(orderItems) {
     0
   );
 
-  const shippingPrice = itemsPrice > 100 ? 0 : 10;
+  const shippingPrice = itemsPrice > 5000 ? 0 : 100;
   const taxRate = 0.15;
   const taxPrice = (itemsPrice * taxRate).toFixed(2);
 
@@ -28,7 +28,7 @@ function calcPrices(orderItems) {
 
 const createOrder = async (req, res) => {
   try {
-    const { orderItems, shippingAddress, paymentMethod } = req.body;
+    const { orderItems, shippingAddress, paymentMethod, shop } = req.body;
 
     if (orderItems && orderItems.length === 0) {
       res.status(400);
@@ -63,6 +63,7 @@ const createOrder = async (req, res) => {
     const order = new Order({
       orderItems: dbOrderItems,
       user: req.user._id,
+      shop,
       shippingAddress,
       paymentMethod,
       itemsPrice,

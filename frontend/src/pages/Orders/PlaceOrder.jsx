@@ -131,7 +131,7 @@ const PlaceOrder = () => {
   disabled={cart.cartItems.length === 0}
   onClick={placeOrderHandler}
 >
-  <FaMoneyCheckAlt className="animate-spin text-xl" />
+  <FaMoneyCheckAlt className="animate-spin bg-yellow-200 text-xl" />
   Place Order
 </button>
 

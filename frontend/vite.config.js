@@ -15,7 +15,7 @@ export default ({ mode }) => {
         '/uploads': env.VITE_BASE_URL || 'http://localhost:8000',
       },
       allowedHosts: [
-        "https://5a78-129-222-187-227.ngrok-free.app", // current ngrok domain
+        "  https://add4-129-222-147-205.ngrok-free.app ", // current ngrok domain
         '.ngrok-free.app',                     // wildcard for future ngrok links
       ],
     },

@@ -28,6 +28,7 @@ const OrderList = () => {
               <th className="text-left pl-1">TOTAL</th>
               <th className="text-left pl-1">PAID</th>
               <th className="text-left pl-1">DELIVERED</th>
+              <th className="text-left pl-1">Shop</th>
               <th></th>
             </tr>
           </thead>
@@ -75,7 +76,7 @@ const OrderList = () => {
                     </p>
                   )}
                 </td>
-
+              
                 <td>
                   <Link to={`/order/${order._id}`}>
                     <button>More</button>

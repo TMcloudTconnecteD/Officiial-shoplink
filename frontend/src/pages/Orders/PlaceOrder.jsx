@@ -24,6 +24,11 @@ const PlaceOrder = () => {
 
   const placeOrderHandler = async () => {
     try {
+      // Log the shop for each product in the cart
+      cart.cartItems.forEach((item) => {
+        console.log(`Product: ${item.name}, Shop: ${typeof item.shop === 'object' ? item.shop.name : item.shop}`);
+      });
+
       const res = await createOrder({
         orderItems: cart.cartItems,
         shippingAddress: cart.shippingAddress,
@@ -32,12 +37,13 @@ const PlaceOrder = () => {
         shippingPrice: cart.shippingPrice,
         taxPrice: cart.taxPrice,
         totalPrice: cart.totalPrice,
+        shop: cart.cartItems.length > 0 ? (typeof cart.cartItems[0].shop === 'object' ? cart.cartItems[0].shop._id : cart.cartItems[0].shop) : undefined,
       }).unwrap();
 
       dispatch(clearCartItems());
       navigate(`/order/${res._id}`);
     } catch (error) {
-      toast.error(error?.message || "Error placing order");
+      toast.error(error?.data?.message || error?.error || "Error placing order");
     }
   };
 
@@ -45,12 +51,12 @@ const PlaceOrder = () => {
     <>
       <ProgressSteps step1 step2 step3 />
 
-      <div className="container mx-auto mt-8">
+      <div className="container mx-auto mt-8 px-4 sm:px-6 md:px-10 lg:px-20 xl:px-32 max-w-screen-lg" style={{ marginLeft: 'auto', marginRight: 'auto' }}>
         {cart.cartItems.length === 0 ? (
           <Message>Your cart is empty</Message>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+            <table className="w-full border-collapse min-w-[600px] sm:min-w-full">
               <thead>
                 <tr>
                   <td className="px-1 py-2 text-left align-top">Image</td>
@@ -73,6 +79,7 @@ const PlaceOrder = () => {
                     </td>
                     <td className="p-2">
                       <Link to={`/product/${item.product}`}>{item.name}</Link>
+                      <div className="text-sm text-gray-600">Shop: {typeof item.shop === 'object' ? item.shop.name : item.shop}</div>
                     </td>
                     <td className="p-2">{item.qty}</td>
                     <td className="p-2">{item.price.toFixed(2)}</td>
@@ -88,29 +95,23 @@ const PlaceOrder = () => {
 
         <div className="mt-8">
           <h2 className="text-2xl font-semibold mb-5">Order Summary</h2>
-          <div className="flex justify-between flex-wrap p-8 bg-purple-400">
-            <ul className="text-lg">
+          <div className="flex flex-col sm:flex-row justify-between flex-wrap p-8 bg-purple-400 rounded-lg gap-6">
+            <ul className="text-lg flex-1 min-w-[200px]">
               <li>
-                <span className="font-semibold mb-4">Items:</span> KES {cart.itemsPrice}
+                <span className="font-semibold mb-4 block">Items:</span> KES {cart.itemsPrice}
               </li>
               <li>
-                <span className="font-semibold mb-4">Shipping:</span> KES {cart.shippingPrice}
+                <span className="font-semibold mb-4 block">Shipping:</span> KES {cart.shippingPrice}
               </li>
               <li>
-                <span className="font-semibold mb-4">Tax:</span> KES {cart.taxPrice}
+                <span className="font-semibold mb-4 block">Tax:</span> KES {cart.taxPrice}
               </li>
               <li>
-                <span className="font-semibold mb-4">Total:</span> KES {cart.totalPrice}
+                <span className="font-semibold mb-4 block">Total:</span> KES {cart.totalPrice}
               </li>
             </ul>
 
-            {error && (
-              <Message variant="danger">
-                {error?.data?.message || error?.error || 'your network is crazy'}
-              </Message>
-            )}
-
-            <div>
+            <div className="flex-1 min-w-[200px]">
               <h2 className="text-2xl font-semibold mb-4">Shipping</h2>
               <p>
                 <strong>Address:</strong> {cart.shippingAddress.address},{" "}
@@ -119,22 +120,27 @@ const PlaceOrder = () => {
               </p>
             </div>
 
-            <div>
+            <div className="flex-1 min-w-[200px]">
               <h2 className="text-2xl font-semibold mb-4">Payment Method</h2>
               <strong>Method:</strong> {cart.paymentMethod}
             </div>
           </div>
 
-          <button
-  type="button"
-  className="bg-cyan-500 hover:bg-cyan-600 transition-all duration-300 transform hover:scale-105 text-white py-2 px-4 rounded-full text-lg w-full mt-4 flex items-center justify-center gap-2"
-  disabled={cart.cartItems.length === 0}
-  onClick={placeOrderHandler}
->
-  <FaMoneyCheckAlt className="animate-spin text-xl" />
-  Place Order
-</button>
+          {error && (
+            <Message variant="danger" className="mt-4">
+              {error?.data?.message || error?.error || 'Your network is crazy'}
+            </Message>
+          )}
 
+          <button
+            type="button"
+            className="bg-cyan-500 hover:bg-cyan-600 transition-all duration-300 transform hover:scale-105 text-white py-2 px-4 rounded-full text-lg w-full mt-4 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={cart.cartItems.length === 0 || isLoading}
+            onClick={placeOrderHandler}
+          >
+            <FaMoneyCheckAlt className={isLoading ? "animate-spin text-xl" : "text-xl"} />
+            Place Order
+          </button>
 
           {isLoading && <Loader />}
         </div>

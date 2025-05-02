@@ -25,7 +25,11 @@ const HeaderUpdated = ({ onToggleSidebar }) => {
       <div className="flex items-center space-x-4 flex-shrink-0">
         {/* Logo placeholder */}
         <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-tr from-yellow-500 via-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-black font-extrabold text-2xl sm:text-3xl select-none shadow-lg animate-pulse">
-          S
+           <Link to='/' className='flex items-center transition-transform transform hover:translate-x-2 text-orange-500'>
+                  S   
+            </Link>
+          
+          
         </div>
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-wide drop-shadow-lg">shoplink</h1>

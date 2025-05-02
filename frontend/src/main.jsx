@@ -37,13 +37,14 @@ import ShopUpdated from './pages/ShopUpdated.jsx'
 import HomeUpdated from './pages/HomeUpdated.jsx'
 import ShopList from './components/ShopList.jsx'
 import Mall from './pages/shops/Mall.jsx'
+import HomeUpdated1 from './pages/HomeUpdated1.jsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<App />} >
         <Route path = '/login' element = {<Login />} />
         <Route path = '/register' element = {<Register />} />
-        <Route index={true} path="/" element={<HomeUpdated />} />
+        <Route index={true} path="/" element={<HomeUpdated1 />} />
         <Route path="/favorite" element={<Favorites />} />
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/cart" element={<Cart />} />

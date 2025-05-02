@@ -15,7 +15,7 @@ import mpesaRoutes from './routes/mpesaRoutes.js';
 
 dotenv.config();
 const port = process.env.PORT || 8000;
-console.log("MONGO_URI:", process.env.MONGO_URI);
+//console.log("MONGO_URI:", process.env.MONGO_URI.);
 
 connectDB();
 
@@ -29,10 +29,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Add request logging middleware
-app.use((req, res, next) => {
-  console.log(`Incoming request: ${req.method} ${req.url}`);
-  next();
-});
+//app.use((req, res, next) => {
+  //console.log(`Incoming request: ${req.method} ${req.url}`);
+  //next();
+//});
 
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))

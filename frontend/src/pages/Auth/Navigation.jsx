@@ -77,36 +77,27 @@ const Navigation = () => {
         </button>
 
         {/* Search bar */}
-        <div className="mb-4">
-          <input 
-            type="text" 
-            placeholder="Search..." 
-            value={searchTerm} 
-            onChange={handleSearchChange} 
-            onKeyDown={handleSearchSubmit}
-            className="w-full px-2 py-1 rounded text-black focus:outline-none focus:ring-2 focus:ring-orange-500"
-          />
-        </div>
+       
 
         <div className="flex flex-col justify-center space-y-4">
           <Link to='/' className='flex items-center transition-transform transform hover:translate-x-2 text-orange-500'>
-            <AiOutlineHome className='mr-2 mt-[3rem] text-green-500' size={26} />
+            <AiOutlineHome className='mr-2 mt-[3rem] text-cyan-500' size={26} />
             <span className="hidden nav-item-name mt-[3rem]">Home</span>
           </Link>
 
           <Link to='/shop' className='flex items-center transition-transform transform hover:translate-x-2 text-orange-500'>
-            <AiOutlineShopping className='mr-2 mt-[3rem] text-orange-500' size={26} />
+            <AiOutlineShopping className='mr-2 mt-[3rem] text-cyan-500' size={26} />
             <span className="hidden nav-item-name mt-[3rem]">Shop</span>
           </Link>
 
           <Link to='/Admin/shops' className='flex items-center transition-transform transform hover:translate-x-2 text-orange-500'>
-            <AiOutlineShop className='mr-2 mt-[3rem] text-orange-500 color-green-500' size={26} />
+            <AiOutlineShop className='mr-2 mt-[3rem] text-cyan-500 color-cyan-500' size={26} />
             <span className="hidden nav-item-name mt-[3rem]">Mall</span>
           </Link>
 
           <Link to="/cart" className="flex relative text-orange-500">
             <div className="flex items-center transition-transform transform hover:translate-x-2">
-              <AiOutlineShoppingCart className="mt-[3rem] mr-2 text-green-500" size={26} />
+              <AiOutlineShoppingCart className="mt-[3rem] mr-2 text-cyan-500" size={26} />
               <span className="hidden nav-item-name mt-[3rem]">Cart</span>
             </div>
             <div className="absolute top-9">
@@ -122,7 +113,7 @@ const Navigation = () => {
 
           <Link to="/favorite" className="flex relative text-orange-500">
             <div className="flex justify-center items-center transition-transform transform hover:translate-x-2">
-              <FaHeartbeat className="mt-[3rem] mr-2 text-purple-500" size={20} />
+              <FaHeartbeat className="mt-[3rem] mr-2 text-red-500" size={20} />
               <span className="hidden nav-item-name mt-[3rem]">Favorites</span>
               <FavoritesCount />
             </div>

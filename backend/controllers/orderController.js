@@ -1,5 +1,6 @@
 import Order from "../models/orderModel.js";
 import Product from "../models/productModel.js";
+import Shop from "../models/shopModel.js";
 
 // Utility Function
 function calcPrices(orderItems) {
@@ -60,11 +61,18 @@ const createOrder = async (req, res) => {
     const { itemsPrice, taxPrice, shippingPrice, totalPrice } =
       calcPrices(dbOrderItems);
 
+    // Fetch shop name
+    const shopDoc = await Shop.findById(shop);
+    const shippingAddressWithShopName = {
+      ...shippingAddress,
+      shopName: shopDoc ? shopDoc.name : undefined,
+    };
+
     const order = new Order({
       orderItems: dbOrderItems,
       user: req.user._id,
       shop,
-      shippingAddress,
+      shippingAddress: shippingAddressWithShopName,
       paymentMethod,
       itemsPrice,
       taxPrice,
@@ -75,13 +83,20 @@ const createOrder = async (req, res) => {
     const createdOrder = await order.save();
     res.status(201).json(createdOrder);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error in createOrder:", error);
+    res.status(500).json({ error: error.message || "Server error" });
   }
 };
 
 const getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find({}).populate("user", "id username");
+    const orders = await Order.find({})
+      .populate("user", "id username")
+      .populate("shop", "name location") // populate shop details
+      .populate({
+        path: "orderItems.product",
+        populate: { path: "shop", select: "name location" }, // populate shop inside product
+      });
     res.json(orders);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -142,12 +157,15 @@ const calcualteTotalSalesByDate = async (req, res) => {
 
 const findOrderById = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id).populate(
-      "user",
-      "username email"
-    );
+    const order = await Order.findById(req.params.id)
+      .populate("user", "username email")
+      .populate("shop", "name location");
 
     if (order) {
+      // Ensure shippingAddress.shopName is set from populated shop if missing
+      if (!order.shippingAddress.shopName && order.shop && order.shop.name) {
+        order.shippingAddress.shopName = order.shop.name;
+      }
       res.json(order);
     } else {
       res.status(404);

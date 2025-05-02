@@ -4,7 +4,7 @@ import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { FaPaypal, FaMobileAlt } from "react-icons/fa";
-import Message from "../../components/Message"; // Fixed typo
+import Message from "../../components/Message";
 import Loader from "../../components/Loader";
 import {
   useDeliverOrderMutation,
@@ -90,6 +90,20 @@ const Order = () => {
     refetch();
   };
 
+  // Helper function to safely get shop name string for display
+  const getShopName = () => {
+    if (!order) return "N/A";
+    if (order.shippingAddress && order.shippingAddress.shopName) {
+      if (typeof order.shippingAddress.shopName === "string") return order.shippingAddress.shopName;
+      if (typeof order.shippingAddress.shopName === "object" && order.shippingAddress.shopName !== null) {
+        return order.shippingAddress.shopName.name || "N/A";
+      }
+    }
+    // Fallback to order.shop.name if shippingAddress.shopName is missing
+    if (order.shop && order.shop.name) return order.shop.name;
+    return "N/A";
+  };
+
   return isLoading ? (
     <Loader />
   ) : error ? (
@@ -161,6 +175,9 @@ const Order = () => {
             </p>
             <p>
               <strong className="text-gray-600">Email:</strong> {order.user.email}
+            </p>
+            <p>
+              <strong className="text-gray-600">Shop:</strong> {getShopName()}
             </p>
             <p>
               <strong className="text-gray-600">Address:</strong>{" "}

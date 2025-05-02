@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import StreetScenery from './ThreeDMall/StreetScenery';
 
 function ThreeDMall() {
   const mountRef = useRef(null);
@@ -126,7 +127,7 @@ function ThreeDMall() {
     ctx.font = 'bold 80px Arial';
     ctx.fillStyle = '#ff00ff';
     ctx.textAlign = 'center';
-    ctx.fillText('ShopLink', canvas.width / 2, 90);
+    ctx.fillText('Neon_Dreams', canvas.width / 2, 90);
     const texture = new THREE.CanvasTexture(canvas);
     neonSignMaterial.map = texture;
     neonSignMaterial.needsUpdate = true;
@@ -228,6 +229,7 @@ function ThreeDMall() {
 
   return (
     <>
+    
       <button
         onClick={() => setShow3DMall(!show3DMall)}
         style={{
@@ -247,6 +249,7 @@ function ThreeDMall() {
         {show3DMall ? 'Go Back Home' : 'View 3D Mall'}
       </button>
       <div ref={mountRef} style={{ width: '100%', height: '100vh', position: 'relative' }} />
+     
     </>
   );
 }

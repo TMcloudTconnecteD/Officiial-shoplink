@@ -3,6 +3,7 @@ import ShopCard from '../../pages/shops/shopCard.jsx';
 import AdminMenu from '../Admin/AdminMenu';
 import { useFetchShopsQuery } from '../../redux/api/shopApiSlice';
 import { useFetchCategoriesQuery } from '../../redux/api/categoryApiSlice';
+import Loader from '../../components/Loader.jsx';
 
 const Mall = () => {
   const { data: shops = [], isLoading, isError } = useFetchShopsQuery();
@@ -69,7 +70,7 @@ const Mall = () => {
           </div>
         </div>
 
-        {isLoading && <p>Loading shops...</p>}
+        {isLoading && <p>Loading shops...</p>} <Loader />
         {isError && <p>Error loading shops.</p>}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">

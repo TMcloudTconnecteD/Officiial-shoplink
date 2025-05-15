@@ -1,7 +1,7 @@
 # Backend Dockerfile
 FROM node:18-alpine
 
-WORKDIR /app
+WORKDIR /app/backend
 
 # Copy only backend package manifests
 COPY package.json package-lock.json ./

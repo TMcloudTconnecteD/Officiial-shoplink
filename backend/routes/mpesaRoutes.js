@@ -4,6 +4,7 @@ import {
   handleCallback,
   queryPaymentStatus
 } from '../controllers/mpesaController.js';
+import { processPaymentFlow } from '../controllers/paymentFlowController.js';
 import { authenticate } from '../middlewares/authMiddlewares.js';
 
 const router = express.Router();
@@ -81,5 +82,8 @@ router.get('/status/:checkoutRequestId', authenticate, async (req, res) => {
     });
   }
 });
+
+// New route to process payment flow with tax deduction and payout
+router.post('/process-payment-flow', authenticate, processPaymentFlow);
 
 export default router;

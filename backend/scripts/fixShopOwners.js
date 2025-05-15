@@ -5,11 +5,11 @@ import User from '../models/userModel.js';
 
 dotenv.config();
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/yourdbname';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://larrygerald76:soYHFUSFSz5y2YE2@clustershop.ivdna6q.mongodb.net/?retryWrites=true&w=majority&appName=Clustershop';
 
 const fixShopOwners = async () => {
   try {
-    await mongoose.connect(MONGO_URI);
+    await mongoose.connect(MONGODB_URI);
     console.log('Connected to MongoDB');
 
     // Find a super admin user to assign as owner for shops missing owner

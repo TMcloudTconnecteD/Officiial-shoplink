@@ -13,9 +13,10 @@ import uploadRoutes from './routes/uploadRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import mpesaRoutes from './routes/mpesaRoutes.js';
 
+const __dirname = path.resolve();
 dotenv.config();
 const port = process.env.PORT || 8000;
-//console.log("MONGO_URI:", process.env.MONGO_URI.);
+//console.log("MONGO_URI:", process.env.MONGO_URI);
 
 connectDB();
 
@@ -23,7 +24,12 @@ const app = express()
 
 // Add CORS middleware
 const corsOptions = {
-  origin: ['http://localhost:8000', 'http://localhost:5173',' https://b075-129-222-187-221.ngrok-free.app'], // Added localhost:5173 and localtunnel URL
+  origin: [
+    'http://localhost:8000',
+    'http://localhost:5173',
+    'https://b075-129-222-187-221.ngrok-free.app',
+    process.env.FRONTEND_URL, // Add your deployed frontend URL here
+  ],
   credentials: true,
 };
 app.use(cors(corsOptions));
@@ -49,7 +55,6 @@ app.get("/api/config/paypal", (req, res) => {
     res.send({ clientId: process.env.PAYPAL_CLIENT_ID });
 });
 
-const __dirname = path.resolve();
 app.use('/uploads', express.static(path.join(__dirname + '/uploads')))
 
 app.listen(port, '0.0.0.0', () => console.log(`server is running on port: ${port}`))

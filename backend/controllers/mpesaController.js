@@ -15,9 +15,9 @@ const BASE_URL_LOCAL = MPESA_ENV === 'production'
   ? 'https://api.safaricom.co.ke' 
   : 'https://sandbox.safaricom.co.ke';
 
-const MPESA_CALLBACK_URL = MPESA_ENV === 'production' 
-  ? 'https://4dff-129-222-187-52.ngrok-free.app/api/payments/callback' // production
-  : 'http://localhost:8000/api/payments/callback'; // localhost
+const MPESA_CALLBACK_URL = process.env.MPESA_ENV === 'production' 
+  ? process.env.MPESA_CALLBACK_URL_PROD 
+  : process.env.MPESA_CALLBACK_URL_DEV;
 
 // Generate base64 encoded password
 const generatePassword = () => {

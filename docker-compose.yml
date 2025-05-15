@@ -2,12 +2,14 @@ version: '3.8'
 
 services:
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     ports:
       - "8000:8000"
     environment:
       - PORT=8000
-      - MONGO_URI=${MONGO_URI}
+      - MONGODB_URI=${MONGODB_URI}
       - PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID}
     volumes:
       - ./backend/uploads:/app/uploads

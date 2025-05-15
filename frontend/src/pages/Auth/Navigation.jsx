@@ -95,11 +95,11 @@ const Navigation = () => {
             <span className="hidden nav-item-name mt-[3rem]">Mall</span>
           </Link>
 
-          <Link to="/cart" className="flex relative text-orange-500">
-            <div className="flex items-center transition-transform transform hover:translate-x-2">
+          <Link to="/cart" className="flex relative text-orange-500 items-center transition-transform transform hover:translate-x-2">
+            
               <AiOutlineShoppingCart className="mt-[3rem] mr-2 text-cyan-500" size={26} />
               <span className="hidden nav-item-name mt-[3rem]">Cart</span>
-            </div>
+            
             <div className="absolute top-9">
               {cartItems.length > 0 && (
                 <span>
@@ -112,11 +112,11 @@ const Navigation = () => {
           </Link>
 
           <Link to="/favorite" className="flex relative text-orange-500">
-            <div className="flex justify-center items-center transition-transform transform hover:translate-x-2">
+              
               <FaHeartbeat className="mt-[3rem] mr-2 text-red-500" size={20} />
               <span className="hidden nav-item-name mt-[3rem]">Favorites</span>
               <FavoritesCount />
-            </div>
+           
           </Link>
         </div>
 

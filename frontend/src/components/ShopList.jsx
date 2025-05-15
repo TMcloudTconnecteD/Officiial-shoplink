@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import ShopPortfolio from "./ShopPortfolio";
-import ShopCard from "../pages/shops/shopCard.jsx";
+import ShopCard from "../pages/shops/ShopCard.jsx";
 import { useGetProductsQuery } from "../redux/api/productApiSlice";
 import { useFetchShopsQuery } from "../redux/api/shopApiSlice";
 

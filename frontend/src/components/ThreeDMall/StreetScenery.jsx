@@ -156,13 +156,13 @@ const StreetScenery = () => {
     }
     animate();
 
-    return () => {
-      mountRef.current.removeEventListener('click', onMouseClick);
-      if (mountRef.current) {
-        mountRef.current.removeChild(renderer.domElement);
-      }
-      controls.dispose();
-    };
+return () => {
+  if (mountRef.current) {
+    mountRef.current.removeEventListener('click', onMouseClick);
+    mountRef.current.removeChild(renderer.domElement);
+  }
+  controls.dispose();
+};
   }, []);
 
   return (

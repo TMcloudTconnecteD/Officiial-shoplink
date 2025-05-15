@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import ShopCard from '../../pages/shops/shopCard.jsx';
+import ShopCard from './ShopCard.jsx';
 import AdminMenu from '../Admin/AdminMenu';
 import { useFetchShopsQuery } from '../../redux/api/shopApiSlice';
 import { useFetchCategoriesQuery } from '../../redux/api/categoryApiSlice';

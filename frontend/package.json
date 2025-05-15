@@ -28,7 +28,10 @@
     "react-router-dom": "^7.4.1",
     "react-slick": "^0.30.3",
     "react-toastify": "^11.0.5",
-    "slick-carousel": "^1.8.1"
+    "slick-carousel": "^1.8.1",
+    "three": "^0.176.0",
+    "@react-three/fiber": "^9.1.2",
+    "@react-three/drei": "^10.0.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

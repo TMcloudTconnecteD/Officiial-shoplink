@@ -1,12 +1,13 @@
 # Backend Dockerfile
 FROM node:18-alpine
 
-WORKDIR /backend
+WORKDIR /app
 
-# Copy package.json and package-lock.json from the parent directory
-COPY ../package.json ../package-lock.json ./
+# Copy only backend package manifests
+COPY package.json package-lock.json ./
 RUN npm install
 
+# Copy backend source code
 COPY . .
 
 EXPOSE 8000

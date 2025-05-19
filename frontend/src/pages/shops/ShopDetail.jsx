@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { useFetchShopsQuery } from '../../redux/api/shopApiSlice';
+import { useFetchShopsQuery } from '../../redux/Api/shopApiSlice';
 import { useGetProductsByShopIdQuery } from '../../redux/Api/productApiSlice.js';
 import ShopPortfolio from '../../components/ShopPortfolio';
 import AdminMenu from '../Admin/AdminMenu';

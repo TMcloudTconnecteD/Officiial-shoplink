@@ -11,7 +11,7 @@ import {
   FaStore,
 } from "react-icons/fa";
 import Loader from "../../components/Loader";
-import { useGetTopProductsQuery } from "../../redux/api/productApiSlice";
+import { useGetTopProductsQuery } from "../../redux/Api/productApiSlice";
 
 const ProductCarousel = ({ products: propProducts }) => {
   const { data: topProducts, isLoading, error } = useGetTopProductsQuery();

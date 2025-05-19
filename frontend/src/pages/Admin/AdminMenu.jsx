@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { FaTimes } from 'react-icons/fa'
 import { useDispatch } from 'react-redux'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { useLogoutMutation } from '../../redux/api/usersApiSlice.js'
+import { useLogoutMutation } from '../../redux/Api/usersApiSlice.js'
 import { logout } from '../../redux/features/auth/authSlice.js'
 import { Link } from 'react-router-dom'
 

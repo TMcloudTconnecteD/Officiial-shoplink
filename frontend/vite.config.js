@@ -11,8 +11,8 @@ export default ({ mode }) => {
     server: {
       host: '0.0.0.0',
       proxy: {
-        '/api': env.VITE_BASE_URL || 'http://localhost:8000',
-        '/uploads': env.VITE_BASE_URL || 'http://localhost:8000',
+        '/api': env.VITE_BASE_URL || 'https://shoplink-b.onrender.com',
+        '/uploads': env.VITE_BASE_URL || 'https://shoplink-b.onrender.com',
       },
       allowedHosts: [
         "  ac35-129-222-187-243.ngrok-free.app ", // current ngrok domain

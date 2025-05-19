@@ -1,0 +1,7 @@
+{
+  "name": "image-migration",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Script to migrate images to Cloudinary",
+  "main": "migrateImages.js"
+}

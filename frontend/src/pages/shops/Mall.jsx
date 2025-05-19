@@ -4,6 +4,7 @@ import AdminMenu from '../Admin/AdminMenu';
 import { useFetchShopsQuery } from '../../redux/Api/shopApiSlice.js';
 import { useFetchCategoriesQuery } from '../../redux/Api/categoryApiSlice.js';
 import Loader from '../../components/Loader.jsx';
+import HeaderUpdated from '../../components/HeaderUpdated.jsx';
 
 const Mall = () => {
   const { data: shops = [], isLoading, isError } = useFetchShopsQuery();
@@ -40,6 +41,8 @@ const Mall = () => {
 
   return (
     <div className="max-w-6xl mx-auto mt-20 px-4">
+      
+    < HeaderUpdated />
       <AdminMenu />
       <div className="bg-white rounded-2xl shadow-xl p-6 md:p-10">
         <h2 className="text-2xl font-bold mb-6 text-gray-800">All Shops 🏬</h2>

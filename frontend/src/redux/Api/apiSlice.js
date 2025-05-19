@@ -3,13 +3,13 @@ import { BASE_URL } from '../features/constants.js';
 
 const baseQuery = fetchBaseQuery({
     baseUrl: BASE_URL,
-    credentials: 'include', // Add this line to send cookies with requests
+    credentials: 'include',
     prepareHeaders: (headers, { getState }) => {
-        // Get the token from the Redux state or localStorage
-        const token = getState().auth?.token || localStorage.getItem('token');
+        const token = localStorage.getItem('token') || getState().auth?.userInfo?.token;
         if (token) {
-            headers.set('authorization', `Bearer ${token}`);
+            headers.set('Authorization', `Bearer ${token}`);
         }
+        headers.set('Content-Type', 'application/json');
         return headers;
     },
 });

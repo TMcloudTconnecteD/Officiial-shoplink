@@ -28,11 +28,37 @@ const corsOptions = {
     'http://localhost:8000',
     'http://localhost:5173',
     'https://b075-129-222-187-221.ngrok-free.app',
-    process.env.FRONTEND_URL, // Add your deployed frontend URL here
-  ],
+    'https://shop-link.onrender.com',
+    'http://shop-link.onrender.com',
+    process.env.FRONTEND_URL,
+  ].filter(Boolean),
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 600
 };
+
+// Apply CORS middleware
 app.use(cors(corsOptions));
+
+// Enable pre-flight requests
+app.options('*', cors(corsOptions));
+
+// Body parsing middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Cookie parsing middleware
+app.use(cookieParser());
+
+// Security headers middleware
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
 
 // Add request logging middleware
 //app.use((req, res, next) => {

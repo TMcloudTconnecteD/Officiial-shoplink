@@ -13,9 +13,9 @@ dotenv.config({ path: join(__dirname, '../../.env') });
 
 // Configure Cloudinary with your credentials
 cloudinary.config({
-    cloud_name: 'dgnxkbg3i',
-    api_key: '829231834578378',
-    api_secret: 'Xzt2gWaKBrue90uY940zcwyejyg'
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 const uploadsDir = join(__dirname, '../../uploads');

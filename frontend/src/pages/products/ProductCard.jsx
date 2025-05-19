@@ -4,9 +4,13 @@ import { useDispatch } from "react-redux";
 import { addToCart } from "../../redux/features/cart/cartSlice";
 import { toast } from "react-toastify";
 import HeartIcon from "./HeartIcon";
+import ImageComponent from "../../components/ImageComponent";
 
 const ProductCard = ({ p }) => {
   const dispatch = useDispatch();
+
+  // Debug log for image URL
+  console.log('Product Image URL:', p?.image);
 
   const addToCartHandler = (product, qty) => {
     dispatch(addToCart({ ...product, qty }));
@@ -22,8 +26,7 @@ const ProductCard = ({ p }) => {
         <Link to={`/product/${p._id}`}>
           <span className="absolute top-3 left-3 bg-pink-100 text-pink-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-pink-900 dark:text-pink-300">
             {p?.brand}
-          </span>
-          <img
+          </span>          <ImageComponent
             className="cursor-pointer w-full h-48 object-cover"
             src={p.image}
             alt={p.name}

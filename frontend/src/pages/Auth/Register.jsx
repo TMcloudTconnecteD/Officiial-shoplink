@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import Loader from '../../components/Loader';
 import { setCredentials } from '../../redux/features/auth/authSlice';
 import { toast } from 'react-toastify';
-import { useRegisterMutation } from '../../redux/api/usersApiSlice';
+import { useRegisterMutation } from '../../redux/Api/usersApiSlice.js';
 import { FaEnvelope, FaLock, FaLockOpen, FaUser } from 'react-icons/fa';
 
 

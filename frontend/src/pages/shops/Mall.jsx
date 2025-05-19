@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import ShopCard from './ShopCard.jsx';
 import AdminMenu from '../Admin/AdminMenu';
-import { useFetchShopsQuery } from '../../redux/api/shopApiSlice';
-import { useFetchCategoriesQuery } from '../../redux/api/categoryApiSlice';
+import { useFetchShopsQuery } from '../../redux/Api/shopApiSlice.js';
+import { useFetchCategoriesQuery } from '../../redux/Api/categoryApiSlice.js';
 import Loader from '../../components/Loader.jsx';
 
 const Mall = () => {

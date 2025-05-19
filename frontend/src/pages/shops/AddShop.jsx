@@ -3,8 +3,8 @@ import ShopList from '../../components/ShopList.jsx';
 
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useCreateShopMutation, useUploadShopImageMutation } from '../../redux/api/shopApiSlice';
-import { useFetchCategoriesQuery } from '../../redux/api/categoryApiSlice';
+import { useCreateShopMutation, useUploadShopImageMutation } from '../../redux/Api/shopApiSlice.js';
+import { useFetchCategoriesQuery } from '../../redux/Api/categoryApiSlice.js';
 import AdminMenu from '../Admin/AdminMenu';
 import Loader from '../../components/Loader.jsx';
 

@@ -1,4 +1,4 @@
-import { apiSlice } from "./apiSlice";
+import { apiSlice } from "./apiSlice.js";
 import { ORDERS_URL, PAYPAL_URL } from "../../redux/features/constants";
 
 export const orderApiSlice = apiSlice.injectEndpoints({

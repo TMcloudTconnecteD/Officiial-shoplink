@@ -1,6 +1,3 @@
-
-
-
 import { USERS_URL } from "../features/constants.js";
 import { apiSlice } from "./apiSlice.js";
 
@@ -11,33 +8,21 @@ export const usersApiSlice = apiSlice.injectEndpoints({
                 url: `${USERS_URL}/auth`,
                 method: 'POST',
                 body: data,
-
-
-
             })
-
         }),
         logout: builder.mutation({
           query: () => ({
             url: `${USERS_URL}/logout`,
             method:'POST',
-            
-          
           })
         }),
-
         register : builder.mutation({
             query: data => ({
                 url: `${USERS_URL}`,
                 method: 'POST',
                 body: data,
-
-
-
             })
-
         }),
-
         profile: builder.mutation({
           query: data => ({
             url: `${USERS_URL}/profile`,
@@ -45,7 +30,6 @@ export const usersApiSlice = apiSlice.injectEndpoints({
             body:data,
           })
         }),
-
         getUsers: builder.query({
             query: () => ({
                 url: USERS_URL,
@@ -53,29 +37,19 @@ export const usersApiSlice = apiSlice.injectEndpoints({
               providesTags: ['User'],
               keepUnusedDataFor: 50,
             }),
-
             deleteUser: builder.mutation({
                 query: (userId) => ({
                     url: `${USERS_URL}/${userId}`,
                   method: 'DELETE',
-
                 }),
                 invalidatesTags: ['User']
             }),
-
-
           getuserDetails: builder.query({
             query: (id) => ({
               url: `${USERS_URL}/${id}`,
-              
-
-
             }), 
             keepUnusedDataFor: 50,
-
-
           }),
-
          updateUser: builder.mutation({
           query: (data) => ({
             url: `${USERS_URL}/${data.userId}`,
@@ -83,11 +57,8 @@ export const usersApiSlice = apiSlice.injectEndpoints({
             body: data,
            }), 
            invalidatesTags: ['User'],
-
          })
-
     })
-
 })
 
 export const { useLoginMutation, 
@@ -98,11 +69,4 @@ export const { useLoginMutation,
                 useDeleteUserMutation,
                 useGetuserDetailsQuery,
                 useUpdateUserMutation,
-
-
-
-
-
-
-
 } = usersApiSlice;

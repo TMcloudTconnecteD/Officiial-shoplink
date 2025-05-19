@@ -8,12 +8,9 @@ export const shopApiSlice = apiSlice.injectEndpoints({
             query: () => ({
                 url: `${SHOP_URL}/all`,
                 method: 'GET',
-               
-                
             }),
             keepUnusedDataFor: 50,
             providesTags: ['Shop'],
-            
         }),
 
         // Create a new shop
@@ -50,23 +47,15 @@ export const shopApiSlice = apiSlice.injectEndpoints({
                 method: 'GET',
             }),
         }),
-   
 
-
-// Export hooks for usage in functional components  
+        // Export hooks for usage in functional components  
         uploadShopImage: builder.mutation({
             query: (data) => ({
-
                 url: `${UPLOAD_URL}`,
                 method: 'POST',
                 body: data,
-
-
-
-                
             }),
         }),
-
     }),
 });  
 
@@ -77,5 +66,4 @@ export const {
     useFetchShopsQuery,
     useFetchShopsByCategoryQuery,
     useUploadShopImageMutation,
-
 } = shopApiSlice;

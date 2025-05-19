@@ -8,6 +8,18 @@ export default ({ mode }) => {
 
   return defineConfig({
     plugins: [react(), WindiCSS()],
+    resolve: {
+      extensions: ['.js', '.jsx', '.json'],
+    },
+    build: {
+      target: 'esnext',
+      outDir: 'dist',
+      rollupOptions: {
+        output: {
+          manualChunks: undefined,
+        },
+      },
+    },
     server: {
       host: '0.0.0.0',
       proxy: {

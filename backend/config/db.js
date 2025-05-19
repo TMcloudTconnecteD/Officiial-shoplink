@@ -49,11 +49,12 @@ const connectDB = async () => {
         setTimeout(tryConnect, retryInterval);
       } else {
         console.error('Max retries reached. Could not connect to MongoDB.');
-        throw error;
-      }
-}
+        throw error;      }
+    }
+  };
 
+  // Start the connection attempt
+  await tryConnect();
+};
 
-
-}
 export default connectDB;

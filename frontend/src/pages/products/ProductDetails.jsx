@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import {
   useGetProductDetailsQuery,
   useCreateReviewMutation,
-} from "../../redux/api/productApiSlice";
+} from "../../redux/Api/productApiSlice";
 import Loader from "../../components/Loader";
 import Message from "../../components/Message";
 import {

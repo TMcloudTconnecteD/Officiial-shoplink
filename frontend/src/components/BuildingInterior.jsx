@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useGetProductsQuery } from '../redux/api/productApiSlice';
+import { useGetProductsQuery } from '../redux/Api/productApiSlice';
 import Shelves from './ThreeDMall/Shelves';
 import { Text, Box } from '@react-three/drei';
 

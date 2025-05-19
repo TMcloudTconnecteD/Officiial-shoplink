@@ -11,7 +11,7 @@ import {
   useGetOrderDetailsQuery,
   useGetPaypalClientIdQuery,
   usePayOrderMutation,
-} from "../../redux/api/orderApiSlice";
+} from "../../redux/Api/orderApiSlice";
 import MpesaButton from "../../components/MpesaButton";
 
 const Order = () => {

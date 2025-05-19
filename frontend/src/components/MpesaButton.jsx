@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import Loader from "./Loader";
-import { useInitiateMpesaPaymentMutation, useCheckMpesaPaymentStatusQuery } from "../redux/api/mpesaApiSlice";
+import { useInitiateMpesaPaymentMutation, useCheckMpesaPaymentStatusQuery } from "../redux/Api/mpesaApiSlice";
 
 const formatPhone = (value) => {
   const digitsOnly = value.replace(/\D/g, "").slice(0, 10); // Max 10 digits

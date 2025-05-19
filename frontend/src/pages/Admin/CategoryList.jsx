@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { toast } from 'react-toastify';
-import { useCreateCategoryMutation, useDeleteCategoryMutation, useFetchCategoriesQuery, useUpdateCategoryMutation } from '../../redux/api/categoryApiSlice';
+import { useCreateCategoryMutation, useDeleteCategoryMutation, useFetchCategoriesQuery, useUpdateCategoryMutation } from '../../redux/Api/categoryApiSlice';
 import CategoryForm from '../../components/CategoryForm';
 import Modal from '../../components/Modal';
 import AdminMenu from './AdminMenu';

@@ -6,8 +6,8 @@ import {
   useDeleteProductMutation,
   useGetProductByIdQuery,
   useUploadProductImageMutation,
-} from "../../redux/api/productApiSlice";
-import { useFetchCategoriesQuery } from "../../redux/api/categoryApiSlice";
+} from "../../redux/Api/productApiSlice";
+import { useFetchCategoriesQuery } from "../../redux/Api/categoryApiSlice";
 import { toast } from "react-toastify";
 import { Pencil, Trash2 } from "lucide-react";
 

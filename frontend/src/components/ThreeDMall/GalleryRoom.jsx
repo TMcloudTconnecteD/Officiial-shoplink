@@ -1,7 +1,7 @@
 import React from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Html } from '@react-three/drei';
-import { useGetProductsQuery } from '../redux/api/productApiSlice';
+import { useGetProductsQuery } from '../redux/Api/productApiSlice';
 import Shelves from './Shelves';
 import WalkingControls from './WalkingControls';
 

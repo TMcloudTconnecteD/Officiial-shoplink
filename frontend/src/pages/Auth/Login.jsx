@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useLoginMutation } from '../../redux/api/usersApiSlice'
+import { useLoginMutation } from '../../redux/Api/usersApiSlice'
 import { setCredentials } from '../../redux/features/auth/authSlice'
 import { toast } from 'react-toastify'
 import Loader from '../../components/Loader'

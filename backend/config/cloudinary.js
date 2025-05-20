@@ -12,7 +12,12 @@ const storage = new CloudinaryStorage({
     params: {
         folder: 'shoplink/products',
         allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
-        transformation: [{ width: 500, height: 500, crop: 'limit' }]
+        transformation: [
+            { width: 1000, height: 1000, crop: 'limit' }, // Increased size limit
+            { quality: 'auto', fetch_format: 'auto' } // Auto optimize quality and format
+        ],
+        format: 'jpg', // Default format
+        resource_type: 'auto' // Auto-detect resource type
     }
 });
 

@@ -15,26 +15,47 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
     storage,
-    limits: { fileSize: 5000000 }, // increased to 5MB
+    limits: { fileSize: 10 * 1024 * 1024 }, // increased to 10MB
     fileFilter
 });
 
 const uploadSingleImage = upload.single('image');
 
-router.post('/', (req, res) => {    uploadSingleImage(req, res, (err) => {
+router.post('/', (req, res) => {
+    uploadSingleImage(req, res, (err) => {
         if (err) {
             console.error('Upload error:', err);
-            res.status(400).send({ message: err.message });
-        } else if (req.file) {
-            console.log('Upload successful:', req.file);
-            res.status(200).send({
-                message: 'Image uploaded successfully',
-                image: req.file.path, // Cloudinary URL
-                public_id: req.file.filename // Store this if you need to delete the image later
+            if (err instanceof multer.MulterError) {
+                if (err.code === 'LIMIT_FILE_SIZE') {
+                    return res.status(413).send({ 
+                        message: 'File is too large. Maximum size is 10MB'
+                    });
+                }
+            }
+            return res.status(400).send({ 
+                message: err.message,
+                error: err.name
             });
-        } else {
-            res.status(400).send({ message: 'Please select an image to upload' });
         }
+        
+        if (!req.file) {
+            return res.status(400).send({ message: 'Please select an image to upload' });
+        }        // Log the full file object for debugging
+        console.log('Upload successful. File details:', {
+            path: req.file.path,
+            filename: req.file.filename,
+            secure_url: req.file.secure_url,
+            mimetype: req.file.mimetype,
+            size: req.file.size
+        });
+
+        // Ensure we return the secure HTTPS URL from Cloudinary
+        res.status(200).send({
+            message: 'Image uploaded successfully',
+            image: req.file.path || req.file.secure_url, // Prefer secure_url if available
+            secure_url: req.file.secure_url, // Include secure URL explicitly
+            public_id: req.file.filename // Store this if you need to delete the image later
+        });
     });
 });
 

@@ -3,7 +3,9 @@ import dotenv from 'dotenv';
 import express from 'express';
 import path from 'path';
 import cors from 'cors';
+import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
+import { localFilesFallback } from './middlewares/localFilesFallback.js';
 
 import userRoutes from './routes/userRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
@@ -27,7 +29,7 @@ const corsOptions = {
   origin: [
     'http://localhost:8000',
     'http://localhost:5173',
-    'https://b075-129-222-187-221.ngrok-free.app',
+    
     'https://shop-link.onrender.com',
     'http://shop-link.onrender.com',
     process.env.FRONTEND_URL,
@@ -69,6 +71,12 @@ app.use((req, res, next) => {
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(cookieParser())
+app.use(cors(corsOptions))
+
+// Serve local files during transition
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(localFilesFallback);
+
 app.use('/api/users', userRoutes)
 app.use('/api/category', categoryRoutes)
 app.use('/api/products', productRoutes)

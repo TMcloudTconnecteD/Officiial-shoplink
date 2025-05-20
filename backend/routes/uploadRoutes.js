@@ -41,20 +41,22 @@ router.post('/', (req, res) => {
         if (!req.file) {
             return res.status(400).send({ message: 'Please select an image to upload' });
         }        // Log the full file object for debugging
-        console.log('Upload successful. File details:', {
-            path: req.file.path,
-            filename: req.file.filename,
-            secure_url: req.file.secure_url,
-            mimetype: req.file.mimetype,
-            size: req.file.size
-        });
+        console.log('Upload successful. File details:', req.file);
 
-        // Ensure we return the secure HTTPS URL from Cloudinary
+        // Get the Cloudinary URL from the response
+        const imageUrl = req.file.path; // Cloudinary URL is in path
+
+        if (!imageUrl || !imageUrl.includes('cloudinary.com')) {
+            console.error('Invalid Cloudinary URL:', imageUrl);
+            return res.status(400).send({ 
+                message: 'Image upload failed - invalid Cloudinary URL'
+            });
+        }
+
         res.status(200).send({
             message: 'Image uploaded successfully',
-            image: req.file.path || req.file.secure_url, // Prefer secure_url if available
-            secure_url: req.file.secure_url, // Include secure URL explicitly
-            public_id: req.file.filename // Store this if you need to delete the image later
+            image: imageUrl, // The Cloudinary URL
+            public_id: req.file.filename
         });
     });
 });

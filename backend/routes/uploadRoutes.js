@@ -21,14 +21,16 @@ const upload = multer({
 
 const uploadSingleImage = upload.single('image');
 
-router.post('/', (req, res) => {
-    uploadSingleImage(req, res, (err) => {
+router.post('/', (req, res) => {    uploadSingleImage(req, res, (err) => {
         if (err) {
+            console.error('Upload error:', err);
             res.status(400).send({ message: err.message });
         } else if (req.file) {
+            console.log('Upload successful:', req.file);
             res.status(200).send({
                 message: 'Image uploaded successfully',
-                image: req.file.path // Cloudinary returns the URL in req.file.path
+                image: req.file.path, // Cloudinary URL
+                public_id: req.file.filename // Store this if you need to delete the image later
             });
         } else {
             res.status(400).send({ message: 'Please select an image to upload' });

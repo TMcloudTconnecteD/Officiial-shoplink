@@ -1,9 +1,8 @@
 import asyncHandler from "../middlewares/asyncHandler.js";
 import Product from "../models/productModel.js";
 
-const createProduct = asyncHandler(async (req, res) => {
-  try {
-    const {name, description, price, category, quantity, brand} = req.fields;
+const createProduct = asyncHandler(async (req, res) => {  try {
+    const {name, description, price, category, quantity, brand, image} = req.fields;
     switch (true) {
       case !name:
         return res.json({error: "Name is required, come on!"});
@@ -17,8 +16,13 @@ const createProduct = asyncHandler(async (req, res) => {
         return res.json({error: "Quantity is required, come on!"});
       case !brand:
         return res.json({error: "Brand is required, come on!"});
+      case !image:
+        return res.json({error: "Image is required, come on!"});
     }
-    const product = new Product({...req.fields});
+    const product = new Product({
+      ...req.fields,
+      image: image // This ensures we store the Cloudinary URL
+    });
     await product.save();
     res.json(product);
   } catch (error) {

@@ -15,56 +15,92 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
     storage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // increased to 10MB
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
     fileFilter
 });
 
 const uploadSingleImage = upload.single('image');
 
 router.post('/', (req, res) => {
-    uploadSingleImage(req, res, (err) => {
-        if (err) {
-            console.error('Upload error:', err);
-            if (err instanceof multer.MulterError) {
-                if (err.code === 'LIMIT_FILE_SIZE') {
-                    return res.status(413).send({ 
-                        message: 'File is too large. Maximum size is 10MB'
+    uploadSingleImage(req, res, async (err) => {
+        try {
+            // Handle multer and general errors
+            if (err) {
+                console.error('Upload error:', err);
+                
+                // Handle specific multer errors
+                if (err instanceof multer.MulterError) {
+                    if (err.code === 'LIMIT_FILE_SIZE') {
+                        return res.status(413).send({ 
+                            success: false,
+                            message: 'File is too large. Maximum size is 10MB'
+                        });
+                    }
+                }
+
+                // Handle Cloudinary-specific errors
+                if (err.name === 'Error' && err.message.includes('Cloudinary')) {
+                    return res.status(400).send({
+                        success: false,
+                        message: 'Failed to upload image to Cloudinary',
+                        error: err.message
                     });
                 }
+
+                // Handle any other errors
+                return res.status(400).send({
+                    success: false,
+                    message: err.message || 'Error uploading file',
+                    error: err.name
+                });
             }
-            return res.status(400).send({ 
-                message: err.message,
-                error: err.name
+
+            // Check if file was provided
+            if (!req.file) {
+                return res.status(400).send({ 
+                    success: false,
+                    message: 'Please select an image to upload' 
+                });
+            }
+
+            // Log successful upload details
+            console.log('Upload successful. File details:', {
+                path: req.file.path,
+                secure_url: req.file.secure_url,
+                public_id: req.file.filename,
+                mimetype: req.file.mimetype,
+                size: req.file.size
+            });
+
+            // Validate Cloudinary response
+            if (!req.file.secure_url || !req.file.secure_url.includes('cloudinary.com')) {
+                console.error('Invalid Cloudinary URL:', req.file.secure_url);
+                return res.status(400).send({
+                    success: false,
+                    message: 'Image upload failed - invalid URL received from Cloudinary'
+                });
+            }
+
+            // Send successful response
+            res.status(200).send({
+                success: true,
+                message: 'Image uploaded successfully',
+                data: {
+                    image: req.file.secure_url,
+                    public_id: req.file.filename,
+                    format: req.file.format,
+                    size: req.file.size
+                }
+            });
+
+        } catch (error) {
+            console.error('Unexpected error during upload:', error);
+            res.status(500).send({
+                success: false,
+                message: 'An unexpected error occurred while uploading the image',
+                error: error.message
             });
         }
-        
-        if (!req.file) {
-            return res.status(400).send({ message: 'Please select an image to upload' });
-        }        // Log the full file object for debugging
-        console.log('Upload successful. File details:', {
-            path: req.file.path,
-            secure_url: req.file.secure_url,
-            public_id: req.file.filename,
-            mimetype: req.file.mimetype,
-            size: req.file.size
-        });
-
-        // Get the Cloudinary URL from the response
-        const imageUrl = req.file.secure_url || req.file.path; // Prefer secure_url if available
-
-        if (!imageUrl || (!imageUrl.includes('cloudinary.com') && !imageUrl.startsWith('/uploads/'))) {
-            console.error('Invalid image URL:', imageUrl);
-            return res.status(400).send({ 
-                message: 'Image upload failed - invalid URL received'
-            });
-        }
-
-        res.status(200).send({
-            message: 'Image uploaded successfully',
-            image: imageUrl,
-            secure_url: req.file.secure_url,
-            public_id: req.file.filename
-        });
     });
 });
 

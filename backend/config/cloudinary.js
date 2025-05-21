@@ -2,9 +2,9 @@ import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 
 cloudinary.config({
-    cloud_name: 'dgnxkbg3i',
-    api_key: '829231834578378',
-    api_secret: 'Xzt2gWaKBrue90uY940zcwyejyg'
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 const storage = new CloudinaryStorage({
@@ -13,11 +13,17 @@ const storage = new CloudinaryStorage({
         folder: 'shoplink/products',
         allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
         transformation: [
-            { width: 1000, height: 1000, crop: 'limit' }, // Increased size limit
-            { quality: 'auto', fetch_format: 'auto' } // Auto optimize quality and format
+            { width: 1200, height: 1200, crop: 'limit' },
+            { quality: 'auto:good', fetch_format: 'auto' },
+            { flags: 'progressive' }
         ],
-        format: 'jpg', // Default format
-        resource_type: 'auto' // Auto-detect resource type
+        format: 'auto',
+        resource_type: 'auto',
+        unique_filename: true,
+        overwrite: true,
+        use_filename: true,
+        filename_override: undefined,
+        invalidate: true
     }
 });
 

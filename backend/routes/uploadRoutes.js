@@ -79,18 +79,12 @@ router.post('/', (req, res) => {
                     success: false,
                     message: 'Image upload failed - invalid URL received from Cloudinary'
                 });
-            }
-
-            // Send successful response
-            res.status(200).send({
+            }            // Send successful response
+            res.status(200).json({
                 success: true,
                 message: 'Image uploaded successfully',
-                data: {
-                    image: req.file.secure_url,
-                    public_id: req.file.filename,
-                    format: req.file.format,
-                    size: req.file.size
-                }
+                image: req.file.secure_url,  // This matches what the frontend expects
+                public_id: req.file.filename
             });
 
         } catch (error) {

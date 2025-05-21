@@ -21,9 +21,13 @@ const storage = new CloudinaryStorage({
         resource_type: 'auto',
         unique_filename: true,
         overwrite: true,
-        use_filename: true,
-        filename_override: undefined,
-        invalidate: true
+        use_filename: false, // Don't use original filename
+        public_id: (req, file) => {
+            const timestamp = Date.now();
+            const extension = file.originalname.split('.').pop();
+            return `image-${timestamp}`;
+        },
+        secure: true // Always use HTTPS
     }
 });
 

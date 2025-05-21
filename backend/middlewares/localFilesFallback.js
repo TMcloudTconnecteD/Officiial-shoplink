@@ -6,35 +6,50 @@ import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export const localFilesFallback = (req, res, next) => {
+import { cloudinary } from '../config/cloudinary.js';
+
+export const localFilesFallback = async (req, res, next) => {
+    // If it's a Cloudinary URL, let it pass through
+    if (req.url.includes('cloudinary.com')) {
+        return next();
+    }
+
+    // If it's a local upload request, handle it
     if (req.url.startsWith('/uploads/')) {
-        // Try to serve from local uploads folder first
         const localPath = path.join(__dirname, '..', req.url);
         
-        // Check if file exists before attempting to send
-        fs.access(localPath, fs.constants.F_OK, (err) => {
-            if (err) {
-                // File doesn't exist locally, check if it's a Cloudinary URL
-                if (req.url.includes('cloudinary.com')) {
-                    // It's a Cloudinary URL, let it pass through
-                    next();
+        try {
+            // Check if file exists locally
+            await fs.access(localPath, fs.constants.F_OK);
+            
+            // If we find it locally, serve it
+            res.sendFile(localPath, (err) => {
+                if (err) {
+                    console.error('Error sending local file:', err);
+                    next(err);
+                }
+            });
+        } catch (err) {
+            // If file doesn't exist locally, try to find it in Cloudinary
+            try {
+                const filename = path.basename(req.url);
+                // Search in Cloudinary
+                const result = await cloudinary.search
+                    .expression(`filename:${filename}*`)
+                    .execute();
+                
+                if (result.resources.length > 0) {
+                    // Redirect to the Cloudinary URL
+                    res.redirect(result.resources[0].secure_url);
                 } else {
-                    // Try to find a Cloudinary version of the file
-                    const filename = path.basename(req.url);
-                    // You could implement a lookup in your database here
-                    // For now, just pass to next middleware
+                    // If not found anywhere, pass to next handler
                     next();
                 }
-            } else {
-                // File exists locally, serve it
-                res.sendFile(localPath, (err) => {
-                    if (err) {
-                        console.error('Error sending local file:', err);
-                        next(err);
-                    }
-                });
+            } catch (cloudinaryErr) {
+                console.error('Cloudinary search error:', cloudinaryErr);
+                next();
             }
-        });
+        }
     } else {
         next();
     }

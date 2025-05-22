@@ -52,23 +52,32 @@ const AdminProductUpdate = () => {
   }, [productData]);
 
   const uploadFileHandler = async (e) => {
+    if (!e.target.files || e.target.files.length === 0) {
+      toast.error('Please select a file to upload', { position: 'top-right', autoClose: 2000 });
+      return;
+    }
+
     const formData = new FormData();
-    formData.append("image", e.target.files[0]);
+    formData.append('image', e.target.files[0]);
 
     // Debugging logs
-    console.log("Uploading file:", e.target.files[0]);
+    console.log('Uploading file:', e.target.files[0]);
     for (let [key, value] of formData.entries()) {
       console.log(`${key}:`, value);
     }
 
     try {
       const res = await uploadProductImage(formData).unwrap();
-      toast.success("Image uploaded successfully", { position: "top-right", autoClose: 2000 });
-      setImage(res.image);
+      if (res.image) {
+        toast.success('Image uploaded successfully', { position: 'top-right', autoClose: 2000 });
+        setImage(res.image);
+      } else {
+        throw new Error('Invalid response from server');
+      }
     } catch (error) {
-      console.error("Image Upload Error:", error);
-      const msg = error?.data?.message || error?.error || "Failed to upload image.";
-      toast.error(msg, { position: "top-right", autoClose: 2000 });
+      console.error('Image Upload Error:', error);
+      const errorMessage = error?.data?.message || error?.error || 'Failed to upload image.';
+      toast.error(errorMessage, { position: 'top-right', autoClose: 2000 });
     }
   };
 

@@ -21,13 +21,13 @@ const storage = new CloudinaryStorage({
         resource_type: 'auto',
         unique_filename: true,
         overwrite: true,
-        use_filename: false, // Don't use original filename
+        use_filename: false,
         public_id: (req, file) => {
             const timestamp = Date.now();
-            const extension = file.originalname.split('.').pop();
             return `image-${timestamp}`;
         },
-        secure: true // Always use HTTPS
+        secure: true,
+        timeout: 60000 // 60 second timeout for larger files
     }
 });
 

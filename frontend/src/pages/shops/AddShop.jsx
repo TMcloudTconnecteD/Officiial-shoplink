@@ -30,6 +30,12 @@ const AddShop = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!name || !location || !telephone || !category || !image) {
+      toast.error('Please fill in all required fields and upload an image');
+      return;
+    }
+
     setIsLoading(true);
     try {
       const mallData = new FormData();
@@ -48,15 +54,15 @@ const AddShop = () => {
       const response = await createShop(mallData);
 
       if (response.error) {
-        toast.error(response.error.data?.message || 'Cannot create mall, try again');
+        toast.error(response.error.data?.message || 'Cannot create shop, try again');
       } else if (response.data) {
         toast.success(`${response.data.name} created successfully`);
-        navigate('/Admin/shops/all'); // Corrected navigation path
+        navigate('/Admin/shops/all');
       } else {
         toast.error('Unexpected error occurred');
       }
     } catch (error) {
-      console.error(error);
+      console.error('Shop creation error:', error);
       toast.error('Failed to create shop');
     } finally {
       setIsLoading(false);
@@ -64,6 +70,11 @@ const AddShop = () => {
   };
 
   const uploadFileHandler = async (e) => {
+    if (!e.target.files || e.target.files.length === 0) {
+      toast.error('Please select a file to upload');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('image', e.target.files[0]);
 
@@ -75,10 +86,15 @@ const AddShop = () => {
 
     try {
       const res = await uploadShopImage(formData).unwrap();
-      toast.success(res.message || 'Image uploaded');
-      setImage(res.image);
-      setImageUrl(res.image);
+      if (res.image) {
+        toast.success(res.message || 'Image uploaded successfully');
+        setImage(res.image);
+        setImageUrl(res.image);
+      } else {
+        throw new Error('Invalid response from server');
+      }
     } catch (error) {
+      console.error('Image upload error:', error);
       toast.error(error?.data?.message || 'Image upload failed');
     }
   };

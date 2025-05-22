@@ -47,10 +47,30 @@ const ProductList = () => {
   const { data: categories } = useFetchCategoriesQuery();
   const { data: malls } = useFetchShopsQuery();
 
+  const uploadFileHandler = async (e) => {
+    const formData = new FormData();
+    formData.append('image', e.target.files[0]);
+
+    // Debugging logs
+    console.log('Uploading file:', e.target.files[0]);
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+
+    try {
+      const res = await uploadProductImage(formData).unwrap();
+      toast.success(res.message);
+      setImage(res.image);
+      setImageUrl(res.image);
+    } catch (error) {
+      toast.error(error?.data?.message || error.error);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       const productData = new FormData();
       productData.append('image', image);
@@ -62,6 +82,12 @@ const ProductList = () => {
       productData.append('brand', brand);
       productData.append('inStock', stock);
       productData.append('shop', shop);
+
+      // Debugging logs
+      console.log('FormData content:');
+      for (let [key, value] of productData.entries()) {
+        console.log(`${key}:`, value);
+      }
 
       const { data } = await createProduct(productData);
       if (data.error) {
@@ -75,20 +101,6 @@ const ProductList = () => {
       toast.error('Error creating product, try again');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const uploadFileHandler = async (e) => {
-    const formData = new FormData();
-    formData.append('image', e.target.files[0]);
-
-    try {
-      const res = await uploadProductImage(formData).unwrap();
-      toast.success(res.message);
-      setImage(res.image);
-      setImageUrl(res.image);
-    } catch (error) {
-      toast.error(error?.data?.message || error.error);
     }
   };
 

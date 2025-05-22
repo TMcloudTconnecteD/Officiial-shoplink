@@ -39,6 +39,12 @@ const AddShop = () => {
       mallData.append('telephone', telephone);
       mallData.append('category', category);
 
+      // Debugging logs
+      console.log('FormData content:');
+      for (let [key, value] of mallData.entries()) {
+        console.log(`${key}:`, value);
+      }
+
       const response = await createShop(mallData);
 
       if (response.error) {
@@ -60,6 +66,12 @@ const AddShop = () => {
   const uploadFileHandler = async (e) => {
     const formData = new FormData();
     formData.append('image', e.target.files[0]);
+
+    // Debugging logs
+    console.log('Uploading file:', e.target.files[0]);
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
 
     try {
       const res = await uploadShopImage(formData).unwrap();

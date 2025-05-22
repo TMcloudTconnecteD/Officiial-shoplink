@@ -54,6 +54,13 @@ const AdminProductUpdate = () => {
   const uploadFileHandler = async (e) => {
     const formData = new FormData();
     formData.append("image", e.target.files[0]);
+
+    // Debugging logs
+    console.log("Uploading file:", e.target.files[0]);
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+
     try {
       const res = await uploadProductImage(formData).unwrap();
       toast.success("Image uploaded successfully", { position: "top-right", autoClose: 2000 });
@@ -78,20 +85,24 @@ const AdminProductUpdate = () => {
       formData.append("brand", brand);
       formData.append("inStock", inStock);
 
-       const data = await updateProduct({ productId: params._id, formData })
+      // Debugging logs
+      console.log("FormData content:");
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
 
-       if (data?.error) {
+      const data = await updateProduct({ productId: params._id, formData });
+
+      if (data?.error) {
         toast.error(data.error, {
-            position: "top-right", autoClose: 3000
+          position: "top-right", autoClose: 3000
         });
       } else {
         toast.success(`Product successfully updated`, {
-            position: "top-right", autoClose: 3000
+          position: "top-right", autoClose: 3000
         });
         navigate("/admin/allproductslist");
       }
-
-
     } catch (err) {
       console.log("Update Error:", err);
       const errorMessage = err?.data?.message || err?.error || "Product update failed. Try again.";

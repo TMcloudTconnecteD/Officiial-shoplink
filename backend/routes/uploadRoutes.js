@@ -22,19 +22,34 @@ const upload = multer({
 const uploadSingleImage = upload.single('image');
 
 router.post('/', (req, res) => {
-    console.log('Incoming request headers:', req.headers);
-    console.log('Incoming request body:', req.body);
-
     uploadSingleImage(req, res, async (err) => {
         try {
+            // Enhanced logging for debugging
             if (err) {
                 console.error('Upload error:', err);
-                if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
-                    return res.status(413).send({ 
+                // Log full error object
+                console.error('Full error object:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+                
+                // Handle specific multer errors
+                if (err instanceof multer.MulterError) {
+                    if (err.code === 'LIMIT_FILE_SIZE') {
+                        return res.status(413).send({ 
+                            success: false,
+                            message: 'File is too large. Maximum size is 10MB'
+                        });
+                    }
+                }
+
+                // Handle Cloudinary-specific errors
+                if (err.name === 'Error' && err.message.includes('Cloudinary')) {
+                    return res.status(400).send({
                         success: false,
-                        message: 'File is too large. Maximum size is 10MB'
+                        message: 'Failed to upload image to Cloudinary',
+                        error: err.message
                     });
                 }
+
+                // Handle any other errors
                 return res.status(400).send({
                     success: false,
                     message: err.message || 'Error uploading file',
@@ -42,41 +57,48 @@ router.post('/', (req, res) => {
                 });
             }
 
+            // Check if file was provided
             if (!req.file) {
-                console.error('No file received in the request.');
+                console.error('No file received by multer. req.body:', req.body);
                 return res.status(400).send({ 
                     success: false,
                     message: 'Please select an image to upload' 
                 });
             }
 
-            console.log('File received:', req.file);
+            // Log full req.file object for diagnostics
+            console.log('Upload successful. Full file object:', req.file);
 
-            const { path, secure_url, public_id, mimetype, size } = req.file;
-            if (!secure_url || !secure_url.includes('cloudinary.com')) {
-                console.error('Invalid Cloudinary URL:', secure_url);
+            // Validate Cloudinary response
+            if (!req.file.secure_url || !req.file.secure_url.includes('cloudinary.com')) {
+                console.error('Invalid Cloudinary URL:', req.file.secure_url);
+                // Fallback: Save to local storage if Cloudinary fails
+                if (req.file.path) {
+                    // If multer fallback saved locally, return local path
+                    return res.status(200).json({
+                        success: true,
+                        message: 'Image uploaded to local storage (Cloudinary failed)',
+                        image: `/uploads/${req.file.filename}`,
+                        public_id: req.file.filename
+                    });
+                }
                 return res.status(400).send({
                     success: false,
                     message: 'Image upload failed - invalid URL received from Cloudinary'
                 });
-            }
-
-            res.status(200).send({
+            }            // Send successful response
+            res.status(200).json({
                 success: true,
                 message: 'Image uploaded successfully',
-                data: {
-                    path,
-                    secure_url,
-                    public_id,
-                    mimetype,
-                    size
-                }
+                image: req.file.secure_url,  // This matches what the frontend expects
+                public_id: req.file.filename
             });
+
         } catch (error) {
             console.error('Unexpected error during upload:', error);
             res.status(500).send({
                 success: false,
-                message: 'Internal server error',
+                message: 'An unexpected error occurred while uploading the image',
                 error: error.message
             });
         }

@@ -77,18 +77,30 @@ app.use(cors(corsOptions))
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(localFilesFallback);
 
-app.use('/api/users', userRoutes)
-app.use('/api/category', categoryRoutes)
-app.use('/api/products', productRoutes)
-app.use('/api/uploads', uploadRoutes)
-app.use('/api/shops', shopRoutes)
-app.use("/api/orders", orderRoutes)
-app.use('/api/payments', mpesaRoutes)
+// API routes
+app.use('/api/users', userRoutes);
+app.use('/api/category', categoryRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/uploads', uploadRoutes);
+app.use('/api/shops', shopRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/payments', mpesaRoutes);
 
-app.get("/api/config/paypal", (req, res) => {
-    res.send({ clientId: process.env.PAYPAL_CLIENT_ID });
+app.get('/api/config/paypal', (req, res) => {
+  res.send({ clientId: process.env.PAYPAL_CLIENT_ID });
 });
 
-app.use('/uploads', express.static(path.join(__dirname + '/uploads')))
+// Serve uploads statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Global error handler to always return JSON
+app.use((err, req, res, next) => {
+  console.error('Global error handler:', err);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal Server Error',
+    error: err.name || 'Error'
+  });
+});
 
 app.listen(port, '0.0.0.0', () => console.log(`server is running on port: ${port}`))

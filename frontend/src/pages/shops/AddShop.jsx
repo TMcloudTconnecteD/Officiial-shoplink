@@ -83,7 +83,14 @@ const AddShop = () => {
         body: formData,
         credentials: 'include',
       });
-      const data = await response.json();
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        throw new Error(text || 'Server did not return JSON');
+      }
       if (!response.ok) throw new Error(data.message || 'Upload failed');
       setImage(data.data.secure_url);
       setImageUrl(data.data.secure_url);

@@ -22,6 +22,9 @@ const upload = multer({
 const uploadSingleImage = upload.single('image');
 
 router.post('/', (req, res) => {
+    console.log('Incoming request headers:', req.headers);
+    console.log('Incoming request body:', req.body);
+
     uploadSingleImage(req, res, async (err) => {
         try {
             if (err) {

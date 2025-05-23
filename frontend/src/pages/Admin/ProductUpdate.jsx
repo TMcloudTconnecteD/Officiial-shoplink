@@ -37,6 +37,7 @@ const AdminProductUpdate = () => {
   const [quantity, setQuantity] = useState("");
   const [brand, setBrand] = useState("");
   const [inStock, setInStock] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (productData && productData._id) {
@@ -59,25 +60,24 @@ const AdminProductUpdate = () => {
 
     const formData = new FormData();
     formData.append('image', e.target.files[0]);
-
-    // Debugging logs
-    console.log('Uploading file:', e.target.files[0]);
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
+    setUploading(true);
 
     try {
-      const res = await uploadProductImage(formData).unwrap();
-      if (res.image) {
-        toast.success('Image uploaded successfully', { position: 'top-right', autoClose: 2000 });
-        setImage(res.image);
-      } else {
-        throw new Error('Invalid response from server');
-      }
+      const response = await fetch('/api/uploads', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || 'Upload failed');
+
+      setImage(data.data.secure_url);
+      toast.success('Image uploaded successfully', { position: 'top-right', autoClose: 2000 });
     } catch (error) {
-      console.error('Image Upload Error:', error);
-      const errorMessage = error?.data?.message || error?.error || 'Failed to upload image.';
-      toast.error(errorMessage, { position: 'top-right', autoClose: 2000 });
+      toast.error(error.message || 'Image upload failed', { position: 'top-right', autoClose: 2000 });
+    } finally {
+      setUploading(false);
     }
   };
 

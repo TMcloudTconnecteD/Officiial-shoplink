@@ -40,6 +40,7 @@ const ProductList = () => {
     quantity: '',
     brand: ''
   });
+  const [uploading, setUploading] = useState(false);
 
   const navigate = useNavigate();
   const [uploadProductImage] = useUploadProductImageMutation();
@@ -48,22 +49,28 @@ const ProductList = () => {
   const { data: malls } = useFetchShopsQuery();
 
   const uploadFileHandler = async (e) => {
+    if (!e.target.files || e.target.files.length === 0) {
+      toast.error('Please select a file to upload');
+      return;
+    }
     const formData = new FormData();
     formData.append('image', e.target.files[0]);
-
-    // Debugging logs
-    console.log('Uploading file:', e.target.files[0]);
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
-
+    setUploading(true);
     try {
-      const res = await uploadProductImage(formData).unwrap();
-      toast.success(res.message);
-      setImage(res.image);
-      setImageUrl(res.image);
+      const response = await fetch('/api/uploads', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Upload failed');
+      setImage(data.data.secure_url);
+      setImageUrl(data.data.secure_url);
+      toast.success('Image uploaded successfully');
     } catch (error) {
-      toast.error(error?.data?.message || error.error);
+      toast.error(error.message || 'Image upload failed');
+    } finally {
+      setUploading(false);
     }
   };
 

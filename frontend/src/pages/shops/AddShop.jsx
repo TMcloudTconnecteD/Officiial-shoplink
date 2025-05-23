@@ -74,28 +74,24 @@ const AddShop = () => {
       toast.error('Please select a file to upload');
       return;
     }
-
     const formData = new FormData();
     formData.append('image', e.target.files[0]);
-
-    // Debugging logs
-    console.log('Uploading file:', e.target.files[0]);
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
-
+    setIsLoading(true);
     try {
-      const res = await uploadShopImage(formData).unwrap();
-      if (res.image) {
-        toast.success(res.message || 'Image uploaded successfully');
-        setImage(res.image);
-        setImageUrl(res.image);
-      } else {
-        throw new Error('Invalid response from server');
-      }
+      const response = await fetch('/api/uploads', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Upload failed');
+      setImage(data.data.secure_url);
+      setImageUrl(data.data.secure_url);
+      toast.success('Image uploaded successfully');
     } catch (error) {
-      console.error('Image upload error:', error);
-      toast.error(error?.data?.message || 'Image upload failed');
+      toast.error(error.message || 'Image upload failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 

@@ -72,21 +72,13 @@ router.post('/', (req, res) => {
             // Validate Cloudinary response
             if (!req.file.secure_url || !req.file.secure_url.includes('cloudinary.com')) {
                 console.error('Invalid Cloudinary URL:', req.file.secure_url);
-                // Fallback: Save to local storage if Cloudinary fails
-                if (req.file.path) {
-                    // If multer fallback saved locally, return local path
-                    return res.status(200).json({
-                        success: true,
-                        message: 'Image uploaded to local storage (Cloudinary failed)',
-                        image: `/uploads/${req.file.filename}`,
-                        public_id: req.file.filename
-                    });
-                }
-                return res.status(400).send({
+                return res.status(400).json({
                     success: false,
-                    message: 'Image upload failed - invalid URL received from Cloudinary'
+                    message: 'Image upload failed - invalid URL received from Cloudinary',
+                    error: 'No valid Cloudinary URL returned.'
                 });
-            }            // Send successful response
+            }
+            // Send successful response
             res.status(200).json({
                 success: true,
                 message: 'Image uploaded successfully',

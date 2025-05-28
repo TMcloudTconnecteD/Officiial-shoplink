@@ -27,6 +27,9 @@ router.post('/', upload.single('image'), (req, res) => {
       });
     }
 
+    // Log the file info for debugging
+    console.log('Uploaded file:', req.file);
+
     res.status(200).json({
       success: true,
       message: 'Image uploaded successfully',

@@ -34,15 +34,25 @@ async function fixImageUrls() {
 
         // Check if the image URL is already a Cloudinary URL
         if (!product.image.includes('cloudinary.com')) {
-          // If it's an old local path, try to find the corresponding Cloudinary URL
-          const filename = product.image.split('/').pop();
+          // Extract just the filename without path
+          const filename = product.image.split(/[\/\\]/).pop();
           console.log(`Fixing image URL for product ${product._id} (${filename})`);
 
           // Update the product with the new Cloudinary URL
-          product.image = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/v1/shoplink/products/${filename}`;
+          product.image = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/shoplink/products/${filename}`;
           await product.save();
           updatedCount++;
           console.log(`✅ Updated image URL for product ${product._id}`);
+        } else {
+          // Fix any existing Cloudinary URLs that might have incorrect format
+          const currentUrl = product.image;
+          if (currentUrl.includes('/v1/')) {
+            const newUrl = currentUrl.replace('/v1/', '/');
+            product.image = newUrl;
+            await product.save();
+            updatedCount++;
+            console.log(`✅ Fixed Cloudinary URL format for product ${product._id}`);
+          }
         }
       } catch (err) {
         console.error(`❌ Error updating product ${product._id}:`, err.message);

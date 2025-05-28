@@ -26,9 +26,10 @@ const storage = new CloudinaryStorage({
     resource_type: 'auto',
     unique_filename: true,
     overwrite: true,
-    use_filename: false,
+    use_filename: true,
     public_id: (req, file) => {
       const timestamp = Date.now();
+      const filename = file.originalname.split('.')[0];
       return `image-${timestamp}`;
     },
     secure: true,

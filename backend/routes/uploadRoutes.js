@@ -30,8 +30,10 @@ router.post('/', upload.single('image'), (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Image uploaded successfully',
-      imageUrl: req.file.path,           // This is the URL
-      public_id: req.file.filename,      // Cloudinary file name (public_id)
+      data: {
+        secure_url: req.file.path, // Cloudinary returns the full URL in path
+        public_id: req.file.filename
+      }
     });
   } catch (error) {
     console.error('Upload error:', error.message);

@@ -11,27 +11,39 @@ const ImageComponent = ({ src, alt, className }) => {
   };
 
   const handleLoad = () => {
-    console.log(`Successfully loaded image: ${src}`);
     setIsLoading(false);
   };
 
+  // If no src provided, show placeholder
+  if (!src) {
+    return (
+      <div className={`${className} bg-gray-200 flex items-center justify-center`}>
+        <span className="text-gray-500">No image available</span>
+      </div>
+    );
+  }
+
+  // If error loading image, show error state
   if (isError) {
-    return <div className={`${className} bg-gray-200 flex items-center justify-center`}>
-      <span className="text-gray-500">Image not available</span>
-    </div>;
+    return (
+      <div className={`${className} bg-gray-200 flex items-center justify-center`}>
+        <span className="text-gray-500">Failed to load image</span>
+      </div>
+    );
   }
 
   return (
     <div className="relative">
       {isLoading && (
-        <div className={`${className} bg-gray-100 animate-pulse`} />
+        <div className={`${className} bg-gray-100 animate-pulse absolute inset-0`} />
       )}
       <img
         src={src}
         alt={alt}
-        className={`${className} ${isLoading ? 'invisible' : 'visible'}`}
+        className={`${className} transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
         onError={handleError}
         onLoad={handleLoad}
+        loading="lazy"
       />
     </div>
   );

@@ -63,16 +63,10 @@ const AdminProductUpdate = () => {
     setUploading(true);
 
     try {
-      const response = await fetch('/api/uploads', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
-      const data = await response.json();
-
-      if (!response.ok) throw new Error(data.message || 'Upload failed');
-
-      setImage(data.data.secure_url);
+      const response = await uploadProductImage(formData).unwrap();
+      if (!response.success) throw new Error(response.message || 'Upload failed');
+      
+      setImage(response.data.secure_url);
       toast.success('Image uploaded successfully', { position: 'top-right', autoClose: 2000 });
     } catch (error) {
       toast.error(error.message || 'Image upload failed', { position: 'top-right', autoClose: 2000 });

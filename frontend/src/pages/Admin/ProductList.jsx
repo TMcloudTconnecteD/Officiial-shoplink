@@ -70,8 +70,8 @@ const ProductList = () => {
 
     try {
       const res = await uploadProductImage(formData).unwrap();
-      setImage(res.imageUrl); // used when submitting form
-      setImageUrl(res.imageUrl); // for preview
+      setImage(res.data.secure_url);
+      setImageUrl(res.data.secure_url);
       toast.success('Image uploaded successfully');
     } catch (err) {
       console.error(err);

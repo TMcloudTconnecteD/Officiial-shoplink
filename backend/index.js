@@ -5,7 +5,7 @@ import path from 'path';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
-import { localFilesFallback } from './middlewares/localFilesFallback.js';
+
 
 import userRoutes from './routes/userRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
@@ -75,7 +75,7 @@ app.use(cors(corsOptions))
 
 // Serve local files during transition
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(localFilesFallback);
+
 
 // API routes
 app.use('/api/users', userRoutes);

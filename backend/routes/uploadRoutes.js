@@ -1,51 +1,50 @@
-import express from 'express';
-import multer from 'multer';
-import { storage } from '../config/cloudinary.js';
+import path from "path";
+import express from "express";
+import multer from "multer";
 
 const router = express.Router();
 
-// Accept only image formats
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|webp/;
-  const isValid = allowedTypes.test(file.mimetype);
-  cb(null, isValid);
-};
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
 
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+  filename: (req, file, cb) => {
+    const extname = path.extname(file.originalname);
+    cb(null, `${file.fieldname}-${Date.now()}${extname}`);
+  },
 });
 
-// POST /api/upload
-router.post('/', upload.single('image'), (req, res) => {
-  try {
-    if (!req.file || !req.file.path) {
-      return res.status(400).json({
-        success: false,
-        message: 'No file uploaded or Cloudinary did not return a path',
-      });
-    }
+const fileFilter = (req, file, cb) => {
+  const filetypes = /jpe?g|png|webp/;
+  const mimetypes = /image\/jpe?g|image\/png|image\/webp/;
 
-    // Log the file info for debugging
-    console.log('Uploaded file:', req.file);
+  const extname = path.extname(file.originalname).toLowerCase();
+  const mimetype = file.mimetype;
 
-    res.status(200).json({
-      success: true,
-      message: 'Image uploaded successfully',
-      data: {
-        secure_url: req.file.path, // Cloudinary returns the full URL in path
-        public_id: req.file.filename
-      }
-    });
-  } catch (error) {
-    console.error('Upload error:', error.message);
-    res.status(500).json({
-      success: false,
-      message: 'Upload failed',
-      error: error.message,
-    });
+  if (filetypes.test(extname) && mimetypes.test(mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Images only"), false);
   }
+};
+
+const upload = multer({ storage, fileFilter });
+const uploadSingleImage = upload.single("image");
+
+router.post("/", (req, res) => {
+  uploadSingleImage(req, res, (err) => {
+    if (err) {
+      res.status(400).send({ message: err.message });
+    } else if (req.file) {
+      res.status(200).send({
+        message: "Image uploaded successfully",
+        image: `/${req.file.path}`,
+      });
+    } else {
+      res.status(400).send({ message: "No image file provided" });
+    }
+  });
 });
 
 export default router;

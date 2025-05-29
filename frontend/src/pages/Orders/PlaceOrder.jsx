@@ -142,7 +142,7 @@ const PlaceOrder = () => {
             Place Order
           </button>
 
-          {isLoading && <Loader />}
+          {isLoading }
         </div>
       </div>
     </>

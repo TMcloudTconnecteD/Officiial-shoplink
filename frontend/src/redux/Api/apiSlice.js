@@ -9,10 +9,13 @@ const baseQuery = fetchBaseQuery({
         if (token) {
             headers.set('Authorization', `Bearer ${token}`);
         }
-        // Only set Content-Type if it's not a FormData request
-        if (!(getState()?.currentRequest?.body instanceof FormData)) {
+        
+        // Don't set Content-Type for FormData requests
+        const currentBody = getState()?.currentRequest?.body;
+        if (!(currentBody instanceof FormData)) {
             headers.set('Content-Type', 'application/json');
         }
+        // Let the browser set the Content-Type for FormData (includes boundary)
         return headers;
     },
 });

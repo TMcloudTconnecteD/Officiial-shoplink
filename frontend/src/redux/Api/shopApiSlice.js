@@ -48,12 +48,14 @@ export const shopApiSlice = apiSlice.injectEndpoints({
             }),
         }),
 
-        // Export hooks for usage in functional components  
+        // Upload shop image
         uploadShopImage: builder.mutation({
             query: (data) => ({
                 url: `${UPLOAD_URL}`,
                 method: 'POST',
+                // Don't transform FormData to JSON
                 body: data,
+                formData: true,
             }),
         }),
     }),

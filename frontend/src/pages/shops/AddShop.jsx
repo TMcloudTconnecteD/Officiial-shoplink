@@ -72,8 +72,19 @@ const AddShop = () => {
     }
 
     const file = e.target.files[0];
+    console.log('Selected file:', {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
+
     if (file.size > 2 * 1024 * 1024) {
       toast.error('Image size must be less than 2MB');
+      return;
+    }
+
+    if (!file.type.match(/image\/(jpeg|jpg|png|webp)/i)) {
+      toast.error('Only JPEG, PNG and WebP images are allowed');
       return;
     }
 
@@ -82,7 +93,10 @@ const AddShop = () => {
     setIsLoading(true);
 
     try {
+      console.log('Uploading file...');
       const res = await uploadShopImage(formData).unwrap();
+      console.log('Upload response:', res);
+
       if (!res.success) {
         throw new Error(res.message || 'Upload failed');
       }
@@ -91,7 +105,14 @@ const AddShop = () => {
       toast.success('Image uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error(error?.data?.message || error.message || 'Image upload failed');
+      // Check for specific error types
+      if (error.status === 413) {
+        toast.error('File is too large. Maximum size is 2MB');
+      } else if (error.status === 415) {
+        toast.error('Invalid file type. Only JPEG, PNG and WebP images are allowed');
+      } else {
+        toast.error(error?.data?.message || error.message || 'Image upload failed');
+      }
     } finally {
       setIsLoading(false);
     }

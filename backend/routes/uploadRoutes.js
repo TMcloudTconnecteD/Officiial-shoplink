@@ -39,18 +39,37 @@ const upload = multer({
 const uploadSingleImage = upload.single("image");
 
 router.post("/", (req, res) => {
+  // Add request logging
+  console.log('Upload request received:', {
+    contentType: req.headers['content-type'],
+    contentLength: req.headers['content-length']
+  });
+
   uploadSingleImage(req, res, async (err) => {
-    if (err) {
+    if (err instanceof multer.MulterError) {
+      console.error('Multer error:', err);
+      return res.status(400).json({
+        success: false,
+        message: err.code === 'LIMIT_FILE_SIZE' 
+          ? 'File size is too large. Max size is 2MB'
+          : err.message
+      });
+    } else if (err) {
+      console.error('Upload error:', err);
       return res.status(400).json({ success: false, message: err.message });
     }
 
     if (!req.file) {
+      console.error('No file in request');
       return res.status(400).json({ success: false, message: "No image file provided" });
     }
 
     try {
-      // The CloudinaryStorage middleware automatically uploads to Cloudinary
-      // and adds the secure_url to req.file
+      console.log('File uploaded successfully:', {
+        filename: req.file.filename,
+        path: req.file.path
+      });
+
       res.status(200).json({
         success: true,
         message: "Image uploaded successfully",
@@ -60,6 +79,7 @@ router.post("/", (req, res) => {
         }
       });
     } catch (error) {
+      console.error('Error processing upload:', error);
       res.status(500).json({
         success: false,
         message: "Error uploading image to Cloudinary",

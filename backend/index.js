@@ -46,8 +46,32 @@ app.use(cors(corsOptions));
 // Enable pre-flight requests
 app.options('*', cors(corsOptions));
 
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`, {
+    contentType: req.headers['content-type'],
+    contentLength: req.headers['content-length']
+  });
+  next();
+});
+
 // Body parsing middleware - must come before routes
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ 
+  limit: '10mb',
+  verify: (req, res, buf) => {
+    const contentType = req.headers['content-type'] || '';
+    // Skip JSON parsing for multipart/form-data
+    if (contentType.includes('multipart/form-data')) {
+      return;
+    }
+    try {
+      JSON.parse(buf);
+    } catch(e) {
+      console.error('JSON parse error:', e);
+      return;
+    }
+  }
+}));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Cookie parsing middleware
@@ -85,7 +109,22 @@ app.get('/api/config/paypal', (req, res) => {
 
 // Global error handler to always return JSON
 app.use((err, req, res, next) => {
-  console.error('Global error handler:', err);
+  console.error('Global error handler:', {
+    error: err,
+    url: req.url,
+    method: req.method,
+    contentType: req.headers['content-type']
+  });
+
+  // Handle specific error types
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid request format',
+      error: 'Bad Request'
+    });
+  }
+
   res.status(err.status || 500).json({
     success: false,
     message: err.message || 'Internal Server Error',

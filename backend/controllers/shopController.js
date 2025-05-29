@@ -5,7 +5,7 @@ import asyncHandler from "../middlewares/asyncHandler.js";
 // Create a new mall/shop
 const createShop = asyncHandler(async (req, res) => {
   try {
-    const { name, location, telephone, category, image } = req.fields;
+    const { name, location, telephone, category, image } = req.body;
 
     // Validation
     switch (true) {
@@ -24,7 +24,7 @@ const createShop = asyncHandler(async (req, res) => {
     const validCategory = await Category.findById(category);
     if (!validCategory) return res.status(400).json({ error: "Invalid category ID" });
 
-    const telephoneNumber = Number(telephone);
+    const telephoneNumber = Number(telephone.replace(/\D/g, '')); // Remove non-digits before converting
     if (isNaN(telephoneNumber)) return res.status(400).json({ error: "Telephone must be a number" });
 
     // Create shop with Cloudinary URL
@@ -33,7 +33,8 @@ const createShop = asyncHandler(async (req, res) => {
       location,
       telephone,
       category,
-      image // This should now be a Cloudinary URL
+      image, // This should now be a Cloudinary URL
+      owner: req.user._id // Add the owner field
     });
 
     await shop.save();
@@ -49,7 +50,7 @@ const updateShop = asyncHandler(async (req, res) => {
   try {
     console.log('User object in updateShop:', req.user); // Debug user object
 
-    const { name, location, telephone, category, image } = req.fields || req.body;
+    const { name, location, telephone, category, image } = req.body;
 
     if (!name) return res.status(400).json({ error: "Name is required, come on!" });
     if (!location) return res.status(400).json({ error: "Location is required, come on!" });

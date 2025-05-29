@@ -6,7 +6,6 @@ import cors from 'cors';
 import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 
-
 import userRoutes from './routes/userRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import shopRoutes from './routes/shopRoutes.js';
@@ -47,9 +46,9 @@ app.use(cors(corsOptions));
 // Enable pre-flight requests
 app.options('*', cors(corsOptions));
 
-// Body parsing middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Body parsing middleware - must come before routes
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Cookie parsing middleware
 app.use(cookieParser());
@@ -68,14 +67,8 @@ app.use((req, res, next) => {
   //next();
 //});
 
-app.use(express.json())
-app.use(express.urlencoded({extended: true}))
-app.use(cookieParser())
-app.use(cors(corsOptions))
-
 // Serve local files during transition
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 
 // API routes
 app.use('/api/users', userRoutes);
@@ -89,9 +82,6 @@ app.use('/api/payments', mpesaRoutes);
 app.get('/api/config/paypal', (req, res) => {
   res.send({ clientId: process.env.PAYPAL_CLIENT_ID });
 });
-
-// Serve uploads statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Global error handler to always return JSON
 app.use((err, req, res, next) => {

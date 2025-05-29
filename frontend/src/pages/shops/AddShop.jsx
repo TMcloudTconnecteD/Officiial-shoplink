@@ -38,20 +38,16 @@ const AddShop = () => {
 
     setIsLoading(true);
     try {
-      const mallData = new FormData();
-      mallData.append('image', image);
-      mallData.append('name', name);
-      mallData.append('location', location);
-      mallData.append('telephone', telephone);
-      mallData.append('category', category);
+      // Send the data as a regular JSON object instead of FormData
+      const shopData = {
+        image: image, // This is now the Cloudinary URL
+        name,
+        location,
+        telephone: `${countryCode}${telephone}`,
+        category
+      };
 
-      // Debugging logs
-      console.log('FormData content:');
-      for (let [key, value] of mallData.entries()) {
-        console.log(`${key}:`, value);
-      }
-
-      const response = await createShop(mallData);
+      const response = await createShop(shopData);
 
       if (response.error) {
         toast.error(response.error.data?.message || 'Cannot create shop, try again');

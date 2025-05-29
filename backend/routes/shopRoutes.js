@@ -1,7 +1,6 @@
 import express from "express";
 import { authenticate, authorizeAdmin, authorizeSuperAdmin } from "../middlewares/authMiddlewares.js";
 import { createShop, deleteShop, fetchAllShops, updateShop } from "../controllers/shopController.js";
-import ExpressFormidable from "express-formidable";
 
 const router = express.Router();
 
@@ -13,7 +12,7 @@ router.use((req, res, next) => {
 
 // Route for creating a new shop (admin only)
 router.route("/")
-  .post(authenticate, authorizeAdmin, ExpressFormidable(), createShop);
+  .post(authenticate, authorizeAdmin, createShop);
 
 // Route for updating shop details (only owner or admin)
 router.route("/:id")
@@ -22,6 +21,6 @@ router.route("/:id")
 
 // Route for fetching all shops (admin only)
 router.route("/all")
-  .get(authenticate,   fetchAllShops);
+  .get(authenticate, fetchAllShops);
 
 export default router;

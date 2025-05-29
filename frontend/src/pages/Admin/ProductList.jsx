@@ -70,12 +70,15 @@ const ProductList = () => {
 
     try {
       const res = await uploadProductImage(formData).unwrap();
+      if (!res.success) {
+        throw new Error(res.message || 'Upload failed');
+      }
       setImage(res.data.secure_url);
       setImageUrl(res.data.secure_url);
       toast.success('Image uploaded successfully');
     } catch (err) {
-      console.error(err);
-      toast.error(err?.data?.message || 'Upload failed');
+      console.error('Upload error:', err);
+      toast.error(err?.data?.message || err.message || 'Upload failed');
     } finally {
       setUploading(false);
     }

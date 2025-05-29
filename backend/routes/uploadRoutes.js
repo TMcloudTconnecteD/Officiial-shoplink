@@ -49,11 +49,13 @@ router.post("/", (req, res) => {
     }
 
     try {
+      // The CloudinaryStorage middleware automatically uploads to Cloudinary
+      // and adds the secure_url to req.file
       res.status(200).json({
         success: true,
         message: "Image uploaded successfully",
         data: {
-          secure_url: req.file.path,
+          secure_url: req.file.path, // This is the Cloudinary secure URL
           public_id: req.file.filename
         }
       });

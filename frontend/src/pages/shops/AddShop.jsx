@@ -74,29 +74,28 @@ const AddShop = () => {
       toast.error('Please select a file to upload');
       return;
     }
+
+    const file = e.target.files[0];
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image size must be less than 2MB');
+      return;
+    }
+
     const formData = new FormData();
-    formData.append('image', e.target.files[0]);
+    formData.append('image', file);
     setIsLoading(true);
+
     try {
-      const response = await fetch('/api/uploads', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
-      let data;
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        data = await response.json();
-      } else {
-        const text = await response.text();
-        throw new Error(text || 'Server did not return JSON');
+      const res = await uploadShopImage(formData).unwrap();
+      if (!res.success) {
+        throw new Error(res.message || 'Upload failed');
       }
-      if (!response.ok) throw new Error(data.message || 'Upload failed');
-      setImage(data.data.secure_url);
-      setImageUrl(data.data.secure_url);
+      setImage(res.data.secure_url);
+      setImageUrl(res.data.secure_url);
       toast.success('Image uploaded successfully');
     } catch (error) {
-      toast.error(error.message || 'Image upload failed');
+      console.error('Upload error:', error);
+      toast.error(error?.data?.message || error.message || 'Image upload failed');
     } finally {
       setIsLoading(false);
     }

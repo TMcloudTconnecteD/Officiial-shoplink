@@ -5,13 +5,21 @@ import asyncHandler from "../middlewares/asyncHandler.js";
 // Create a new mall/shop
 const createShop = asyncHandler(async (req, res) => {
   try {
-    const { name, location, telephone, category, image } = req.fields || req.body;
+    const { name, location, telephone, category, image } = req.fields;
 
-    if (!name) return res.status(400).json({ error: "Name is required, come on!" });
-    if (!location) return res.status(400).json({ error: "Location is required, come on!" });
-    if (!telephone) return res.status(400).json({ error: "Phone No. is required, come on!" });
-    if (!category) return res.status(400).json({ error: "Category is required, come on!" });
-    if (!image) return res.status(400).json({ error: "Image is required, come on!" });
+    // Validation
+    switch (true) {
+      case !name:
+        return res.status(400).json({ error: "Name is required" });
+      case !location:
+        return res.status(400).json({ error: "Location is required" });
+      case !telephone:
+        return res.status(400).json({ error: "Telephone is required" });
+      case !category:
+        return res.status(400).json({ error: "Category is required" });
+      case !image:
+        return res.status(400).json({ error: "Image is required" });
+    }
 
     const validCategory = await Category.findById(category);
     if (!validCategory) return res.status(400).json({ error: "Invalid category ID" });
@@ -19,15 +27,19 @@ const createShop = asyncHandler(async (req, res) => {
     const telephoneNumber = Number(telephone);
     if (isNaN(telephoneNumber)) return res.status(400).json({ error: "Telephone must be a number" });
 
-    const mall = new Shop({
-      ...req.fields || req.body,
-      owner: req.user._id,
+    // Create shop with Cloudinary URL
+    const shop = new Shop({
+      name,
+      location,
+      telephone,
+      category,
+      image // This should now be a Cloudinary URL
     });
 
-    await mall.save();
-    res.json(mall);
+    await shop.save();
+    res.status(201).json(shop);
   } catch (error) {
-    console.error(error, 'error creating shop');
+    console.error('Shop creation error:', error);
     res.status(400).json({ error: error.message });
   }
 });

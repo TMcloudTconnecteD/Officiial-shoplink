@@ -1,33 +1,45 @@
 import asyncHandler from "../middlewares/asyncHandler.js";
 import Product from "../models/productModel.js";
 
-const createProduct = asyncHandler(async (req, res) => {  try {
+const createProduct = asyncHandler(async (req, res) => {
+  try {
     const {name, description, price, category, quantity, brand, image} = req.fields;
+    
+    // Validation
     switch (true) {
       case !name:
-        return res.json({error: "Name is required, come on!"});
+        return res.json({error: "Name is required"});
       case !description:
-        return res.json({error: "Description is required, come on!"});
+        return res.json({error: "Description is required"});
       case !price:
-        return res.json({error: "Price is required, come on!"});
+        return res.json({error: "Price is required"});
       case !category:
-        return res.json({error: "Category is required, come on!"});
+        return res.json({error: "Category is required"});
       case !quantity:
-        return res.json({error: "Quantity is required, come on!"});
+        return res.json({error: "Quantity is required"});
       case !brand:
-        return res.json({error: "Brand is required, come on!"});
+        return res.json({error: "Brand is required"});
       case !image:
-        return res.json({error: "Image is required, come on!"});
+        return res.json({error: "Image is required"});
     }
+
+    // Create product with Cloudinary URL
     const product = new Product({
-      ...req.fields,
-      image: image // This ensures we store the Cloudinary URL
+      name,
+      description,
+      price,
+      category,
+      quantity,
+      brand,
+      image, // This should now be a Cloudinary URL
+      inStock: quantity > 0
     });
+
     await product.save();
-    res.json(product);
+    res.status(201).json(product);
   } catch (error) {
-    console.error(error);
-    res.status(400).json(error.message);
+    console.error('Product creation error:', error);
+    res.status(400).json({ error: error.message });
   }
 });
 

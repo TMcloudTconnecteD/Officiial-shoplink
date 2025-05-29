@@ -1,18 +1,19 @@
 import path from "path";
 import express from "express";
 import multer from "multer";
+import cloudinary from "../config/cloudinary.js";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-
-  filename: (req, file, cb) => {
-    const extname = path.extname(file.originalname);
-    cb(null, `${file.fieldname}-${Date.now()}${extname}`);
-  },
+// Configure Cloudinary storage
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'shoplink',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
+  }
 });
 
 const fileFilter = (req, file, cb) => {
@@ -29,20 +30,39 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ storage, fileFilter });
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 2 * 1024 * 1024 } // 2MB limit
+});
+
 const uploadSingleImage = upload.single("image");
 
 router.post("/", (req, res) => {
-  uploadSingleImage(req, res, (err) => {
+  uploadSingleImage(req, res, async (err) => {
     if (err) {
-      res.status(400).send({ message: err.message });
-    } else if (req.file) {
-      res.status(200).send({
+      return res.status(400).json({ success: false, message: err.message });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No image file provided" });
+    }
+
+    try {
+      res.status(200).json({
+        success: true,
         message: "Image uploaded successfully",
-        image: `/${req.file.path}`,
+        data: {
+          secure_url: req.file.path,
+          public_id: req.file.filename
+        }
       });
-    } else {
-      res.status(400).send({ message: "No image file provided" });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Error uploading image to Cloudinary",
+        error: error.message
+      });
     }
   });
 });

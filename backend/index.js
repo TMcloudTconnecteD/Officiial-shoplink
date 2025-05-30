@@ -106,12 +106,6 @@ app.use((req, res, next) => {
 // Serve local files during transition
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Make upload middleware available to routes
-app.use((req, res, next) => {
-  req.upload = upload;
-  next();
-});
-
 // API routes
 app.use('/api/users', userRoutes);
 app.use('/api/category', categoryRoutes);

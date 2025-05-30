@@ -60,8 +60,8 @@ app.use(express.json({
   limit: '10mb',
   verify: (req, res, buf) => {
     const contentType = req.headers['content-type'] || '';
-    // Skip JSON parsing for multipart/form-data
-    if (contentType.includes('multipart/form-data')) {
+    // Skip JSON parsing for multipart/form-data and form-urlencoded
+    if (contentType.includes('multipart/form-data') || contentType.includes('application/x-www-form-urlencoded')) {
       return;
     }
     try {
@@ -72,7 +72,19 @@ app.use(express.json({
     }
   }
 }));
+
+// Handle URL-encoded bodies (as sent by HTML forms)
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Add request logging middleware with more details
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`, {
+    contentType: req.headers['content-type'],
+    contentLength: req.headers['content-length'],
+    body: req.method === 'POST' ? req.body : undefined
+  });
+  next();
+});
 
 // Cookie parsing middleware
 app.use(cookieParser());

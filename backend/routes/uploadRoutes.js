@@ -49,7 +49,8 @@ router.post("/", (req, res) => {
   // Log request details
   console.log('Upload request received:', {
     contentType: req.headers['content-type'],
-    contentLength: req.headers['content-length']
+    contentLength: req.headers['content-length'],
+    body: req.body
   });
 
   uploadSingleImage(req, res, async (err) => {
@@ -85,7 +86,8 @@ router.post("/", (req, res) => {
       console.log('File uploaded successfully:', {
         filename: req.file.filename,
         path: req.file.path,
-        size: req.file.size
+        size: req.file.size,
+        mimetype: req.file.mimetype
       });
 
       res.status(200).json({

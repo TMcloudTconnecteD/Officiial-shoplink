@@ -87,6 +87,11 @@ export const productApiSlice = apiSlice.injectEndpoints({
                 url: `${UPLOAD_URL}`,
                 method: 'POST',
                 body: data,
+                formData: true,
+                prepareHeaders: (headers) => {
+                    headers.delete('Content-Type');
+                    return headers;
+                },
             }),
         }),
 

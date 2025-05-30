@@ -17,6 +17,13 @@ const storage = new CloudinaryStorage({
 });
 
 const fileFilter = (req, file, cb) => {
+  // Log incoming file details
+  console.log('Incoming file:', {
+    originalname: file.originalname,
+    mimetype: file.mimetype,
+    size: file.size
+  });
+
   const filetypes = /jpe?g|png|webp/;
   const mimetypes = /image\/jpe?g|image\/png|image\/webp/;
 
@@ -26,7 +33,7 @@ const fileFilter = (req, file, cb) => {
   if (filetypes.test(extname) && mimetypes.test(mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Images only"), false);
+    cb(new Error(`Invalid file type. Only jpg, jpeg, png, and webp files are allowed. Got ${mimetype}`), false);
   }
 };
 
@@ -39,7 +46,7 @@ const upload = multer({
 const uploadSingleImage = upload.single("image");
 
 router.post("/", (req, res) => {
-  // Add request logging
+  // Log request details
   console.log('Upload request received:', {
     contentType: req.headers['content-type'],
     contentLength: req.headers['content-length']
@@ -48,26 +55,37 @@ router.post("/", (req, res) => {
   uploadSingleImage(req, res, async (err) => {
     if (err instanceof multer.MulterError) {
       console.error('Multer error:', err);
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({
+          success: false,
+          message: 'File size is too large. Maximum size is 2MB'
+        });
+      }
       return res.status(400).json({
         success: false,
-        message: err.code === 'LIMIT_FILE_SIZE' 
-          ? 'File size is too large. Max size is 2MB'
-          : err.message
+        message: err.message
       });
     } else if (err) {
       console.error('Upload error:', err);
-      return res.status(400).json({ success: false, message: err.message });
+      return res.status(400).json({
+        success: false,
+        message: err.message
+      });
     }
 
     if (!req.file) {
       console.error('No file in request');
-      return res.status(400).json({ success: false, message: "No image file provided" });
+      return res.status(400).json({
+        success: false,
+        message: "Please upload an image file"
+      });
     }
 
     try {
       console.log('File uploaded successfully:', {
         filename: req.file.filename,
-        path: req.file.path
+        path: req.file.path,
+        size: req.file.size
       });
 
       res.status(200).json({

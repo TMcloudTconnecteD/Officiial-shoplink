@@ -118,6 +118,10 @@ app.use((err, req, res, next) => {
 
   // Handle specific error types
   if (err.type === 'entity.parse.failed') {
+    // For multipart/form-data requests, skip the error
+    if (req.headers['content-type']?.includes('multipart/form-data')) {
+      return next();
+    }
     return res.status(400).json({
       success: false,
       message: 'Invalid request format',

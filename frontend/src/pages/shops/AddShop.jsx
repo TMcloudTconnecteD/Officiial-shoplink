@@ -38,9 +38,9 @@ const AddShop = () => {
 
     setIsLoading(true);
     try {
-      // Send the data as a regular JSON object instead of FormData
+      // Send the data as a regular JSON object
       const shopData = {
-        image: image, // This is now the Cloudinary URL
+        image: image.replace(/\\/g, '/'), // Ensure forward slashes
         name,
         location,
         telephone: `${countryCode}${telephone}`,
@@ -100,8 +100,10 @@ const AddShop = () => {
       if (!res.success) {
         throw new Error(res.message || 'Upload failed');
       }
-      setImage(res.data.secure_url);
-      setImageUrl(res.data.secure_url);
+      // Clean up the URL by ensuring forward slashes
+      const cleanUrl = res.data.secure_url.replace(/\\/g, '/');
+      setImage(cleanUrl);
+      setImageUrl(cleanUrl);
       toast.success('Image uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error);

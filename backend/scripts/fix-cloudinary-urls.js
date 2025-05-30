@@ -5,18 +5,12 @@ import Shop from '../models/shopModel.js';
 
 dotenv.config();
 
-const MONGODB_URI = process.env.MONGODB_URI;
-const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
+// Use environment variables with fallback values
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://hillarygerald76:3W9RK474GedFpuEL@shoplinkbackend.7tmvd.mongodb.net/?retryWrites=true&w=majority&appName=shoplinkbackend';
+const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'dgnxkbg3i';
 
-if (!MONGODB_URI) {
-  console.error('MONGODB_URI is required in .env file');
-  process.exit(1);
-}
-
-if (!CLOUDINARY_CLOUD_NAME) {
-  console.error('CLOUDINARY_CLOUD_NAME is required in .env file');
-  process.exit(1);
-}
+console.log('Using MongoDB URI:', MONGODB_URI);
+console.log('Using Cloudinary cloud name:', CLOUDINARY_CLOUD_NAME);
 
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
@@ -24,6 +18,21 @@ mongoose.connect(MONGODB_URI)
     console.error('MongoDB connection error:', err);
     process.exit(1);
   });
+
+function needsUrlFix(url) {
+  if (!url) return false;
+  
+  // Check for backslashes
+  if (url.includes('\\')) return true;
+  
+  // Check for double forward slashes (except after http/https)
+  if (url.match(/([^:])\/\//)) return true;
+  
+  // Check if it's not a Cloudinary URL
+  if (!url.includes('res.cloudinary.com')) return true;
+  
+  return false;
+}
 
 async function fixCloudinaryUrls() {
   try {
@@ -33,23 +42,44 @@ async function fixCloudinaryUrls() {
 
     let productUpdatedCount = 0;
     let productErrorCount = 0;
+    let productSkippedCount = 0;
 
     for (const product of products) {
       try {
         if (!product.image) {
           console.log(`Product ${product._id} has no image, skipping`);
+          productSkippedCount++;
           continue;
         }
 
-        // Check if the image URL needs to be fixed
-        if (!product.image.includes('res.cloudinary.com')) {
-          const filename = product.image.split(/[\/\\]/).pop();
-          console.log(`Fixing image URL for product ${product._id} (${filename})`);
+        if (!needsUrlFix(product.image)) {
+          productSkippedCount++;
+          continue;
+        }
 
-          product.image = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/v1/shoplink/${filename}`;
+        // Clean up the URL
+        let newUrl = product.image;
+        
+        // Replace backslashes with forward slashes
+        newUrl = newUrl.replace(/\\/g, '/');
+        
+        // Fix double forward slashes (except after http/https)
+        newUrl = newUrl.replace(/([^:])\/+/g, '$1/');
+        
+        // Ensure proper Cloudinary URL format
+        if (!newUrl.includes('res.cloudinary.com')) {
+          const filename = newUrl.split('/').pop();
+          newUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/v1/shoplink/${filename}`;
+        }
+
+        if (newUrl !== product.image) {
+          console.log(`✅ Updating image URL for product ${product._id}`);
+          console.log(`   Old: ${product.image}`);
+          console.log(`   New: ${newUrl}`);
+          
+          product.image = newUrl;
           await product.save();
           productUpdatedCount++;
-          console.log(`✅ Updated image URL for product ${product._id}`);
         }
       } catch (err) {
         console.error(`❌ Error updating product ${product._id}:`, err.message);
@@ -63,23 +93,44 @@ async function fixCloudinaryUrls() {
 
     let shopUpdatedCount = 0;
     let shopErrorCount = 0;
+    let shopSkippedCount = 0;
 
     for (const shop of shops) {
       try {
         if (!shop.image) {
           console.log(`Shop ${shop._id} has no image, skipping`);
+          shopSkippedCount++;
           continue;
         }
 
-        // Check if the image URL needs to be fixed
-        if (!shop.image.includes('res.cloudinary.com')) {
-          const filename = shop.image.split(/[\/\\]/).pop();
-          console.log(`Fixing image URL for shop ${shop._id} (${filename})`);
+        if (!needsUrlFix(shop.image)) {
+          shopSkippedCount++;
+          continue;
+        }
 
-          shop.image = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/v1/shoplink/${filename}`;
+        // Clean up the URL
+        let newUrl = shop.image;
+        
+        // Replace backslashes with forward slashes
+        newUrl = newUrl.replace(/\\/g, '/');
+        
+        // Fix double forward slashes (except after http/https)
+        newUrl = newUrl.replace(/([^:])\/+/g, '$1/');
+        
+        // Ensure proper Cloudinary URL format
+        if (!newUrl.includes('res.cloudinary.com')) {
+          const filename = newUrl.split('/').pop();
+          newUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/v1/shoplink/${filename}`;
+        }
+
+        if (newUrl !== shop.image) {
+          console.log(`✅ Updating image URL for shop ${shop._id}`);
+          console.log(`   Old: ${shop.image}`);
+          console.log(`   New: ${newUrl}`);
+          
+          shop.image = newUrl;
           await shop.save();
           shopUpdatedCount++;
-          console.log(`✅ Updated image URL for shop ${shop._id}`);
         }
       } catch (err) {
         console.error(`❌ Error updating shop ${shop._id}:`, err.message);
@@ -88,8 +139,8 @@ async function fixCloudinaryUrls() {
     }
 
     console.log('\nURL fix completed!');
-    console.log(`Products - Updated: ${productUpdatedCount}, Errors: ${productErrorCount}`);
-    console.log(`Shops - Updated: ${shopUpdatedCount}, Errors: ${shopErrorCount}`);
+    console.log(`Products - Updated: ${productUpdatedCount}, Skipped: ${productSkippedCount}, Errors: ${productErrorCount}`);
+    console.log(`Shops - Updated: ${shopUpdatedCount}, Skipped: ${shopSkippedCount}, Errors: ${shopErrorCount}`);
 
   } catch (error) {
     console.error('Script failed:', error);

@@ -73,8 +73,10 @@ const ProductList = () => {
       if (!res.success) {
         throw new Error(res.message || 'Upload failed');
       }
-      setImage(res.data.secure_url);
-      setImageUrl(res.data.secure_url);
+      // Clean up the URL by ensuring forward slashes
+      const cleanUrl = res.data.secure_url.replace(/\\/g, '/');
+      setImage(cleanUrl);
+      setImageUrl(cleanUrl);
       toast.success('Image uploaded successfully');
     } catch (err) {
       console.error('Upload error:', err);
@@ -88,17 +90,25 @@ const ProductList = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    if (!image) {
+      toast.error('Please upload an image first');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const productData = new FormData();
-      productData.append('image', image);
-      productData.append('name', name);
-      productData.append('description', description);
-      productData.append('price', price);
-      productData.append('quantity', quantity);
-      productData.append('category', category);
-      productData.append('brand', brand);
-      productData.append('inStock', stock);
-      productData.append('shop', shop);
+      // Send as JSON instead of FormData since image is already uploaded
+      const productData = {
+        image,
+        name,
+        description,
+        price,
+        quantity,
+        category,
+        brand,
+        inStock: stock > 0,
+        shop
+      };
 
       const { data } = await createProduct(productData);
       if (data?.error) {

@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import path from 'path';
 import cors from 'cors';
+import multer from 'multer';
 import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 
@@ -55,23 +56,42 @@ app.use((req, res, next) => {
   next();
 });
 
-// Body parsing middleware - must come before routes
-app.use(express.json({ 
-  limit: '10mb',
-  verify: (req, res, buf) => {
-    const contentType = req.headers['content-type'] || '';
-    // Skip JSON parsing for multipart/form-data and form-urlencoded
-    if (contentType.includes('multipart/form-data') || contentType.includes('application/x-www-form-urlencoded')) {
-      return;
-    }
-    try {
-      JSON.parse(buf);
-    } catch(e) {
-      console.error('JSON parse error:', e);
-      return;
-    }
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
-}));
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  }
+});
+
+// Body parsing middleware - must come before routes
+app.use((req, res, next) => {
+  const contentType = req.headers['content-type'] || '';
+  if (contentType.includes('multipart/form-data')) {
+    return next();
+  }
+  express.json({
+    limit: '10mb',
+    verify: (req, res, buf) => {
+      try {
+        JSON.parse(buf);
+      } catch(e) {
+        console.error('JSON parse error:', e);
+        return;
+      }
+    }
+  })(req, res, next);
+});
 
 // Handle URL-encoded bodies (as sent by HTML forms)
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -105,6 +125,12 @@ app.use((req, res, next) => {
 
 // Serve local files during transition
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Make upload middleware available to routes
+app.use((req, res, next) => {
+  req.upload = upload;
+  next();
+});
 
 // API routes
 app.use('/api/users', userRoutes);

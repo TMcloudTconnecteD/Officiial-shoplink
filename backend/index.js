@@ -56,22 +56,24 @@ app.use((req, res, next) => {
 });
 
 // Body parsing middleware - must come before routes
-app.use(express.json({ 
-  limit: '10mb',
-  verify: (req, res, buf) => {
-    const contentType = req.headers['content-type'] || '';
-    // Skip JSON parsing for multipart/form-data
-    if (contentType.includes('multipart/form-data')) {
-      return;
-    }
-    try {
-      JSON.parse(buf);
-    } catch(e) {
-      console.error('JSON parse error:', e);
-      return;
-    }
+app.use((req, res, next) => {
+  if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
+    // Skip body parsing for multipart/form-data requests
+    next();
+  } else {
+    // Apply JSON parsing for non-multipart requests
+    express.json({
+      limit: '10mb',
+      verify: (req, res, buf) => {
+        try {
+          JSON.parse(buf);
+        } catch(e) {
+          console.error('JSON parse error:', e);
+        }
+      }
+    })(req, res, next);
   }
-}));
+});
 
 // Handle URL-encoded bodies (as sent by HTML forms)
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

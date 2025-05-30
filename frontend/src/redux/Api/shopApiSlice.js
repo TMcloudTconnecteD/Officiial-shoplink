@@ -54,12 +54,9 @@ export const shopApiSlice = apiSlice.injectEndpoints({
                 url: `${UPLOAD_URL}`,
                 method: 'POST',
                 body: data,
-                // Explicitly tell RTK Query this is FormData
                 formData: true,
-                // Don't try to JSON stringify the body
                 prepareHeaders: (headers) => {
-                    // Don't set any content type, let the browser set it with the correct boundary
-                    headers.delete('Content-Type');
+                    // Don't delete Content-Type, let the browser set it with the boundary
                     return headers;
                 },
             }),

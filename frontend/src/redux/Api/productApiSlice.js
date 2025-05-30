@@ -89,7 +89,7 @@ export const productApiSlice = apiSlice.injectEndpoints({
                 body: data,
                 formData: true,
                 prepareHeaders: (headers) => {
-                    headers.delete('Content-Type');
+                    // Don't delete Content-Type, let the browser set it with the boundary
                     return headers;
                 },
             }),

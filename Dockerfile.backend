@@ -2,9 +2,11 @@ FROM node:18-alpine
 
 WORKDIR /app/backend
 
-# Copy package manifest and install dependencies
-# If package-lock.json is absent in the repo root/backend, this avoids a build error
-COPY backend/package.json ./
+# Copy package manifest and install dependencies.
+# Some repo configurations place package.json at the repository root instead of backend/package.json.
+# Copy root package.json first (this will exist), then overwrite with backend/package.json if it exists.
+COPY package.json ./
+COPY backend/package.json ./ 2>/dev/null || true
 RUN npm install --prefix .
 
 # Copy backend source

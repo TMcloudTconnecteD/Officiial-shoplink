@@ -54,3 +54,4 @@ nohup: ignoring input
 [0]     at endReadableNT (node:internal/streams/readable:1698:12)
 [0]     at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
 [1] npm run backend exited with code 143
+[0] 6:13:21 PM [vite] (client) hmr update /src/pages/Auth/Navigation.jsx, /@windicss/windi.css

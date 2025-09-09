@@ -44,8 +44,18 @@ const corsOptions = {
   origin: function (origin, cb) {
     // Allow requests with no origin (mobile apps, curl, server-to-server)
     if (!origin) return cb(null, true);
+
+    // Quick override for emergency/unblock: set ALLOW_ALL_ORIGINS=true in env
+    if (process.env.ALLOW_ALL_ORIGINS === 'true') {
+      console.warn('CORS: ALLOW_ALL_ORIGINS is enabled — allowing any origin for this run');
+      return cb(null, true);
+    }
+
     if (allowedOrigins.indexOf(origin) !== -1) return cb(null, true);
-    return cb(new Error('CORS policy: Origin not allowed'));
+
+    // Do NOT throw an error here — returning false prevents CORS headers but avoids crashing the request pipeline.
+    console.warn(`CORS blocked request from origin: ${origin}`);
+    return cb(null, false);
   },
   credentials: true,
 };

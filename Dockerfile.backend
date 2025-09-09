@@ -5,7 +5,6 @@ WORKDIR /app/backend
 # Copy package manifest and install dependencies
 # If package-lock.json is absent in the repo root/backend, this avoids a build error
 COPY backend/package.json ./
-COPY backend/package-lock.json ./ 2>/dev/null || true
 RUN npm install --prefix .
 
 # Copy backend source

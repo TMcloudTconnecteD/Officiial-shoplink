@@ -1,0 +1,14 @@
+FROM node:18-alpine
+
+WORKDIR /app/backend
+
+# Copy package manifest and install dependencies
+COPY backend/package.json backend/package-lock.json ./
+RUN npm install --prefix .
+
+# Copy backend source
+COPY backend/ ./
+
+EXPOSE 8000
+
+CMD ["npm", "run", "backend"]

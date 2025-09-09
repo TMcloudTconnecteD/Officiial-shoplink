@@ -39,3 +39,18 @@ nohup: ignoring input
 [1] 2025-09-09T14:43:37.061Z -> GET /api/category/categories
 [1] 2025-09-09T14:43:55.280Z -> POST /api/products/filtered-products
 [0] 5:47:09 PM [vite] (client) hmr update /src/pages/Auth/Navigation.jsx, /@windicss/windi.css
+[1] 2025-09-09T14:48:48.576Z -> GET /api/products/top
+[1] 2025-09-09T14:48:48.580Z -> GET /api/products?
+[1] 2025-09-09T14:48:53.721Z -> GET /api/shops/all
+[1] ShopRoutes: GET /api/shops/all
+[1] 2025-09-09T14:48:53.723Z -> GET /api/category/categories
+[1] 2025-09-09T14:50:52.742Z -> GET /api/products/top
+[1] 2025-09-09T14:50:52.747Z -> GET /api/products?
+[1] Terminated
+[0] 5:56:50 PM [vite] http proxy error: /api/shops/all
+[0] Error: socket hang up
+[0]     at Socket.socketOnEnd (node:_http_client:528:25)
+[0]     at Socket.emit (node:events:536:35)
+[0]     at endReadableNT (node:internal/streams/readable:1698:12)
+[0]     at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+[1] npm run backend exited with code 143

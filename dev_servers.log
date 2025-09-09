@@ -1,0 +1,41 @@
+nohup: ignoring input
+
+> officiial-shoplink@1.0.0 dev
+> concurrently "npm run frontend" "npm run backend"
+
+[1] 
+[1] > officiial-shoplink@1.0.0 backend
+[1] > nodemon backend/index.js
+[1] 
+[0] 
+[0] > officiial-shoplink@1.0.0 frontend
+[0] > npm run dev --prefix frontend
+[0] 
+[1] [33m[nodemon] 3.1.10[39m
+[1] [33m[nodemon] to restart at any time, enter `rs`[39m
+[1] [33m[nodemon] watching path(s): backend/**/*[39m
+[1] [33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[1] [32m[nodemon] starting `node backend/index.js`[39m
+[0] 
+[0] > frontend@0.0.0 dev
+[0] > vite
+[0] 
+[0] 
+[0]   VITE v6.3.6  ready in 1026 ms
+[0] 
+[0]   ➜  Local:   http://localhost:5173/
+[0]   ➜  Network: http://172.20.10.6:5173/
+[1] Cloudinary configured.
+[1] server is running on port: 8000
+[1] mongoDB check!🤝db.js Worked!!😎
+[1] 2025-09-09T14:43:02.488Z -> GET /api/products/top
+[1] 2025-09-09T14:43:02.503Z -> GET /api/products?
+[1] 2025-09-09T14:43:02.674Z -> GET /api/products/top
+[1] 2025-09-09T14:43:02.677Z -> GET /api/products?
+[1] 2025-09-09T14:43:25.814Z -> GET /api/products/top
+[1] 2025-09-09T14:43:25.819Z -> GET /api/products?
+[1] 2025-09-09T14:43:37.059Z -> GET /api/shops/all
+[1] ShopRoutes: GET /api/shops/all
+[1] 2025-09-09T14:43:37.061Z -> GET /api/category/categories
+[1] 2025-09-09T14:43:55.280Z -> POST /api/products/filtered-products
+[0] 5:47:09 PM [vite] (client) hmr update /src/pages/Auth/Navigation.jsx, /@windicss/windi.css

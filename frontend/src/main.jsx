@@ -34,7 +34,7 @@ import OrderList from "./pages/Admin/OrderList.jsx";
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import AdminDashboard from "./pages/Admin/AdminDashboard.jsx";
 import ShopUpdated from './pages/ShopUpdated.jsx'
-import HomeUpdated from './pages/HomeUpdated.jsx'
+//import HomeUpdated from './pages/HomeUpdated.jsx'
 import ShopList from './components/ShopList.jsx'
 import Mall from './pages/shops/Mall.jsx'
 import HomeUpdated1 from './pages/HomeUpdated1.jsx'

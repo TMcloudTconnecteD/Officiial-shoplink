@@ -35,10 +35,27 @@ if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && proce
 const app = express()
 
 // Add CORS middleware
+// Use an env var `ALLOWED_ORIGINS` (comma separated) in production to configure allowed origins.
+const defaultOrigins = ['http://localhost:8000', 'http://localhost:5173'];
+const envOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim()) : [];
+const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
+
 const corsOptions = {
-  origin: ['http://localhost:8000', 'http://localhost:5173',' https://b075-129-222-187-221.ngrok-free.app'], // Added localhost:5173 and localtunnel URL
+  origin: function (origin, cb) {
+    // Allow requests with no origin (mobile apps, curl, server-to-server)
+    if (!origin) return cb(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) return cb(null, true);
+    return cb(new Error('CORS policy: Origin not allowed'));
+  },
   credentials: true,
 };
+
+app.use((req, res, next) => {
+  // Expose the allowed origins via response header to help debugging
+  res.setHeader('X-Allowed-Origins', allowedOrigins.join(','));
+  next();
+});
+
 app.use(cors(corsOptions));
 
 // Startup env validation for critical services

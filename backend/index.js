@@ -77,6 +77,18 @@ app.use('/api/shops', shopRoutes)
 app.use("/api/orders", orderRoutes)
 app.use('/api/payments', mpesaRoutes)
 
+// Health check endpoint for smoke tests (safe: doesn't expose secrets)
+app.get('/api/health', (req, res) => {
+  const cloudinaryConfigured = Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+  const mongoConfigured = Boolean(process.env.MONGO_URI);
+  res.json({
+    status: 'ok',
+    cloudinaryConfigured,
+    mongoConfigured,
+    env: process.env.NODE_ENV || 'development',
+  });
+});
+
 app.get("/api/config/paypal", (req, res) => {
     res.send({ clientId: process.env.PAYPAL_CLIENT_ID });
 });

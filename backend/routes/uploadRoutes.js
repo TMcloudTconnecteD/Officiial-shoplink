@@ -44,18 +44,45 @@ router.post('/', (req, res) => {
     if (err) {
       return res.status(400).json({ message: err.message });
     } else if (req.file) {
-      try {
-        // Upload file to Cloudinary
-        const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: 'shoplink_uploads',
-        });
+      // Helper to upload with a timeout and optional retries
+      const uploadWithTimeout = (filePath, options = {}, timeoutMs = 20000, retries = 1) => {
+        return new Promise((resolve, reject) => {
+          let attempts = 0;
 
-        // Delete local file after upload (guarded)
-        try {
-          if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-        } catch (fsErr) {
-          console.warn('Warning: failed to delete temp upload file', fsErr.message);
-        }
+          const attempt = () => {
+            attempts += 1;
+            let timedOut = false;
+            const timer = setTimeout(() => {
+              timedOut = true;
+              // Cloudinary SDK won't cancel the underlying request, but we'll treat as timeout
+              const err = new Error('Cloudinary upload timed out');
+              err.code = 'UPLOAD_TIMEOUT';
+              reject(err);
+            }, timeoutMs);
+
+            cloudinary.uploader.upload(filePath, options)
+              .then((result) => {
+                if (timedOut) return; // Already rejected
+                clearTimeout(timer);
+                resolve(result);
+              })
+              .catch((err) => {
+                clearTimeout(timer);
+                if (attempts <= retries) {
+                  // small backoff
+                  setTimeout(attempt, 500 * attempts);
+                } else {
+                  reject(err);
+                }
+              });
+          };
+
+          attempt();
+        });
+      };
+
+      try {
+        const result = await uploadWithTimeout(req.file.path, { folder: 'shoplink_uploads' }, 20000, 2);
 
         return res.status(200).json({
           message: 'Image uploaded successfully',
@@ -65,6 +92,15 @@ router.post('/', (req, res) => {
         console.error('Cloudinary upload failed:', error && error.message ? error.message : error);
         const errMsg = error && error.message ? error.message : 'Unknown Cloudinary error';
         return res.status(500).json({ message: 'Cloudinary upload failed', error: errMsg });
+      } finally {
+        // Ensure temp file is removed in all cases
+        try {
+          if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+          }
+        } catch (fsErr) {
+          console.warn('Warning: failed to delete temp upload file in finally', fsErr.message);
+        }
       }
     } else {
       return res.status(400).json({ message: 'Please select an image to upload' });

@@ -61,15 +61,22 @@ const AddShop = () => {
     const formData = new FormData();
     formData.append('image', e.target.files[0]);
 
-    try {
-  const res = await uploadShopImage(formData).unwrap();
-  toast.success(res.message || 'Image uploaded');
-  // server returns { imageUrl }
-  setImage(res.imageUrl || res.image);
-  setImageUrl(res.imageUrl || res.image);
-    } catch (error) {
-      toast.error(error?.data?.message || 'Image upload failed');
-    }
+      try {
+        const res = await uploadShopImage(formData).unwrap();
+        toast.success(res.message || 'Image uploaded');
+        // server returns { imageUrl }
+        // Normalize preview URL so production (different origin) can fetch it
+  import('../../utils/resolveImageUrl').then(({ default: resolveImageUrl }) => {
+          const resolved = resolveImageUrl(res.imageUrl || res.image);
+          setImage(resolved);
+          setImageUrl(resolved);
+        }).catch(() => {
+          setImage(res.imageUrl || res.image);
+          setImageUrl(res.imageUrl || res.image);
+        });
+      } catch (error) {
+        toast.error(error?.data?.message || 'Image upload failed');
+      }
   };
 
   return (

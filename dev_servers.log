@@ -55,3 +55,144 @@ nohup: ignoring input
 [0]     at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
 [1] npm run backend exited with code 143
 [0] 6:13:21 PM [vite] (client) hmr update /src/pages/Auth/Navigation.jsx, /@windicss/windi.css
+[0] 9:47:21 PM [vite] (client) hmr update /src/pages/shops/AddShop.jsx, /@windicss/windi.css
+[0] 9:47:22 PM [vite] Internal server error: Failed to resolve import "../utils/resolveImageUrl" from "src/pages/shops/AddShop.jsx". Does the file exist?
+[0]   Plugin: vite:import-analysis
+[0]   File: /home/tm/Desktop/Hm/Officiial-shoplink/frontend/src/pages/shops/AddShop.jsx:69:15
+[0]   75 |        const res = await uploadShopImage(formData).unwrap();
+[0]   76 |        toast.success(res.message || "Image uploaded");
+[0]   77 |        import("../utils/resolveImageUrl").then(({ default: resolveImageUrl }) => {
+[0]      |               ^
+[0]   78 |          const resolved = resolveImageUrl(res.imageUrl || res.image);
+[0]   79 |          setImage(resolved);
+[0]       at TransformPluginContext._formatLog (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42517:41)
+[0]       at TransformPluginContext.error (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42514:16)
+[0]       at normalizeUrl (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40493:23)
+[0]       at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]       at async file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40612:37
+[0]       at async Promise.all (index 11)
+[0]       at async TransformPluginContext.transform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40539:7)
+[0]       at async EnvironmentPluginContainer.transform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42312:18)
+[0]       at async loadAndTransform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:35738:27)
+[0] 9:47:22 PM [vite] Internal server error: Failed to resolve import "../utils/resolveImageUrl" from "src/pages/shops/AddShop.jsx". Does the file exist?
+[0]   Plugin: vite:import-analysis
+[0]   File: /home/tm/Desktop/Hm/Officiial-shoplink/frontend/src/pages/shops/AddShop.jsx:69:15
+[0]   75 |        const res = await uploadShopImage(formData).unwrap();
+[0]   76 |        toast.success(res.message || "Image uploaded");
+[0]   77 |        import("../utils/resolveImageUrl").then(({ default: resolveImageUrl }) => {
+[0]      |               ^
+[0]   78 |          const resolved = resolveImageUrl(res.imageUrl || res.image);
+[0]   79 |          setImage(resolved);
+[0]       at TransformPluginContext._formatLog (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42517:41)
+[0]       at TransformPluginContext.error (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42514:16)
+[0]       at normalizeUrl (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40493:23)
+[0]       at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]       at async file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40612:37
+[0]       at async Promise.all (index 11)
+[0]       at async TransformPluginContext.transform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40539:7)
+[0]       at async EnvironmentPluginContainer.transform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42312:18)
+[0]       at async loadAndTransform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:35738:27)
+[0] 9:47:22 PM [vite] Internal server error: Failed to resolve import "../utils/resolveImageUrl" from "src/pages/shops/AddShop.jsx". Does the file exist?
+[0]   Plugin: vite:import-analysis
+[0]   File: /home/tm/Desktop/Hm/Officiial-shoplink/frontend/src/pages/shops/AddShop.jsx:69:15
+[0]   75 |        const res = await uploadShopImage(formData).unwrap();
+[0]   76 |        toast.success(res.message || "Image uploaded");
+[0]   77 |        import("../utils/resolveImageUrl").then(({ default: resolveImageUrl }) => {
+[0]      |               ^
+[0]   78 |          const resolved = resolveImageUrl(res.imageUrl || res.image);
+[0]   79 |          setImage(resolved);
+[0]       at TransformPluginContext._formatLog (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42517:41)
+[0]       at TransformPluginContext.error (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42514:16)
+[0]       at normalizeUrl (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40493:23)
+[0]       at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]       at async file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40612:37
+[0]       at async Promise.all (index 11)
+[0]       at async TransformPluginContext.transform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40539:7)
+[0]       at async EnvironmentPluginContainer.transform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42312:18)
+[0]       at async loadAndTransform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:35738:27)
+[0] 9:47:22 PM [vite] Internal server error: Failed to resolve import "../utils/resolveImageUrl" from "src/pages/shops/AddShop.jsx". Does the file exist?
+[0]   Plugin: vite:import-analysis
+[0]   File: /home/tm/Desktop/Hm/Officiial-shoplink/frontend/src/pages/shops/AddShop.jsx:69:15
+[0]   75 |        const res = await uploadShopImage(formData).unwrap();
+[0]   76 |        toast.success(res.message || "Image uploaded");
+[0]   77 |        import("../utils/resolveImageUrl").then(({ default: resolveImageUrl }) => {
+[0]      |               ^
+[0]   78 |          const resolved = resolveImageUrl(res.imageUrl || res.image);
+[0]   79 |          setImage(resolved);
+[0]       at TransformPluginContext._formatLog (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42517:41)
+[0]       at TransformPluginContext.error (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42514:16)
+[0]       at normalizeUrl (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40493:23)
+[0]       at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]       at async file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40612:37
+[0]       at async Promise.all (index 11)
+[0]       at async TransformPluginContext.transform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40539:7)
+[0]       at async EnvironmentPluginContainer.transform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42312:18)
+[0]       at async loadAndTransform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:35738:27)
+[0]       at async viteTransformMiddleware (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:37253:24)
+[0] 9:50:49 PM [vite] (client) Pre-transform error: Failed to resolve import "../utils/resolveImageUrl" from "src/pages/shops/AddShop.jsx". Does the file exist?
+[0]   Plugin: vite:import-analysis
+[0]   File: /home/tm/Desktop/Hm/Officiial-shoplink/frontend/src/pages/shops/AddShop.jsx:69:15
+[0]   75 |        const res = await uploadShopImage(formData).unwrap();
+[0]   76 |        toast.success(res.message || "Image uploaded");
+[0]   77 |        import("../utils/resolveImageUrl").then(({ default: resolveImageUrl }) => {
+[0]      |               ^
+[0]   78 |          const resolved = resolveImageUrl(res.imageUrl || res.image);
+[0]   79 |          setImage(resolved);
+[0] 9:50:49 PM [vite] Internal server error: Failed to resolve import "../utils/resolveImageUrl" from "src/pages/shops/AddShop.jsx". Does the file exist?
+[0]   Plugin: vite:import-analysis
+[0]   File: /home/tm/Desktop/Hm/Officiial-shoplink/frontend/src/pages/shops/AddShop.jsx:69:15
+[0]   75 |        const res = await uploadShopImage(formData).unwrap();
+[0]   76 |        toast.success(res.message || "Image uploaded");
+[0]   77 |        import("../utils/resolveImageUrl").then(({ default: resolveImageUrl }) => {
+[0]      |               ^
+[0]   78 |          const resolved = resolveImageUrl(res.imageUrl || res.image);
+[0]   79 |          setImage(resolved);
+[0]       at TransformPluginContext._formatLog (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42517:41)
+[0]       at TransformPluginContext.error (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42514:16)
+[0]       at normalizeUrl (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40493:23)
+[0]       at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]       at async file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40612:37
+[0]       at async Promise.all (index 11)
+[0]       at async TransformPluginContext.transform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40539:7)
+[0]       at async EnvironmentPluginContainer.transform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42312:18)
+[0]       at async loadAndTransform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:35738:27)
+[0]       at async viteTransformMiddleware (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:37253:24)
+[0] 9:51:05 PM [vite] Internal server error: Failed to resolve import "../utils/resolveImageUrl" from "src/pages/shops/AddShop.jsx". Does the file exist?
+[0]   Plugin: vite:import-analysis
+[0]   File: /home/tm/Desktop/Hm/Officiial-shoplink/frontend/src/pages/shops/AddShop.jsx:69:15
+[0]   75 |        const res = await uploadShopImage(formData).unwrap();
+[0]   76 |        toast.success(res.message || "Image uploaded");
+[0]   77 |        import("../utils/resolveImageUrl").then(({ default: resolveImageUrl }) => {
+[0]      |               ^
+[0]   78 |          const resolved = resolveImageUrl(res.imageUrl || res.image);
+[0]   79 |          setImage(resolved);
+[0]       at TransformPluginContext._formatLog (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42517:41)
+[0]       at TransformPluginContext.error (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42514:16)
+[0]       at normalizeUrl (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40493:23)
+[0]       at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]       at async file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40612:37
+[0]       at async Promise.all (index 11)
+[0]       at async TransformPluginContext.transform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40539:7)
+[0]       at async EnvironmentPluginContainer.transform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42312:18)
+[0]       at async loadAndTransform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:35738:27)
+[0]       at async viteTransformMiddleware (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:37253:24)
+[0] 9:51:06 PM [vite] Internal server error: Failed to resolve import "../utils/resolveImageUrl" from "src/pages/shops/AddShop.jsx". Does the file exist?
+[0]   Plugin: vite:import-analysis
+[0]   File: /home/tm/Desktop/Hm/Officiial-shoplink/frontend/src/pages/shops/AddShop.jsx:69:15
+[0]   75 |        const res = await uploadShopImage(formData).unwrap();
+[0]   76 |        toast.success(res.message || "Image uploaded");
+[0]   77 |        import("../utils/resolveImageUrl").then(({ default: resolveImageUrl }) => {
+[0]      |               ^
+[0]   78 |          const resolved = resolveImageUrl(res.imageUrl || res.image);
+[0]   79 |          setImage(resolved);
+[0]       at TransformPluginContext._formatLog (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42517:41)
+[0]       at TransformPluginContext.error (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42514:16)
+[0]       at normalizeUrl (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40493:23)
+[0]       at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[0]       at async file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40612:37
+[0]       at async Promise.all (index 11)
+[0]       at async TransformPluginContext.transform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:40539:7)
+[0]       at async EnvironmentPluginContainer.transform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:42312:18)
+[0]       at async loadAndTransform (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:35738:27)
+[0]       at async viteTransformMiddleware (file:///home/tm/Desktop/Hm/Officiial-shoplink/frontend/node_modules/vite/dist/node/chunks/dep-Bu492Fnd.js:37253:24)
+[0] 9:52:06 PM [vite] (client) page reload src/pages/shops/AddShop.jsx

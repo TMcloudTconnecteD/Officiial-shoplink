@@ -3,8 +3,8 @@ import ShopList from '../../components/ShopList.jsx';
 
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useCreateShopMutation, useUploadShopImageMutation } from '../../redux/api/shopApiSlice';
-import { useFetchCategoriesQuery } from '../../redux/api/categoryApiSlice';
+import { useCreateShopMutation, useUploadShopImageMutation } from '../../redux/Api/shopApiSlice';
+import { useFetchCategoriesQuery } from '../../redux/Api/categoryApiSlice';
 import AdminMenu from '../Admin/AdminMenu';
 import Loader from '../../components/Loader.jsx';
 
@@ -62,10 +62,11 @@ const AddShop = () => {
     formData.append('image', e.target.files[0]);
 
     try {
-      const res = await uploadShopImage(formData).unwrap();
-      toast.success(res.message || 'Image uploaded');
-      setImage(res.image);
-      setImageUrl(res.image);
+  const res = await uploadShopImage(formData).unwrap();
+  toast.success(res.message || 'Image uploaded');
+  // server returns { imageUrl }
+  setImage(res.imageUrl || res.image);
+  setImageUrl(res.imageUrl || res.image);
     } catch (error) {
       toast.error(error?.data?.message || 'Image upload failed');
     }

@@ -19,6 +19,19 @@ const port = process.env.PORT || 8000;
 
 connectDB();
 
+// Configure Cloudinary centrally so routes do not need to re-configure
+import { v2 as cloudinary } from 'cloudinary';
+if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+  console.log('Cloudinary configured.');
+} else {
+  console.warn('Cloudinary not fully configured - missing env vars.');
+}
+
 const app = express()
 
 // Add CORS middleware
@@ -27,6 +40,25 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
+
+// Startup env validation for critical services
+const requiredEnvs = [
+  'MONGO_URI',
+  'CLOUDINARY_CLOUD_NAME',
+  'CLOUDINARY_API_KEY',
+  'CLOUDINARY_API_SECRET',
+];
+const missing = requiredEnvs.filter((k) => !process.env[k]);
+if (missing.length) {
+  console.warn('⚠️  Missing required environment variables:', missing.join(', '));
+  console.warn('Uploads or DB connections may fail until these are set.');
+}
+
+// Simple request logger to help reproduce 500s during development
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} -> ${req.method} ${req.originalUrl}`);
+  next();
+});
 
 // Add request logging middleware
 //app.use((req, res, next) => {

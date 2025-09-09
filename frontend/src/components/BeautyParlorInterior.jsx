@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { useGetProductsQuery } from '../redux/api/productApiSlice';
+import { useGetProductsQuery } from '../redux/Api/productApiSlice';
 
 const BeautyParlorInterior = () => {
   const mountRef = useRef(null);

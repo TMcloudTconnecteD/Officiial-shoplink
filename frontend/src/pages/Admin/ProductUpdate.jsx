@@ -6,8 +6,8 @@ import {
   useDeleteProductMutation,
   useGetProductByIdQuery,
   useUploadProductImageMutation,
-} from "../../redux/api/productApiSlice";
-import { useFetchCategoriesQuery } from "../../redux/api/categoryApiSlice";
+} from "../../redux/Api/productApiSlice";
+import { useFetchCategoriesQuery } from "../../redux/Api/categoryApiSlice";
 import { toast } from "react-toastify";
 import { Pencil, Trash2 } from "lucide-react";
 
@@ -57,7 +57,7 @@ const AdminProductUpdate = () => {
     try {
       const res = await uploadProductImage(formData).unwrap();
       toast.success("Image uploaded successfully", { position: "top-right", autoClose: 2000 });
-      setImage(res.image);
+  setImage(res.imageUrl || res.image);
     } catch (error) {
       console.error("Image Upload Error:", error);
       const msg = error?.data?.message || error?.error || "Failed to upload image.";

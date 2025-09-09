@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useLocation, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Loader from '../../components/Loader';
 import { setCredentials } from '../../redux/features/auth/authSlice';
 import { toast } from 'react-toastify';
-import { useRegisterMutation } from '../../redux/api/usersApiSlice';
+import { useRegisterMutation } from '../../redux/Api/usersApiSlice';
 import { FaEnvelope, FaLock, FaLockOpen, FaUser } from 'react-icons/fa';
 
 

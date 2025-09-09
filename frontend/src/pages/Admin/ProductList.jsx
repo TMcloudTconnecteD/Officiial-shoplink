@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCreateProductMutation, useUploadProductImageMutation } from '../../redux/api/productApiSlice';
-import { useFetchCategoriesQuery } from '../../redux/api/categoryApiSlice';
+import { useCreateProductMutation, useUploadProductImageMutation } from '../../redux/Api/productApiSlice';
+import { useFetchCategoriesQuery } from '../../redux/Api/categoryApiSlice';
 import { toast } from 'react-toastify';
 import AdminMenu from './AdminMenu';
-import { useFetchShopsQuery } from '../../redux/api/shopApiSlice';
+import { useFetchShopsQuery } from '../../redux/Api/shopApiSlice';
 
 // Stock Indicator Component
 const StockIndicator = ({ stock }) => {
@@ -84,9 +84,9 @@ const ProductList = () => {
 
     try {
       const res = await uploadProductImage(formData).unwrap();
-      toast.success(res.message);
-      setImage(res.image);
-      setImageUrl(res.image);
+  toast.success(res.message);
+  setImage(res.imageUrl || res.image);
+  setImageUrl(res.imageUrl || res.image);
     } catch (error) {
       toast.error(error?.data?.message || error.error);
     }

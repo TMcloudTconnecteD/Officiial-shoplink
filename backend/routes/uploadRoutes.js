@@ -1,66 +1,75 @@
 import express from 'express';
 import multer from 'multer';
-import path, { extname } from 'path';
-
+import path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
+import fs from 'fs';
 
 const router = express.Router();
 
-
+// Use Multer to temporarily store files before pushing them to Cloudinary
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/')
-
-    },
-    filename: (req, file, cb) => {
-        const extname = path.extname(file.originalname)
-        cb(null, `${file.fieldname}-${Date.now()}${extname}`)
-    }
-
-
-})
+  destination: (req, file, cb) => cb(null, 'uploads/'),
+  filename: (req, file, cb) => {
+    const extname = path.extname(file.originalname);
+    cb(null, `${file.fieldname}-${Date.now()}${extname}`);
+  },
+});
 
 const fileFilter = (req, file, cb) => {
-    const filetypes = /jpe?g|jpg|png|gif/;
-    const mimetypes = /image\/jpe?g|image\/jpg|image\/png|image\/gif|image\/webp/;
+  const filetypes = /jpe?g|jpg|png|gif|webp/;
+  const mimetypes = /image\/jpe?g|image\/jpg|image\/png|image\/gif|image\/webp/;
 
-    const fileExt = path.extname(file.originalname).toLowerCase();
-    const extnameValid = filetypes.test(fileExt);
-    const mimetypeValid = mimetypes.test(file.mimetype);
+  const fileExt = path.extname(file.originalname).toLowerCase();
+  const extnameValid = filetypes.test(fileExt);
+  const mimetypeValid = mimetypes.test(file.mimetype);
 
-    if (extnameValid && mimetypeValid) {
-        cb(null, true);
-    } else {
-        cb(new Error('Invalid file type, only JPEG, JPG, PNG and GIF are allowed!'), false);
-    }
+  if (extnameValid && mimetypeValid) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type, only JPEG, JPG, PNG, GIF, and WEBP are allowed!'), false);
+  }
 };
 
+const upload = multer({
+  storage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  fileFilter,
+});
 
-    const upload = multer({
-        storage: storage,
-        limits: { fileSize: 1000000 },
-        fileFilter
-    })
-    const uploadSingleImage = upload.single('image')
+const uploadSingleImage = upload.single('image');
 
+// ✅ Upload API Route
+router.post('/', (req, res) => {
+  uploadSingleImage(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message });
+    } else if (req.file) {
+      try {
+        // Upload file to Cloudinary
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: 'shoplink_uploads',
+        });
 
-router.post('/', (req, res ) => {
-   
-uploadSingleImage(req, res, (err) => {
-        if (err) {
-            res.status(400).send({ message: err.message })
+        // Delete local file after upload (guarded)
+        try {
+          if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        } catch (fsErr) {
+          console.warn('Warning: failed to delete temp upload file', fsErr.message);
         }
-        else if (req.file) {
-        res.status(200).send({ message: 'Image uploaded successfully', 
-            image: `/${req.file.path}` 
-        })
-        }
-        else {
-            res.status(400).send({ message: 'Please select an image to upload' })
-        }
 
-    
-    })
-
-})
+        return res.status(200).json({
+          message: 'Image uploaded successfully',
+          imageUrl: result.secure_url,
+        });
+      } catch (error) {
+        console.error('Cloudinary upload failed:', error && error.message ? error.message : error);
+        const errMsg = error && error.message ? error.message : 'Unknown Cloudinary error';
+        return res.status(500).json({ message: 'Cloudinary upload failed', error: errMsg });
+      }
+    } else {
+      return res.status(400).json({ message: 'Please select an image to upload' });
+    }
+  });
+});
 
 export default router;

@@ -1,12 +1,12 @@
 import { Link, useParams } from "react-router-dom";
-import { useGetProductsQuery } from "../redux/api/productApiSlice";
+import { useGetProductsQuery } from "../redux/Api/productApiSlice";
 import Loader from "../components/Loader";
 import Message from "../components/Message";
 import HeaderUpdated from "../components/HeaderUpdated";
 import ProductCarousel from "./products/ProductCarousel";
 import City from "../components/ThreeDMall/City";
 import Product from "./products/Product";
-import StreetScenery from "../components/ThreeDMall/StreetScenery";
+//import StreetScenery from "../components/ThreeDMall/StreetScenery";
 
 const HomeUpdated1 = () => {
   const { keyword } = useParams();
@@ -29,7 +29,7 @@ const HomeUpdated1 = () => {
             }}
           >
             
-            < StreetScenery />
+            
           </div>
         </>
       ) : null}

@@ -1,12 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
-import { apiSlice } from "../api/apiSlice";
+import { apiSlice } from "../Api/apiSlice";
 import authReducer from "../features/auth/authSlice";
 import favoritesReducer from "./favorites/favoriteSlice";
 import { getFavoritesFromLocalStorage } from "../../Utils/localStorage";
 import cartSliceReducer from "./cart/cartSlice";
 import shopReducer from "./shop/shopSlice";
-import { mpesaApi } from "../api/mpesaApiSlice"; // Import the mpesaApi slice
+import { mpesaApi } from "../Api/mpesaApiSlice"; // Import the mpesaApi slice
 
 // Initialize the favorites state from localStorage
 const initialFavorites = getFavoritesFromLocalStorage() || [];

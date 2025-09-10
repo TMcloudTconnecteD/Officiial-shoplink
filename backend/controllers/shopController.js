@@ -5,7 +5,8 @@ import asyncHandler from "../middlewares/asyncHandler.js";
 // Create a new mall/shop
 const createShop = asyncHandler(async (req, res) => {
   try {
-    const { name, location, telephone, category, image } = req.fields || req.body;
+  console.log('createShop called', { fields: req.fields, body: req.body, user: req.user && { id: req.user._id, email: req.user.email } });
+  const { name, location, telephone, category, image } = req.fields || req.body;
 
     if (!name) return res.status(400).json({ error: "Name is required, come on!" });
     if (!location) return res.status(400).json({ error: "Location is required, come on!" });

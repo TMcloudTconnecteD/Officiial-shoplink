@@ -73,7 +73,7 @@ const Navigation = () => {
           onClick={toggleSidebar} 
           className="absolute top-4 right-4 text-white xl:hidden lg:hidden md:hidden sm:block z-50 p-1 rounded bg-gray-800 hover:bg-gray-700 focus:outline-none"
           aria-label={showSidebar ? 'Open sidebar' : 'Open sidebar'}>
-          showSidebar ?   <AiOutlineMenu size={24} />
+            <AiOutlineMenu size={24} />
         </button>
 
         {/* Search bar */}

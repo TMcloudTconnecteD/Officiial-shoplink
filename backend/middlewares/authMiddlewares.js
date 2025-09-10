@@ -16,18 +16,17 @@ if (token) {
 
         
     } catch (error) {
-        return res.status(401)
-         throw new Error('Not authorized, token failed')
+        console.warn('Authentication failed:', error.message);
+        return res.status(401).json({ message: 'Not authorized, token failed' });
 
 
         
     }
     
 } else {
-    return res.status(401)
-    throw new Error('Not authorized, no token')
-
+    return res.status(401).json({ message: 'Not authorized, no token' });
 }
+
 
 })
 

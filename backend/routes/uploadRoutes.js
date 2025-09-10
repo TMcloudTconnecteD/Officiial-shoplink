@@ -6,9 +6,20 @@ import fs from 'fs';
 
 const router = express.Router();
 
+// Ensure uploads directory exists and use an absolute path to avoid ENOENT
+const uploadsDir = path.join(process.cwd(), 'uploads');
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('Created uploads directory at', uploadsDir);
+  }
+} catch (e) {
+  console.warn('Could not create uploads directory', e.message);
+}
+
 // Use Multer to temporarily store files before pushing them to Cloudinary
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
+  destination: (req, file, cb) => cb(null, uploadsDir),
   filename: (req, file, cb) => {
     const extname = path.extname(file.originalname);
     cb(null, `${file.fieldname}-${Date.now()}${extname}`);

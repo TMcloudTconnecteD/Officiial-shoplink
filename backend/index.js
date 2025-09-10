@@ -34,6 +34,18 @@ if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && proce
 
 const app = express()
 
+// Ensure uploads directory exists at startup (safety for multer)
+import fs from 'fs';
+const uploadsDir = path.join(process.cwd(), 'uploads');
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('Created uploads directory at', uploadsDir);
+  }
+} catch (e) {
+  console.warn('Could not create uploads directory at startup', e.message);
+}
+
 // Add CORS middleware
 // Use an env var `ALLOWED_ORIGINS` (comma separated) in production to configure allowed origins.
 const defaultOrigins = ['http://localhost:8000', 'http://localhost:5173'];

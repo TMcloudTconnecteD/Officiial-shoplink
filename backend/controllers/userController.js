@@ -55,12 +55,14 @@ if (existingUser) {
 
 
 if (isPasswordValid) {
-    createToken(res, existingUser._id)
-    res.status(200).json({_id: existingUser._id,
-         username: existingUser.username,
-          email: existingUser.email,
-           isAdmin: existingUser.isAdmin, 
-           })
+    const token = createToken(res, existingUser._id)
+    res.status(200).json({
+        _id: existingUser._id,
+        username: existingUser.username,
+        email: existingUser.email,
+        isAdmin: existingUser.isAdmin,
+        token, // return token for mobile/bearer usage
+    })
            return;
 
 }}

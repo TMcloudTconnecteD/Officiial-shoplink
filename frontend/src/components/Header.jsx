@@ -68,7 +68,7 @@ const Header = ({ onToggleSidebar }) => {
         </Link>
 
         {/* Mall Link */}
-        <Link to='/mall' className='flex items-center transition-transform transform hover:translate-x-2 text-green-500 ml-4' title="All Malls/Shops">
+        <Link to='/shops/all' className='flex items-center transition-transform transform hover:translate-x-2 text-green-500 ml-4' title="All Malls/Shops">
           <AiOutlineShop className='text-green-500' size={26} />
           <span className="hidden sm:inline font-semibold tracking-wide ml-1">Malls</span>
         </Link>

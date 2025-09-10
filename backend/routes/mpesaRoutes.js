@@ -24,6 +24,24 @@ router.post('/initiate', authenticate, async (req, res) => {
     const formattedPhone = phoneNumber.startsWith('0')
       ? `254${phoneNumber.slice(1)}`
       : phoneNumber.replace('+', '');
+    // Guard: ensure order exists and is not already paid, and amount matches
+    try {
+      const Order = (await import('../models/orderModel.js')).default;
+      const order = await Order.findById(orderId);
+      if (!order) {
+        return res.status(404).json({ success: false, message: 'Order not found' });
+      }
+      if (order.isPaid) {
+        return res.status(400).json({ success: false, message: 'Order already paid' });
+      }
+      // Optional: ensure requested amount matches order totalPrice to avoid wrong charges
+      if (Number(amount) !== Number(order.totalPrice)) {
+        return res.status(400).json({ success: false, message: 'Payment amount does not match order total' });
+      }
+    } catch (e) {
+      console.warn('Order guard check failed:', e.message);
+      return res.status(500).json({ success: false, message: 'Failed to verify order before payment' });
+    }
 
     const result = await initiatePayment(formattedPhone, amount, orderId);
     

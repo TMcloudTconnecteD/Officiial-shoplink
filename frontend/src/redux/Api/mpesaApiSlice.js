@@ -1,14 +1,15 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { MPESA_URL } from '../features/constants';
+import { MPESA_URL, BASE_URL } from '../features/constants';
 
-const MPESA_BASE_URL = 'https://4dff-129-222-187-52.ngrok-free.app' + MPESA_URL;
+// Use frontend's BASE_URL (set via Vite) so the client calls the same backend as the app
+const MPESA_BASE_URL = `${BASE_URL}${MPESA_URL}`;
 
 export const mpesaApi = createApi({
   reducerPath: 'mpesaApi',
   baseQuery: fetchBaseQuery({
     baseUrl: MPESA_BASE_URL,
     prepareHeaders: (headers, { getState }) => {
-      const token = getState().auth?.accessToken || '';
+  const token = getState().auth?.token || localStorage.getItem('token') || '';
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
       }

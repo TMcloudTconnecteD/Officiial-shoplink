@@ -15,9 +15,9 @@ const BASE_URL_LOCAL = MPESA_ENV === 'production'
   ? 'https://api.safaricom.co.ke' 
   : 'https://sandbox.safaricom.co.ke';
 
-const MPESA_CALLBACK_URL = MPESA_ENV === 'production' 
-  ? 'https://4dff-129-222-187-52.ngrok-free.app/api/payments/callback' // production
-  : 'http://localhost:8000/api/payments/callback'; // localhost
+const MPESA_CALLBACK_URL = process.env.MPESA_CALLBACK_URL || (MPESA_ENV === 'production' 
+  ? 'https://your-production-callback.example.com/api/payments/callback' // production fallback
+  : 'http://localhost:8000/api/payments/callback'); // localhost
 
 // Generate base64 encoded password
 const generatePassword = () => {
@@ -99,6 +99,28 @@ const handleCallback = async (callbackData) => {
         acc[item.Name] = item.Value;
         return acc;
       }, {});
+
+      // Attempt to update order in DB if AccountReference was used as orderId
+      try {
+        const Order = (await import('../models/orderModel.js')).default;
+        const orderIdFromCallback = metadata['AccountReference'] || metadata['MpesaReceiptNumber'] || null;
+        if (orderIdFromCallback) {
+          const order = await Order.findById(orderIdFromCallback);
+          if (order && !order.isPaid) {
+            order.isPaid = true;
+            order.paidAt = new Date();
+            order.paymentResult = {
+              id: metadata['MpesaReceiptNumber'] || '',
+              status: 'COMPLETED',
+              update_time: new Date().toISOString(),
+              email_address: '',
+            };
+            await order.save();
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to update order from callback:', e.message);
+      }
 
       return {
         success: true,

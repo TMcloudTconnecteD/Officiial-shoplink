@@ -9,12 +9,12 @@ import {
   AiOutlineMenu,
   AiOutlineClose,
 } from 'react-icons/ai'
-import { FaHeart, FaHeartbeat } from 'react-icons/fa'
+import { FaHeart } from 'react-icons/fa'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLogoutMutation } from '../../redux/Api/usersApiSlice.js'
 import { logout } from '../../redux/features/auth/authSlice.js'
-import './Navigation.css'
+//import './Navigation.css'
 import FavoritesCount from '../products/FavoritesCount.jsx'
 
 const Navigation = () => {
@@ -64,7 +64,7 @@ const Navigation = () => {
 
   return (
     <>
-      {/* Centered Toggle Button */}
+      {/* Floating Menu Button */}
       <button
         onClick={toggleSidebar}
         className="fixed top-1/2 left-4 -translate-y-1/2 z-50 p-2 rounded-full bg-black text-white hover:bg-gray-800 transition"
@@ -75,58 +75,61 @@ const Navigation = () => {
       {/* Sidebar */}
       <div
         style={{ zIndex: 9999 }}
-        className={`fixed top-0 left-0 h-screen bg-black text-white flex flex-col justify-between p-4 transition-all duration-300 ease-in-out
-        ${open ? 'w-56' : 'w-0 overflow-hidden'} `}
+        className={`fixed top-0 left-0 h-screen bg-black text-white flex flex-col transition-all duration-300 ease-in-out
+        ${open ? 'w-56 translate-x-0' : 'w-0 -translate-x-full hidden'}`}
       >
-        {/* Search Bar */}
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={handleSearchChange}
-          onKeyDown={handleSearchSubmit}
-          placeholder="Search..."
-          className="mb-4 p-2 rounded bg-gray-800 text-white focus:outline-none"
-        />
+        {/* Top: Search + Links */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {/* Search Bar */}
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            onKeyDown={handleSearchSubmit}
+            placeholder="Search..."
+            className="mb-4 w-full p-2 rounded bg-gray-800 text-white focus:outline-none"
+          />
 
-        {/* Menu Links */}
-        <div className="flex flex-col justify-center space-y-4">
-          <Link to="/" onClick={closeSidebar} className="flex items-center hover:translate-x-2 transition">
-            <AiOutlineHome className="mr-2 text-cyan-500" size={26} />
-            <span className="nav-item-name">Home</span>
-          </Link>
+          {/* Menu Links */}
+          <div className="flex flex-col space-y-4">
+            <Link to="/" onClick={closeSidebar} className="flex items-center hover:translate-x-2 transition">
+              <AiOutlineHome className="mr-2 text-cyan-500" size={26} />
+              <span className="nav-item-name">Home</span>
+            </Link>
 
-          <Link to="/shop" onClick={closeSidebar} className="flex items-center hover:translate-x-2 transition">
-            <AiOutlineShopping className="mr-2 text-cyan-500" size={26} />
-            <span className="nav-item-name">Shop</span>
-          </Link>
+            <Link to="/shop" onClick={closeSidebar} className="flex items-center hover:translate-x-2 transition">
+              <AiOutlineShopping className="mr-2 text-cyan-500" size={26} />
+              <span className="nav-item-name">Shop</span>
+            </Link>
 
-          <Link to="/Admin/shops" onClick={closeSidebar} className="flex items-center hover:translate-x-2 transition">
-            <AiOutlineShop className="mr-2 text-cyan-500" size={26} />
-            <span className="nav-item-name">Mall</span>
-          </Link>
+            <Link to="/Admin/shops" onClick={closeSidebar} className="flex items-center hover:translate-x-2 transition">
+              <AiOutlineShop className="mr-2 text-cyan-500" size={26} />
+              <span className="nav-item-name">Mall</span>
+            </Link>
 
-          <Link to="/cart" onClick={closeSidebar} className="flex items-center relative hover:translate-x-2 transition">
-            <AiOutlineShoppingCart className="mr-2 text-cyan-500" size={26} />
-            <span className="nav-item-name">Cart</span>
-            {cartItems.length > 0 && (
-              <span className="absolute -top-2 left-6 px-1 py-0 text-sm text-white bg-pink-500 rounded-full">
-                {cartItems.reduce((a, c) => a + c.qty, 0)}
-              </span>
-            )}
-          </Link>
+            <Link to="/cart" onClick={closeSidebar} className="flex items-center relative hover:translate-x-2 transition">
+              <AiOutlineShoppingCart className="mr-2 text-cyan-500" size={26} />
+              <span className="nav-item-name">Cart</span>
+              {cartItems.length > 0 && (
+                <span className="absolute -top-2 left-6 px-1 py-0 text-sm text-white bg-pink-500 rounded-full">
+                  {cartItems.reduce((a, c) => a + c.qty, 0)}
+                </span>
+              )}
+            </Link>
 
-          <Link to="/favorite" onClick={closeSidebar} className="flex items-center hover:translate-x-2 transition">
-            <FaHeart className="mr-2 text-red-500" size={20} />
-            <span className="nav-item-name">Favorites</span>
-            <FavoritesCount />
-          </Link>
+            <Link to="/favorite" onClick={closeSidebar} className="flex items-center hover:translate-x-2 transition">
+              <FaHeart className="mr-2 text-red-500" size={20} />
+              <span className="nav-item-name">Favorites</span>
+              <FavoritesCount />
+            </Link>
+          </div>
         </div>
 
-        {/* Dropdown for logged-in user */}
-        <div className="relative">
-          {userInfo && (
+        {/* Bottom: User Section */}
+        <div className="p-4 border-t border-gray-700 sticky bottom-0 bg-black">
+          {userInfo ? (
             <>
-              <button onClick={toggleDropdown} className="flex items-center">
+              <button onClick={toggleDropdown} className="flex items-center justify-between w-full">
                 <span className="text-white">{userInfo.username}</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -145,7 +148,7 @@ const Navigation = () => {
               </button>
 
               {dropdownOpen && (
-                <ul className="absolute left-0 w-[11rem] bg-white text-gray-800 p-2 rounded shadow-lg space-y-2 z-50">
+                <ul className="mt-2 bg-white text-gray-800 p-2 rounded shadow-lg space-y-2">
                   {userInfo.isAdmin && (
                     <>
                       <li>
@@ -160,7 +163,6 @@ const Navigation = () => {
                       </li>
                     </>
                   )}
-
                   {userInfo.isSuperAdmin && (
                     <>
                       <li>
@@ -180,7 +182,6 @@ const Navigation = () => {
                       </li>
                     </>
                   )}
-
                   <li>
                     <Link to="/profile" onClick={handleOptionClick} className="block px-4 py-2 hover:bg-gray-100">
                       Profile
@@ -194,10 +195,8 @@ const Navigation = () => {
                 </ul>
               )}
             </>
-          )}
-
-          {!userInfo && (
-            <ul>
+          ) : (
+            <ul className="space-y-2">
               <li>
                 <Link to="/login" onClick={closeSidebar} className="flex items-center hover:translate-x-2 transition">
                   <AiOutlineLogin className="mr-2 text-white" size={26} />

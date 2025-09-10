@@ -14,7 +14,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLogoutMutation } from '../../redux/Api/usersApiSlice.js'
 import { logout } from '../../redux/features/auth/authSlice.js'
-//import './Navigation.css'
+import './Navigation.css'
 import FavoritesCount from '../products/FavoritesCount.jsx'
 
 const Navigation = () => {

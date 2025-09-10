@@ -4,11 +4,18 @@ import asyncHandler from './asyncHandler.js';
 
 
 const authenticate = asyncHandler(async (req, res, next) => {
-let token;
-//read jwt token from jwt cookie
+    let token;
+    //read jwt token from jwt cookie first
+    token = req.cookies && req.cookies.jwt;
+    // fallback: Authorization header Bearer <token>
+    if (!token && req.headers && req.headers.authorization) {
+        const parts = req.headers.authorization.split(' ');
+        if (parts.length === 2 && parts[0] === 'Bearer') {
+            token = parts[1];
+        }
+    }
 
-token = req.cookies.jwt;
-if (token) {
+    if (token) {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
             req.user = await User.findById(decoded.userId).select('-password')

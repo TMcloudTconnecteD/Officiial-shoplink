@@ -18,7 +18,7 @@ const Shipping = () => {
     shippingAddress.postalCode || ""
   );
   const [country, setCountry] = useState(shippingAddress.country || "");
-  const [mpesaPhoneNumber, setMpesaPhoneNumber] = useState("");
+  // M-Pesa phone is collected at payment step; no longer store it here
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -29,10 +29,7 @@ const Shipping = () => {
     dispatch(saveShippingAddress({ address, city, postalCode, country }));
     dispatch(savePaymentMethod(paymentMethod));
 
-    if (paymentMethod === "Mpesa" && !mpesaPhoneNumber) {
-      alert("Please provide your M-Pesa phone number");
-      return;
-    }
+  // Phone number collection moved to payment UI (order page)
 
     navigate("/placeorder");
   };

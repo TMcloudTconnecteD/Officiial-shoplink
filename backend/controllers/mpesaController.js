@@ -19,6 +19,21 @@ const MPESA_CALLBACK_URL = process.env.MPESA_CALLBACK_URL || (MPESA_ENV === 'pro
   ? 'https://your-production-callback.example.com/api/payments/callback' // production fallback
   : 'http://localhost:8000/api/payments/callback'); // localhost
 
+// Log the callback URL for debugging on startup
+console.info('MPESA callback URL:', MPESA_CALLBACK_URL);
+
+const isValidCallbackUrl = (url) => {
+  if (!url || typeof url !== 'string') return false;
+  const lower = url.toLowerCase();
+  // Reject obvious local addresses
+  if (lower.includes('localhost') || lower.includes('127.0.0.1')) return false;
+  // Must be http/https - prefer https for production
+  if (!lower.startsWith('http://') && !lower.startsWith('https://')) return false;
+  // Prefer https - warn but allow http in non-production only
+  if (MPESA_ENV === 'production' && !lower.startsWith('https://')) return false;
+  return true;
+};
+
 // Generate base64 encoded password
 const generatePassword = () => {
   const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
@@ -46,6 +61,12 @@ const getAccessToken = async () => {
 // Initiate STK push payment
 const initiatePayment = async (phoneNumber, amount, orderId) => {
   try {
+    // Validate callback URL before making the STK request
+    if (!isValidCallbackUrl(MPESA_CALLBACK_URL)) {
+      const msg = 'Invalid MPESA_CALLBACK_URL: must be a publicly reachable URL (https recommended)';
+      console.error(msg, { MPESA_CALLBACK_URL });
+      return { success: false, error: msg, message: msg };
+    }
     const accessToken = await getAccessToken();
     const { password, timestamp } = generatePassword();
 
@@ -80,10 +101,16 @@ const initiatePayment = async (phoneNumber, amount, orderId) => {
       message: 'Payment initiated successfully'
     };
   } catch (error) {
-    console.error('Payment initiation failed:', error.response?.data || error.message);
+    const errData = error.response?.data || error.message;
+    console.error('Payment initiation failed:', errData);
+    // If Safaricom indicates invalid callback, add actionable hint
+    if (errData && errData.errorMessage && /callbackurl/i.test(errData.errorMessage)) {
+      const hint = 'Invalid CallBackURL returned by M-Pesa. Ensure MPESA_CALLBACK_URL is a public HTTPS endpoint reachable by Safaricom sandbox/production.';
+      return { success: false, error: errData, message: hint };
+    }
     return {
       success: false,
-      error: error.response?.data || error.message,
+      error: errData,
       message: 'Payment initiation failed'
     };
   }

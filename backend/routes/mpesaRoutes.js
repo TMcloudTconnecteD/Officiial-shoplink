@@ -35,8 +35,18 @@ router.post('/initiate', authenticate, async (req, res) => {
         return res.status(400).json({ success: false, message: 'Order already paid' });
       }
       // Optional: ensure requested amount matches order totalPrice to avoid wrong charges
-      if (Number(amount) !== Number(order.totalPrice)) {
-        return res.status(400).json({ success: false, message: 'Payment amount does not match order total' });
+      // Allow small rounding differences (e.g., 0.01) to prevent false mismatches
+      const requested = Number(amount);
+      const expected = Number(order.totalPrice);
+      if (Number.isFinite(requested) && Number.isFinite(expected)) {
+        const diff = Math.abs(requested - expected);
+        if (diff > 0.05) { // tolerate small discrepancies
+          console.debug(`Payment amount mismatch: requested=${requested}, expected=${expected}, diff=${diff}`);
+          return res.status(400).json({ success: false, message: 'Payment amount does not match order total' });
+        }
+      } else {
+        console.debug('Invalid numeric values for amount or order.totalPrice', { amount, orderTotal: order.totalPrice });
+        return res.status(400).json({ success: false, message: 'Invalid payment amount' });
       }
     } catch (e) {
       console.warn('Order guard check failed:', e.message);

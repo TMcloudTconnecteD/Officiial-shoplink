@@ -67,6 +67,11 @@ const orderSchema = mongoose.Schema(
       default: false,
     },
 
+    // Store checkoutRequestId from M-Pesa STK push for reconciliation
+    checkoutRequestId: {
+      type: String,
+    },
+
     paidAt: {
       type: Date,
     },

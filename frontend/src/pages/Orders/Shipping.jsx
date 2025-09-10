@@ -129,22 +129,7 @@ const Shipping = () => {
             </div>
           </div>
 
-          {/* M-Pesa Phone Number Field */}
-          {paymentMethod === "Mpesa" && (
-            <div className="mb-4">
-              <label className="block text-orange-800 mb-2">
-                M-Pesa Phone Number:
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 bg-green-100 border rounded"
-                placeholder="Enter your M-Pesa phone number"
-                value={mpesaPhoneNumber}
-                onChange={(e) => setMpesaPhoneNumber(e.target.value)}
-                required
-              />
-            </div>
-          )}
+          {/* M-Pesa phone is collected at payment step (Order page) */}
 
           {/* Submit Button */}
           <button

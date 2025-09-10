@@ -56,6 +56,20 @@ router.post('/initiate', authenticate, async (req, res) => {
     const result = await initiatePayment(formattedPhone, amount, orderId);
     
     if (result.success) {
+      // Persist checkoutRequestId on the order for callback reconciliation
+      try {
+        const Order = (await import('../models/orderModel.js')).default;
+        const order = await Order.findById(orderId);
+        if (order) {
+          const checkoutId = result.data?.CheckoutRequestID || result.data?.Response?.CheckoutRequestID || null;
+          if (checkoutId) {
+            order.checkoutRequestId = checkoutId;
+            await order.save();
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to persist checkoutRequestId on order:', e.message);
+      }
       return res.status(200).json(result);
     } else {
       return res.status(400).json(result);

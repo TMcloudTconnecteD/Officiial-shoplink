@@ -127,23 +127,39 @@ const handleCallback = async (callbackData) => {
         return acc;
       }, {});
 
-      // Attempt to update order in DB if AccountReference was used as orderId
+      // Attempt to update order in DB by matching checkoutRequestId (preferred), then AccountReference
       try {
         const Order = (await import('../models/orderModel.js')).default;
-        const orderIdFromCallback = metadata['AccountReference'] || metadata['MpesaReceiptNumber'] || null;
-        if (orderIdFromCallback) {
-          const order = await Order.findById(orderIdFromCallback);
-          if (order && !order.isPaid) {
-            order.isPaid = true;
-            order.paidAt = new Date();
-            order.paymentResult = {
-              id: metadata['MpesaReceiptNumber'] || '',
-              status: 'COMPLETED',
-              update_time: new Date().toISOString(),
-              email_address: '',
-            };
-            await order.save();
+        const checkoutId = metadata['CheckoutRequestID'] || null;
+        const accountRef = metadata['AccountReference'] || null;
+
+        let order = null;
+        if (checkoutId) {
+          order = await Order.findOne({ checkoutRequestId: checkoutId });
+        }
+        if (!order && accountRef) {
+          // accountRef may be the order ID
+          order = await Order.findById(accountRef);
+        }
+
+        if (!order) {
+          // As a last resort, try to search by MpesaReceiptNumber in paymentResult.id
+          const receipt = metadata['MpesaReceiptNumber'] || null;
+          if (receipt) {
+            order = await Order.findOne({ 'paymentResult.id': receipt });
           }
+        }
+
+        if (order && !order.isPaid) {
+          order.isPaid = true;
+          order.paidAt = new Date();
+          order.paymentResult = {
+            id: metadata['MpesaReceiptNumber'] || '',
+            status: 'COMPLETED',
+            update_time: new Date().toISOString(),
+            email_address: '',
+          };
+          await order.save();
         }
       } catch (e) {
         console.warn('Failed to update order from callback:', e.message);

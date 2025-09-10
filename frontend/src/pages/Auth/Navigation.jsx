@@ -9,12 +9,12 @@ import {
   AiOutlineMenu,
   AiOutlineClose,
 } from 'react-icons/ai'
-import { FaHeartbeat } from 'react-icons/fa'
+import { FaHeart, FaHeartbeat } from 'react-icons/fa'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLogoutMutation } from '../../redux/Api/usersApiSlice.js'
 import { logout } from '../../redux/features/auth/authSlice.js'
-import './Navigation.css'
+//import './Navigation.css'
 import FavoritesCount from '../products/FavoritesCount.jsx'
 
 const Navigation = () => {
@@ -116,7 +116,7 @@ const Navigation = () => {
           </Link>
 
           <Link to="/favorite" onClick={closeSidebar} className="flex items-center hover:translate-x-2 transition">
-            <FaHeartbeat className="mr-2 text-red-500" size={20} />
+            <FaHeart className="mr-2 text-red-500" size={20} />
             <span className="nav-item-name">Favorites</span>
             <FavoritesCount />
           </Link>

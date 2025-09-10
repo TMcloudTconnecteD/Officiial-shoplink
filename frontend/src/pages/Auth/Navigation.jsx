@@ -44,7 +44,7 @@ const Navigation = () => {
       {/* Sidebar */}
       <div
         className={`fixed top-0 left-0 h-screen bg-black text-white flex flex-col justify-between transition-all duration-300 ease-in-out z-40
-        ${open ? 'w-56' : 'w-16'} `}
+        ${open ? 'w-56' : 'w-0'} `}
       >
         {/* Links */}
         <div className="flex flex-col mt-20 space-y-6 px-3">

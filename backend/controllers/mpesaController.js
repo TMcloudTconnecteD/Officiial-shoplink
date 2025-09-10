@@ -15,9 +15,20 @@ const BASE_URL_LOCAL = MPESA_ENV === 'production'
   ? 'https://api.safaricom.co.ke' 
   : 'https://sandbox.safaricom.co.ke';
 
-const MPESA_CALLBACK_URL = process.env.MPESA_CALLBACK_URL || (MPESA_ENV === 'production' 
-  ? 'https://your-production-callback.example.com/api/payments/callback' // production fallback
-  : 'http://localhost:8000/api/payments/callback'); // localhost
+// Resolve callback URL: prefer explicit MPESA_CALLBACK_URL, then environment-specific vars
+const MPESA_CALLBACK_URL = process.env.MPESA_CALLBACK_URL
+  || (MPESA_ENV === 'production'
+    ? process.env.MPESA_CALLBACK_URL_PROD
+    : process.env.MPESA_CALLBACK_URL_DEV)
+  || (MPESA_ENV === 'production'
+    ? 'https://your-production-callback.example.com/api/payments/callback'
+    : 'http://localhost:8000/api/payments/callback');
+
+// Optional: full C2B / query URL may be provided (includes path). Fallback to base + query path.
+const MPESA_C2B_URL = process.env.MPESA_C2B_URL || `${BASE_URL_LOCAL}/mpesa/stkpushquery/v1/query`;
+
+// Optional: supply full STK push URL via env, otherwise use base + processrequest path
+const MPESA_STK_PUSH_URL = process.env.MPESA_STK_PUSH_URL || `${BASE_URL_LOCAL}/mpesa/stkpush/v1/processrequest`;
 
 // Log the callback URL for debugging on startup
 console.info('MPESA callback URL:', MPESA_CALLBACK_URL);
@@ -85,7 +96,7 @@ const initiatePayment = async (phoneNumber, amount, orderId) => {
     };
 
     const { data } = await axios.post(
-      `${BASE_URL_LOCAL}/mpesa/stkpush/v1/processrequest`,
+      MPESA_STK_PUSH_URL,
       payload,
       {
         headers: {
@@ -200,8 +211,9 @@ const queryPaymentStatus = async (checkoutRequestId) => {
       CheckoutRequestID: checkoutRequestId,
     };
 
+    const queryUrl = MPESA_C2B_URL || `${BASE_URL_LOCAL}/mpesa/stkpushquery/v1/query`;
     const { data } = await axios.post(
-      `${BASE_URL_LOCAL}/mpesa/stkpushquery/v1/query`,
+      queryUrl,
       payload,
       {
         headers: {

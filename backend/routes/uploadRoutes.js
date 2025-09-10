@@ -32,7 +32,7 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
   storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB (temporarily increased for debugging)
   fileFilter,
 });
 
@@ -40,10 +40,14 @@ const uploadSingleImage = upload.single('image');
 
 // ✅ Upload API Route
 router.post('/', (req, res) => {
+  // debug: print headers to help diagnose client issues
+  console.log('Upload headers:', Object.fromEntries(Object.entries(req.headers).filter(([k]) => k.startsWith('content-') || k === 'origin')));
   uploadSingleImage(req, res, async (err) => {
     if (err) {
+      console.warn('Multer error on upload:', err && err.message ? err.message : err);
       return res.status(400).json({ message: err.message });
     } else if (req.file) {
+      console.log('Upload received file:', { fieldname: req.file.fieldname, originalname: req.file.originalname, size: req.file.size, mimetype: req.file.mimetype });
       // Helper to upload with a timeout and optional retries
       const uploadWithTimeout = (filePath, options = {}, timeoutMs = 20000, retries = 1) => {
         return new Promise((resolve, reject) => {

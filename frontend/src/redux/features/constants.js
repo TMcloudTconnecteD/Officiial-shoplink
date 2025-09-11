@@ -10,4 +10,4 @@ export const ORDERS_URL = "/api/orders";
 export const PAYPAL_URL = "/api/config/paypal";
 
 // Add this 👇
-export const MPESA_URL = '/api/payments/';
+export const MPESA_URL = '/api/payments';

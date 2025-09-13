@@ -28,7 +28,9 @@ const HeaderUpdated = ({ onToggleSidebar }) => {
       {/* Left: Logo */}
       <div className="flex items-center space-x-4 flex-shrink-0">
         <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-tr from-orange-500 via-purple-400 to-blue-200 rounded-full flex items-center justify-center text-black font-extrabold text-2xl sm:text-3xl select-none shadow-lg animate-pulse">
+         <Link to="/">
           S
+          </Link>
         </div>
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-wide drop-shadow-lg">

@@ -1,7 +1,9 @@
-
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useGetFilteredProductsQuery, useGetProductsQuery } from "../redux/Api/productApiSlice";
+import {
+  useGetFilteredProductsQuery,
+  useGetProductsQuery,
+} from "../redux/Api/productApiSlice";
 import { useFetchCategoriesQuery } from "../redux/Api/categoryApiSlice";
 import {
   setCategories,
@@ -38,7 +40,7 @@ const ShopUpdated = () => {
     {
       refetchOnMountOrArgChange: false,
       refetchOnReconnect: false,
-      skip: keyword.length > 0, // skip filtered query if keyword search is active
+      skip: keyword.length > 0,
     }
   );
 
@@ -47,7 +49,7 @@ const ShopUpdated = () => {
     {
       refetchOnMountOrArgChange: false,
       refetchOnReconnect: false,
-      skip: keyword.length === 0, // skip search query if no keyword
+      skip: keyword.length === 0,
     }
   );
 
@@ -112,41 +114,52 @@ const ShopUpdated = () => {
 
   const uniqueBrands = [
     ...new Set(
-      (keyword.length > 0 ? searchedProductsQuery.data : filteredProductsQuery.data)
+      (keyword.length > 0
+        ? searchedProductsQuery.data
+        : filteredProductsQuery.data
+      )
         ?.map((p) => p.brand)
         .filter((b) => b !== undefined)
     ),
   ];
 
   const handleBrandClick = (brand) => {
-    const sourceData = keyword.length > 0 ? searchedProductsQuery.data : filteredProductsQuery.data;
-    const filtered = sourceData?.filter(
-      (p) => p.brand === brand
-    );
+    const sourceData =
+      keyword.length > 0
+        ? searchedProductsQuery.data
+        : filteredProductsQuery.data;
+    const filtered = sourceData?.filter((p) => p.brand === brand);
     dispatch(setProducts(filtered));
   };
 
   const handlePriceChange = (e) => setPriceFilter(e.target.value);
   const resetFilters = () => window.location.reload();
   const handleMallClick = () => {
-    const sourceData = keyword.length > 0 ? searchedProductsQuery.data : filteredProductsQuery.data;
+    const sourceData =
+      keyword.length > 0
+        ? searchedProductsQuery.data
+        : filteredProductsQuery.data;
     if (sourceData) {
       dispatch(setProducts(sourceData));
     }
   };
 
   return (
-    <>
-      <HeaderUpdated />
-      <div className="container mx-auto px-4 py-4">
+    <div className="min-h-screen bg-gray-50">
+      {/* Fixed Header */}
+      <div className="fixed top-0 left-0 right-0 z-50 shadow-md bg-white">
+        <HeaderUpdated />
+      </div>
+
+      {/* Content with padding equal to header height */}
+      <div className="container mx-auto px-4 pt-28 pb-10">
         <ToastContainer position="top-right" autoClose={3000} />
-        <div className="flex flex-col lg:flex-row gap-4">
+
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar */}
-          <div className="bg-[#151515] text-white w-full lg:w-1/4 rounded-xl p-4 overflow-y-auto max-h-[85vh]">
-            <h2 className="text-lg font-bold">
-              Filter by Categories
-            </h2>
-            <div className="space-y-3">
+          <div className="bg-[#151515] text-white w-full lg:w-1/4 rounded-2xl p-5 shadow-lg max-h-[85vh] overflow-y-auto">
+            <h2 className="text-lg font-bold mb-3">Filter by Categories</h2>
+            <div className="space-y-2">
               {categories?.map((c) => (
                 <div key={c._id} className="flex items-center">
                   <input
@@ -159,10 +172,11 @@ const ShopUpdated = () => {
               ))}
             </div>
 
-            <h2 className="text-lg font-bold bg-black p-2 rounded mt-6 mb-4 text-center">
+            {/* Brands */}
+            <h2 className="text-lg font-bold bg-black p-2 rounded mt-6 mb-3 text-center">
               Filter by Brands
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {uniqueBrands?.map((brand) => (
                 <div key={brand} className="flex items-center">
                   <input
@@ -179,7 +193,8 @@ const ShopUpdated = () => {
               ))}
             </div>
 
-            <h2 className="text-lg font-bold bg-black p-2 rounded mt-6 mb-4 text-center">
+            {/* Price */}
+            <h2 className="text-lg font-bold bg-black p-2 rounded mt-6 mb-3 text-center">
               Filter by Price
             </h2>
             <input
@@ -191,7 +206,7 @@ const ShopUpdated = () => {
             />
 
             <button
-              className="mt-4 w-full bg-pink-500 text-white rounded py-2"
+              className="mt-4 w-full bg-pink-500 text-white rounded py-2 hover:bg-pink-600 transition"
               onClick={resetFilters}
             >
               Reset
@@ -204,14 +219,14 @@ const ShopUpdated = () => {
               <MallCard onClick={handleMallClick} />
             </div>
 
-            <h2 className="text-xl font-semibold text-center mb-4">
+            <h2 className="text-xl font-semibold text-center mb-6">
               {products?.length} Products
             </h2>
 
             {filteredProductsQuery.isLoading ? (
               <Loader />
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
                 {products.map((p) => (
                   <ProductCard key={p._id} p={p} />
                 ))}
@@ -220,7 +235,7 @@ const ShopUpdated = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

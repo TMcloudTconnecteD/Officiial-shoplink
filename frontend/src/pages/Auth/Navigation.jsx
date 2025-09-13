@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   AiOutlineHome,
   AiOutlineUserAdd,
@@ -14,7 +14,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLogoutMutation } from '../../redux/Api/usersApiSlice.js'
 import { logout } from '../../redux/features/auth/authSlice.js'
-//import './Navigation.css'
 import FavoritesCount from '../products/FavoritesCount.jsx'
 
 const Navigation = () => {
@@ -24,6 +23,9 @@ const Navigation = () => {
   const [dropdownOpen, setDropDownOpen] = useState(false)
   const [open, setOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+
+  const sidebarRef = useRef(null) // ✅ ref for sidebar
+  const buttonRef = useRef(null) // ✅ ref for toggle button
 
   const toggleDropdown = () => setDropDownOpen(!dropdownOpen)
   const toggleSidebar = () => setOpen(!open)
@@ -62,10 +64,31 @@ const Navigation = () => {
     }
   }
 
+  // ✅ close sidebar when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        open &&
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target)
+      ) {
+        closeSidebar()
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [open])
+
   return (
     <>
       {/* Floating Menu Button */}
       <button
+        ref={buttonRef}
         onClick={toggleSidebar}
         className="fixed top-1/2 left-4 -translate-y-1/2 z-50 p-2 rounded-full bg-black text-white hover:bg-gray-800 transition"
       >
@@ -74,6 +97,7 @@ const Navigation = () => {
 
       {/* Sidebar */}
       <div
+        ref={sidebarRef}
         style={{ zIndex: 9999 }}
         className={`fixed top-0 left-0 h-screen bg-black text-white flex flex-col transition-all duration-300 ease-in-out
         ${open ? 'w-56 translate-x-0' : 'w-0 -translate-x-full hidden'}`}
@@ -117,10 +141,14 @@ const Navigation = () => {
               )}
             </Link>
 
-            <Link to="/favorite" onClick={closeSidebar} className="flex items-center hover:translate-x-2 transition">
-              <FaHeart className="mr-2 text-red-500" size={20} />
+            <Link to="/favorite" onClick={closeSidebar} className="flex items-center relative hover:translate-x-2 transition">
+              <FaHeart className="mr-2 text-red-500" size={26} />
               <span className="nav-item-name">Favorites</span>
-              <FavoritesCount />
+
+              {/* Badge */}
+              <span className="absolute -top-2 left-6 px-1 py-0 text-sm text-white bg-pink-500 rounded-full">
+                <FavoritesCount />
+              </span>
             </Link>
           </div>
         </div>

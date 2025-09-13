@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
-import { AiOutlineMenu, AiOutlineSearch, AiOutlineShop, AiOutlineShoppingCart } from 'react-icons/ai';
-import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import React, { useState } from "react";
+import {
+  AiOutlineMenu,
+  AiOutlineSearch,
+  AiOutlineShop,
+  AiOutlineShoppingCart,
+} from "react-icons/ai";
+import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 
 const HeaderUpdated = ({ onToggleSidebar }) => {
   const { userInfo } = useSelector((state) => state.auth);
-  const [searchTerm, setSearchTerm] = useState('');
+  const { cartItems } = useSelector((state) => state.cart); // ✅ pull cart state
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
@@ -14,17 +20,23 @@ const HeaderUpdated = ({ onToggleSidebar }) => {
     // search logic
   };
 
+  // ✅ calculate cart count
+  const cartCount = cartItems?.reduce((acc, item) => acc + item.qty, 0) || 0;
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-gray-900 via-black to-gray-900 text-yellow-400 shadow-lg p-4 flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0">
-      
       {/* Left: Logo */}
       <div className="flex items-center space-x-4 flex-shrink-0">
         <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-tr from-orange-500 via-purple-400 to-blue-200 rounded-full flex items-center justify-center text-black font-extrabold text-2xl sm:text-3xl select-none shadow-lg animate-pulse">
           S
         </div>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-wide drop-shadow-lg">shoplink</h1>
-          <p className="text-xs sm:text-sm italic text-green-300 drop-shadow-md">..connecting dreams</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-wide drop-shadow-lg">
+            shoplink
+          </h1>
+          <p className="text-xs sm:text-sm italic text-green-300 drop-shadow-md">
+            ..connecting dreams
+          </p>
         </div>
       </div>
 
@@ -57,19 +69,35 @@ const HeaderUpdated = ({ onToggleSidebar }) => {
 
       {/* Right: Links + Avatar */}
       <div className="flex items-center space-x-6 flex-shrink-0">
-        <Link to='/shop' className='flex items-center hover:translate-x-2 transition-transform text-orange-500'>
+        <Link
+          to="/shop"
+          className="flex items-center hover:translate-x-2 transition-transform text-orange-500"
+        >
           <AiOutlineShop size={26} />
         </Link>
 
-        <Link to='/shops/all' className='flex items-center hover:translate-x-2 transition-transform text-green-500 ml-4'>
+        <Link
+          to="/shops/all"
+          className="flex items-center hover:translate-x-2 transition-transform text-green-500 ml-4"
+        >
           <AiOutlineShop size={26} />
           <span className="hidden sm:inline ml-1">Malls</span>
         </Link>
 
-        <Link to="/cart" className="flex items-center text-yellow-400 hover:text-yellow-200 transition-transform hover:scale-110 relative">
+        {/* ✅ Cart with counter */}
+        <Link
+          to="/cart"
+          className="flex items-center text-yellow-400 hover:text-yellow-200 transition-transform hover:scale-110 relative"
+        >
           <AiOutlineShoppingCart size={28} />
+          {cartCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full px-2 py-0.5 shadow-md">
+              {cartCount}
+            </span>
+          )}
         </Link>
 
+        {/* Avatar / Login */}
         <div className="relative group">
           {userInfo ? (
             <Link to="/profile" className="flex items-center space-x-3">
@@ -82,7 +110,10 @@ const HeaderUpdated = ({ onToggleSidebar }) => {
               </span>
             </Link>
           ) : (
-            <Link to="/login" className="text-yellow-400 hover:text-white font-semibold transition-colors">
+            <Link
+              to="/login"
+              className="text-yellow-400 hover:text-white font-semibold transition-colors"
+            >
               Login
             </Link>
           )}

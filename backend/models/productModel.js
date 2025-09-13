@@ -74,7 +74,7 @@ const productSchema = new mongoose.Schema({
     shop: {
         type: ObjectId,
         ref: "Shop",
-        required: false,
+        required: true,
     },
 
 },{timestamps: true})

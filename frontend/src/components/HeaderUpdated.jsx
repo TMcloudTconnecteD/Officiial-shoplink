@@ -34,7 +34,7 @@ const HeaderUpdated = ({ onToggleSidebar }) => {
         </div>
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-wide drop-shadow-lg">
-            shoplink
+            ShopLink
           </h1>
           <p className="text-xs sm:text-sm italic text-green-300 drop-shadow-md">
             ..connecting dreams

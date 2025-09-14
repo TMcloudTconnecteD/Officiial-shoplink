@@ -62,11 +62,9 @@ const ShopPortfolio = ({ shop, products }) => {
           </div>
 
           {/* Right: Products */}
-          <div className="md:w-2/3 flex flex-col">
-            {/* Carousel */}
-            <div className="relative w-full overflow-hidden rounded-lg shadow-md max-h-[220px] sm:max-h-[320px]">
+          <div className="pt-28 bg-gray-50 min-h-screen">
               <ProductCarousel products={topProducts} />
-            </div>
+            
 
             {/* Grid */}
             <h3 className="mt-6 sm:mt-8 mb-4 text-lg sm:text-xl font-semibold text-gray-800 border-b pb-2">

@@ -3,6 +3,7 @@ import {
   AiOutlineMenu,
   AiOutlineSearch,
   AiOutlineShop,
+  AiOutlineShopping,
   AiOutlineShoppingCart,
 } from "react-icons/ai";
 import { useSelector } from "react-redux";
@@ -42,7 +43,8 @@ const HeaderUpdated = ({ onToggleSidebar }) => {
         </div>
       </div>
 
-      {/* Center: Search */}
+      {/* Center: Search 
+      
       <form
         onSubmit={handleSearchSubmit}
         className="flex items-center bg-gray-800 bg-opacity-70 rounded-full px-4 py-2 w-full sm:w-1/2 max-w-lg shadow-inner"
@@ -67,7 +69,7 @@ const HeaderUpdated = ({ onToggleSidebar }) => {
         >
           <AiOutlineSearch size={26} />
         </button>
-      </form>
+      </form> */}
 
       {/* Right: Links + Avatar */}
       <div className="flex items-center space-x-6 flex-shrink-0">
@@ -75,7 +77,7 @@ const HeaderUpdated = ({ onToggleSidebar }) => {
           to="/shop"
           className="flex items-center hover:translate-x-2 transition-transform text-orange-500"
         >
-          <AiOutlineShop size={26} />
+          <AiOutlineShopping size={26} />
         </Link>
 
         <Link

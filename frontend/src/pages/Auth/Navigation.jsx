@@ -90,7 +90,7 @@ const Navigation = () => {
       <button
         ref={buttonRef}
         onClick={toggleSidebar}
-        className="fixed top-1/7 left-4 -translate-y-1/2 z-50 p-2 rounded-full bg-black text-white hover:bg-gray-800 transition"
+        className="fixed top-3/4 left-4 -translate-y-1/2 z-50 p-2 rounded-full bg-black text-white hover:bg-gray-800 transition"
       >
         {open ? <AiOutlineClose size={26} /> : <AiOutlineMenu size={20} />}
       </button>

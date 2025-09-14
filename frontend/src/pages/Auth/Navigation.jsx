@@ -135,18 +135,18 @@ const Navigation = () => {
               <AiOutlineShoppingCart className="mr-2 text-cyan-500" size={26} />
               <span className="nav-item-name">Cart</span>
               {cartItems.length > 0 && (
-                <span className="absolute -top-2 left-6 px-1 py-0 text-sm text-white bg-pink-500 rounded-full">
+                <span className="absolute -top-2 left-6 px-1 py-0 text-sm text-white bg-purple-600 rounded-full">
                   {cartItems.reduce((a, c) => a + c.qty, 0)}
                 </span>
               )}
             </Link>
 
             <Link to="/favorite" onClick={closeSidebar} className="flex items-center relative hover:translate-x-2 transition">
-              <FaHeart className="mr-2 text-red-500" size={26} />
+              <FaHeart className="mr-2 text-orange-500" size={20} />
               <span className="nav-item-name">Favorites</span>
 
               {/* Badge */}
-              <span className="absolute -top-2 left-6 px-1 py-0 text-sm text-white bg-pink-500 rounded-full">
+              <span className="absolute -top-2 left-4 px-1 py-0 text-sm text-white bg-purple-900 rounded-full">
                 <FavoritesCount />
               </span>
             </Link>
@@ -154,92 +154,139 @@ const Navigation = () => {
         </div>
 
         {/* Bottom: User Section */}
-        <div className="p-4 border-t border-gray-700 sticky bottom-0 bg-black">
-          {userInfo ? (
-            <>
-              <button onClick={toggleDropdown} className="flex items-center justify-between w-full">
-                <span className="text-white">{userInfo.username}</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className={`h-4 w-4 ml-1 ${dropdownOpen ? 'rotate-180' : ''}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="white"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d={dropdownOpen ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'}
-                  />
-                </svg>
-              </button>
+       {/* Bottom: User Section */}
+<div className="p-4 border-t border-gray-700 sticky bottom-0 bg-black">
+  {userInfo ? (
+    <>
+      <button
+        onClick={toggleDropdown}
+        className="flex items-center justify-between w-full"
+      >
+        <span className="text-white">{userInfo.username}</span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className={`h-4 w-4 ml-1 ${dropdownOpen ? 'rotate-180' : ''}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="white"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d={dropdownOpen ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'}
+          />
+        </svg>
+      </button>
 
-              {dropdownOpen && (
-                <ul className="mt-2 bg-white text-gray-800 p-2 rounded shadow-lg space-y-2">
-                  {userInfo.isAdmin && (
-                    <>
-                      <li>
-                        <Link to="admin/productlist" onClick={handleOptionClick} className="block px-4 py-2 hover:bg-gray-100">
-                          Products
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/admin/orderlist" onClick={handleOptionClick} className="block px-4 py-2 hover:bg-gray-100">
-                          Orders
-                        </Link>
-                      </li>
-                    </>
-                  )}
-                  {userInfo.isSuperAdmin && (
-                    <>
-                      <li>
-                        <Link to="/Admin/shops" onClick={handleOptionClick} className="block px-4 py-2 hover:bg-gray-100">
-                          Super Admin
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/admin/users" onClick={handleOptionClick} className="block px-4 py-2 hover:bg-gray-100">
-                          Users
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/admin/categories" onClick={handleOptionClick} className="block px-4 py-2 hover:bg-gray-100">
-                          Category
-                        </Link>
-                      </li>
-                    </>
-                  )}
-                  <li>
-                    <Link to="/profile" onClick={handleOptionClick} className="block px-4 py-2 hover:bg-gray-100">
-                      Profile
-                    </Link>
-                  </li>
-                  <li>
-                    <button onClick={logoutHandler} className="block px-4 py-2 hover:bg-gray-100 w-full text-left">
-                      Logout
-                    </button>
-                  </li>
-                </ul>
-              )}
+      {dropdownOpen && (
+        <ul className="mt-2 bg-white text-gray-800 p-2 rounded shadow-lg space-y-2">
+          {/* Normal user always gets Profile + Logout */}
+          <li>
+            <Link
+              to="/profile"
+              onClick={handleOptionClick}
+              className="block px-4 py-2 hover:bg-gray-100"
+            >
+              Profile
+            </Link>
+          </li>
+
+          {/* Admin extras */}
+          {userInfo.isAdmin && (
+            <>
+              <li>
+                <Link
+                  to="/admin/productlist"
+                  onClick={handleOptionClick}
+                  className="block px-4 py-2 hover:bg-gray-100"
+                >
+                  Products
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/admin/orderlist"
+                  onClick={handleOptionClick}
+                  className="block px-4 py-2 hover:bg-gray-100"
+                >
+                  Orders
+                </Link>
+              </li>
             </>
-          ) : (
-            <ul className="space-y-2">
-              <li>
-                <Link to="/login" onClick={closeSidebar} className="flex items-center hover:translate-x-2 transition">
-                  <AiOutlineLogin className="mr-2 text-white" size={26} />
-                  <span className="nav-item-name">Login</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/register" onClick={closeSidebar} className="flex items-center hover:translate-x-2 transition">
-                  <AiOutlineUserAdd className="mr-2 text-white" size={26} />
-                  <span className="nav-item-name">Register</span>
-                </Link>
-              </li>
-            </ul>
           )}
-        </div>
+
+          {/* SuperAdmin extras */}
+          {userInfo.isSuperAdmin && (
+            <>
+              <li>
+                <Link
+                  to="/Admin/shops"
+                  onClick={handleOptionClick}
+                  className="block px-4 py-2 hover:bg-gray-100"
+                >
+                  Shops
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/admin/users"
+                  onClick={handleOptionClick}
+                  className="block px-4 py-2 hover:bg-gray-100"
+                >
+                  Users
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/admin/categories"
+                  onClick={handleOptionClick}
+                  className="block px-4 py-2 hover:bg-gray-100"
+                >
+                  Categories
+                </Link>
+              </li>
+            </>
+          )}
+
+          {/* Logout - for everyone logged in */}
+          <li>
+            <button
+              onClick={logoutHandler}
+              className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
+            >
+              Logout
+            </button>
+          </li>
+        </ul>
+      )}
+    </>
+  ) : (
+    <ul className="space-y-2">
+      <li>
+        <Link
+          to="/login"
+          onClick={closeSidebar}
+          className="flex items-center hover:translate-x-2 transition"
+        >
+          <AiOutlineLogin className="mr-2 text-white" size={26} />
+          <span className="nav-item-name">Login</span>
+        </Link>
+      </li>
+      <li>
+        <Link
+          to="/register"
+          onClick={closeSidebar}
+          className="flex items-center hover:translate-x-2 transition"
+        >
+          <AiOutlineUserAdd className="mr-2 text-white" size={26} />
+          <span className="nav-item-name">Register</span>
+        </Link>
+      </li>
+    </ul>
+  )}
+</div>
+
       </div>
     </>
   )

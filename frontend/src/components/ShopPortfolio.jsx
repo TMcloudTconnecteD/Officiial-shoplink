@@ -64,10 +64,10 @@ const ShopPortfolio = ({ shop, products }) => {
 
           {/* Right: Products */}
           <div className="md:w-2/3 flex flex-col">
-            {/* Carousel wrapper with controlled height */}
+            {/* Carousel wrapper with controlled height 
             <div className="relative w-full overflow-hidden rounded-lg shadow-md max-h-[220px] sm:max-h-[280px] md:max-h-[320px]">
               <ProductCarousel products={topProducts} />
-            </div>
+            </div>*/}
 
             {/* Grid */}
             <h3 className="mt-8 mb-4 text-lg sm:text-xl font-semibold text-gray-800 border-b pb-2">

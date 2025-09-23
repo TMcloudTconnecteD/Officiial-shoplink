@@ -12,7 +12,7 @@ const ShopCard = ({ shop }) => {
       <h3 className="text-lg font-semibold mb-2">{shop.name}</h3>
       <Link
         to={`/shops/${shop._id}`}
-        className="mt-2 bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600 transition text-center"
+        className="mt-2 bg-cyan-500 text-white px-4 py-2 rounded hover:bg-cyan-600 transition text-center"
       >
         View Shop
       </Link>

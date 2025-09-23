@@ -106,7 +106,7 @@ const Products = () => {
               <div className="flex flex-col md:flex-row justify-between gap-6 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
                 <div>
                   <h1 className="flex items-center mb-4 text-gray-700 dark:text-gray-200">
-                    <FaStore className="mr-2 text-pink-500" /> Brand: {product.brand}
+                    <FaStore className="mr-2 text-orange-500" /> Brand: {product.brand}
                   </h1>
                   <h1 className="flex items-center mb-4 text-gray-700 dark:text-gray-200">
                     <FaClock className="mr-2 text-pink-500" /> Added:{" "}
@@ -124,7 +124,7 @@ const Products = () => {
                     <FaShoppingCart className="mr-2 text-pink-500" /> Quantity: {product.quantity}
                   </h1>
                   <h1 className="flex items-center mb-4 text-gray-700 dark:text-gray-200">
-                    <FaBox className="mr-2 text-pink-500" /> In Stock: {product.inStock}
+                    <FaBox className="mr-2 text-orange-500" /> In Stock: {product.inStock}
                   </h1>
                 </div>
               </div>

@@ -45,7 +45,7 @@ const AddShop = () => {
         toast.error(response.error.data?.message || 'Cannot create mall, try again');
       } else if (response.data) {
         toast.success(`${response.data.name} created successfully`);
-        navigate('/Admin/shops/all'); // Corrected navigation path
+        navigate('/shops/all'); // Corrected navigation path
       } else {
         toast.error('Unexpected error occurred');
       }

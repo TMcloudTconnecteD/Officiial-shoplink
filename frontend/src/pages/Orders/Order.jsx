@@ -182,7 +182,8 @@ const Order = () => {
             <p>
               <strong className="text-gray-600">Address:</strong>{" "}
               {order.shippingAddress.address}, {order.shippingAddress.city},{" "}
-              {order.shippingAddress.postalCode}, {order.shippingAddress.country}
+              {order.shippingAddress.postalCode}, {order.shippingAddress.country}, {" "}
+              {order.shippingAddress.apartment}
             </p>
             <p>
               <strong className="text-gray-600">Method:</strong> {order.paymentMethod}
@@ -259,7 +260,7 @@ const Order = () => {
           {userInfo && userInfo.isAdmin && order.isPaid && !order.isDelivered && (
             <button
               type="button"
-              className="w-full mt-6 py-2 bg-pink-500 text-white rounded hover:bg-pink-600"
+              className="w-full mt-6 py-2 bg-pink-500 text-white rounded hover:bg-blue-600"
               onClick={deliverHandler}
             >
               Mark As Delivered

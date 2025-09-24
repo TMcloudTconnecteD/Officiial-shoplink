@@ -7,7 +7,7 @@ const {
   MPESA_PASSKEY, 
   MPESA_CONSUMER_KEY, 
   MPESA_CONSUMER_SECRET,
-  MPESA_ENV = 'sandbox', // 'production' or 'sandbox'
+  MPESA_ENV = 'production', // 'production' or 'sandbox'
 } = process.env;
 
 // Use environment-specific URLs
@@ -21,8 +21,8 @@ const MPESA_CALLBACK_URL = process.env.MPESA_CALLBACK_URL
     ? process.env.MPESA_CALLBACK_URL_PROD
     : process.env.MPESA_CALLBACK_URL_DEV)
   || (MPESA_ENV === 'production'
-    ? 'https://your-production-callback.example.com/api/payments/callback'
-    : 'http://localhost:8000/api/payments/callback');
+    ? 'hhttps://shoplink-b.onrender.com/api/payments/callback'
+    : 'https://shoplink-b.onrender.com/api/payments/callback');
 
 // Optional: full C2B / query URL may be provided (includes path). Fallback to base + query path.
 const MPESA_C2B_URL = process.env.MPESA_C2B_URL || `${BASE_URL_LOCAL}/mpesa/stkpushquery/v1/query`;

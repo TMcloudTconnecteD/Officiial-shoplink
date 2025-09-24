@@ -3,6 +3,7 @@ import ShopPortfolio from "./ShopPortfolio";
 import ShopCard from "../pages/shops/ShopCard.jsx";
 import { useGetProductsQuery } from "../redux/Api/productApiSlice";
 import { useFetchShopsQuery } from "../redux/Api/shopApiSlice";
+import Loader from "./Loader.jsx";
 
 const ShopList = () => {
   const [selectedShop, setSelectedShop] = useState(null);
@@ -15,7 +16,9 @@ const ShopList = () => {
     : [];
 
   if (shopsLoading || productsLoading) {
-    return <div>Loading...</div>;
+    return <div>Loading...
+      <Loader/>
+    </div>;
   }
 
   return (

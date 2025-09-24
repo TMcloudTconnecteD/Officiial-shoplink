@@ -36,7 +36,7 @@ const HomeUpdated1 = () => {
 
               <Link
                 to="/shop"
-                className="bg-pink-600 text-white font-bold rounded-full py-2 px-8 shadow-lg hover:bg-pink-700 transition"
+                className="bg-cyan-400 text-white font-bold rounded-full py-2 px-8 shadow-lg hover:bg-pink-700 transition"
               >
                 Shop
               </Link>

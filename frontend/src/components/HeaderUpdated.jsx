@@ -34,11 +34,13 @@ const HeaderUpdated = ({ onToggleSidebar }) => {
           </Link>
         </div>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-wide drop-shadow-lg">
-            ShopLink
+           <Link to="/shops/all">
+          <h1 className="text-2xl text-cyan-400 sm:text-3xl font-extrabold tracking-wide drop-shadow-lg">
+            Shop_Link
           </h1>
-          <p className="text-xs sm:text-sm italic text-green-300 drop-shadow-md">
-            ..connecting dreams
+          </Link>
+          <p className="text-xs sm:text-sm italic text-gray-300 drop-shadow-md">
+          Around the World!
           </p>
         </div>
       </div>
@@ -75,17 +77,17 @@ const HeaderUpdated = ({ onToggleSidebar }) => {
       <div className="flex items-center space-x-6 flex-shrink-0">
         <Link
           to="/shop"
-          className="flex items-center hover:translate-x-2 transition-transform text-orange-500"
+          className="flex items-center hover:translate-x-2 transition-transform text-yellow-200"
         >
           <AiOutlineShopping size={26} />
         </Link>
 
         <Link
           to="/shops/all"
-          className="flex items-center hover:translate-x-2 transition-transform text-green-500 ml-4"
+          className="flex items-center hover:translate-x-2 transition-transform text-yellow-200 ml-4"
         >
           <AiOutlineShop size={26} />
-          <span className="hidden sm:inline ml-1">Malls</span>
+          <span className="hidden sm:inline ml-1"></span>
         </Link>
 
         {/* ✅ Cart with counter */}
@@ -93,7 +95,7 @@ const HeaderUpdated = ({ onToggleSidebar }) => {
           to="/cart"
           className="flex items-center text-yellow-400 hover:text-yellow-200 transition-transform hover:scale-110 relative"
         >
-          <AiOutlineShoppingCart size={28} />
+          <AiOutlineShoppingCart size={26} />
           {cartCount > 0 && (
             <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full px-2 py-0.5 shadow-md">
               {cartCount}
@@ -109,9 +111,9 @@ const HeaderUpdated = ({ onToggleSidebar }) => {
               <div className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-yellow-500 via-yellow-400 to-yellow-600 flex items-center justify-center text-black font-bold text-xl shadow-lg">
                 {userInfo.username.charAt(0).toUpperCase()}
               </div>
-              <span className="hidden sm:block text-yellow-300 font-semibold">
+            {/*  <span className="hidden sm:block text-yellow-300 font-semibold">
                 {userInfo.username}
-              </span>
+              </span> */}
             </Link>
           ) : (
             <Link

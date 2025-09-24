@@ -83,30 +83,30 @@ const ProductCarousel = ({ products: propProducts }) => {
                     <div className="lg:w-1/2 flex flex-col sm:flex-row justify-between gap-4">
                       <div className="sm:w-1/2">
                         <h1 className="flex items-center mb-3 text-gray-700 dark:text-gray-200">
-                          <FaStore className="mr-2 text-pink-500" /> Brand:{" "}
+                          <FaStore className="mr-2 text-orange-500" /> Brand:{" "}
                           {brand}
                         </h1>
                         <h1 className="flex items-center mb-3 text-gray-700 dark:text-gray-200">
-                          <FaClock className="mr-2 text-pink-500" /> Added:{" "}
+                          <FaClock className="mr-2 text-orange-500" /> Added:{" "}
                           {moment(createdAt).fromNow()}
                         </h1>
                         <h1 className="flex items-center mb-3 text-gray-700 dark:text-gray-200">
-                          <FaStar className="mr-2 text-pink-500" /> Reviews:{" "}
+                          <FaStar className="mr-2 text-orange-500" /> Reviews:{" "}
                           {numReviews}
                         </h1>
                       </div>
 
                       <div className="sm:w-1/2">
                         <h1 className="flex items-center mb-3 text-gray-700 dark:text-gray-200">
-                          <FaStar className="mr-2 text-pink-500" /> Ratings:{" "}
+                          <FaStar className="mr-2 text-orange-500" /> Ratings:{" "}
                           {Math.round(rating)}
                         </h1>
                         <h1 className="flex items-center mb-3 text-gray-700 dark:text-gray-200">
-                          <FaShoppingCart className="mr-2 text-pink-500" /> Quantity:{" "}
+                          <FaShoppingCart className="mr-2 text-orange-500" /> Quantity:{" "}
                           {quantity}
                         </h1>
                         <h1 className="flex items-center mb-3 text-gray-700 dark:text-gray-200">
-                          <FaBox className="mr-2 text-pink-500" /> In Stock:{" "}
+                          <FaBox className="mr-2 text-orange-500" /> In Stock:{" "}
                           {inStock}
                         </h1>
                       </div>

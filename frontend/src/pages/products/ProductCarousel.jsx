@@ -26,7 +26,7 @@ const ProductCarousel = ({ products: propProducts }) => {
     slidesToScroll: 1,
     arrows: true,
     autoplay: true,
-    autoplaySpeed: 5000,
+    autoplaySpeed: 3000,
   };
 
   if (isLoading && !propProducts) return <Loader />;
@@ -72,7 +72,7 @@ const ProductCarousel = ({ products: propProducts }) => {
                       <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
                         {name}
                       </h2>
-                      <p className="mt-2 text-xl font-bold text-pink-600">
+                      <p className="mt-2 text-xl font-bold text-purple-600">
                         KES {price}
                       </p>
                       <p className="mt-4 text-gray-500 dark:text-gray-300 w-full lg:w-[25rem]">

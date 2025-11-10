@@ -41,9 +41,9 @@ const ProductCarousel = ({ products: propProducts }) => {
   }
 
   return (
-    <div className="mb-8 container mx-auto px-4">
+    <div className="mb-8 container mx-auto bg-gray-700 px-4">
       <div className="flex justify-end">
-        <div className="w-3/4 lg:w-3/4">
+        <div className="w-full h-1/4 lg:w-full h-1/4">
           <Slider {...settings} className="w-full bg-purple-100 rounded-lg p-4">
             {products.map(
               ({

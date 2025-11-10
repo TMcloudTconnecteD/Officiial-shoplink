@@ -29,7 +29,7 @@ const HomeUpdated1 = () => {
           </Message>
         ) : (
           <>
-            <div className="flex justify-between items-center mt-10 px-10">
+            <div className="flex justify-between items-center mt-10 bg-cyan-100 px-10">
               <h1 className="text-3xl sm:text-4xl font-bold text-gray-800">
                 Special Products
               </h1>

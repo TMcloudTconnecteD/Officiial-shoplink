@@ -77,23 +77,23 @@ const HeaderUpdated = ({ onToggleSidebar }) => {
       <div className="flex items-center space-x-6 flex-shrink-0">
         <Link
           to="/shop"
-          className="flex items-center hover:translate-x-2 transition-transform text-yellow-200"
+          className="flex items-center hover:translate-x-2 transition-transform text-cyan-200"
         >
-          <AiOutlineShopping size={26} />
+          <AiOutlineShopping size={26} />shop
         </Link>
 
         <Link
           to="/shops/all"
-          className="flex items-center hover:translate-x-2 transition-transform text-yellow-200 ml-4"
+          className="flex items-center hover:translate-x-2 transition-transform text-cyan-200 ml-4"
         >
-          <AiOutlineShop size={26} />
+          <AiOutlineShop size={26} />malls
           <span className="hidden sm:inline ml-1"></span>
         </Link>
 
         {/* ✅ Cart with counter */}
         <Link
           to="/cart"
-          className="flex items-center text-yellow-400 hover:text-yellow-200 transition-transform hover:scale-110 relative"
+          className="flex items-center text-cyan-200 hover:text-cyan-400 transition-transform hover:scale-110 relative"
         >
           <AiOutlineShoppingCart size={26} />
           {cartCount > 0 && (

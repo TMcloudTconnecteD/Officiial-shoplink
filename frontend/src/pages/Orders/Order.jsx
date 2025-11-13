@@ -1,3 +1,4 @@
+// frontend/src/screens/Order/Order.jsx
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
@@ -16,100 +17,79 @@ import MpesaButton from "../../components/MpesaButton";
 
 const Order = () => {
   const { id: orderId } = useParams();
-
-  const {
-    data: order,
-    refetch,
-    isLoading,
-    error,
-  } = useGetOrderDetailsQuery(orderId);
-
+  const { data: order, refetch, isLoading, error } = useGetOrderDetailsQuery(orderId);
   const [payOrder, { isLoading: loadingPay }] = usePayOrderMutation();
   const [deliverOrder, { isLoading: loadingDeliver }] = useDeliverOrderMutation();
   const { userInfo } = useSelector((state) => state.auth);
-
   const [{ isPending }, paypalDispatch] = usePayPalScriptReducer();
+  const { data: paypal, isLoading: loadingPayPal, error: errorPayPal } = useGetPaypalClientIdQuery();
 
-  const {
-    data: paypal,
-    isLoading: loadingPayPal,
-    error: errorPayPal,
-  } = useGetPaypalClientIdQuery();
+  const [exchangeRate, setExchangeRate] = useState(null);
+  const [usdAmount, setUsdAmount] = useState("0.00");
 
-  const [phone, setPhone] = useState("");
-
+  // Fetch conversion rate KES → USD
   useEffect(() => {
-    if (!errorPayPal && !loadingPayPal && paypal.clientId) {
-      const loadPayPalScript = async () => {
-        paypalDispatch({
-          type: "resetOptions",
-          value: {
-            "client-id": paypal.clientId,
-            currency: "KES",
-          },
-        });
-        paypalDispatch({ type: "setLoadingStatus", value: "pending" });
-      };
-
-      if (order && !order.isPaid) {
-        if (!window.paypal) {
-          loadPayPalScript();
-        }
+    const fetchRate = async () => {
+      try {
+        const resp = await fetch(`https://api.exchangerate.host/convert?from=KES&to=USD`);
+        const json = await resp.json();
+        if (json.success) setExchangeRate(json.info.rate);
+        else throw new Error("Rate fetch failed");
+      } catch (err) {
+        console.error("Exchange rate fetch error:", err);
+        setExchangeRate(0.0077); // fallback ~130 KES = 1 USD
       }
-    }
-  }, [errorPayPal, loadingPayPal, order, paypal, paypalDispatch]);
+    };
+    fetchRate();
+  }, []);
 
-  function onApprove(data, actions) {
-    return actions.order.capture().then(async function (details) {
+  // Compute USD total when order + rate available
+  useEffect(() => {
+    if (order && exchangeRate) {
+      setUsdAmount((order.totalPrice * exchangeRate).toFixed(2));
+    }
+  }, [order, exchangeRate]);
+
+  // Load PayPal script when clientId available
+  useEffect(() => {
+    if (!errorPayPal && !loadingPayPal && paypal?.clientId) {
+      paypalDispatch({
+        type: "resetOptions",
+        value: { "client-id": paypal.clientId, currency: "USD" },
+      });
+      paypalDispatch({ type: "setLoadingStatus", value: "pending" });
+    }
+  }, [paypal, errorPayPal, loadingPayPal, paypalDispatch]);
+
+  const createOrder = (data, actions) =>
+    actions.order.create({
+      purchase_units: [{ amount: { value: usdAmount }, description: `Order ${order._id} (KES ${order.totalPrice})` }],
+    });
+
+  const onApprove = (data, actions) =>
+    actions.order.capture().then(async (details) => {
       try {
         await payOrder({ orderId, details });
         refetch();
         toast.success("Order is paid");
-      } catch (error) {
-        toast.error(error?.data?.message || error?.message);
+      } catch (err) {
+        toast.error(err?.data?.message || err?.message);
       }
     });
-  }
 
-  function createOrder(data, actions) {
-    return actions.order
-      .create({
-        purchase_units: [{ amount: { value: order.totalPrice } }],
-      })
-      .then((orderID) => {
-        return orderID;
-      });
-  }
-
-  function onError(err) {
-    toast.error(err.message);
-  }
+  const onError = (err) => toast.error(err.message);
 
   const deliverHandler = async () => {
     await deliverOrder(orderId);
     refetch();
   };
 
-  // Helper function to safely get shop name string for display
-  const getShopName = () => {
-    if (!order) return "N/A";
-    if (order.shippingAddress && order.shippingAddress.shopName) {
-      if (typeof order.shippingAddress.shopName === "string") return order.shippingAddress.shopName;
-      if (typeof order.shippingAddress.shopName === "object" && order.shippingAddress.shopName !== null) {
-        return order.shippingAddress.shopName.name || "N/A";
-      }
-    }
-    // Fallback to order.shop.name if shippingAddress.shopName is missing
-    if (order.shop && order.shop.name) return order.shop.name;
-    return "N/A";
-  };
+  if (isLoading) return <Loader />;
+  if (error) return <Message variant="danger">{error.data?.message || "Error loading order"}</Message>;
 
-  return isLoading ? (
-    <Loader />
-  ) : error ? (
-    <Message variant="danger">{error.data.message}</Message>
-  ) : (
+  return (
     <div className="container mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6">
+      {/* Order Items */}
       <div className="w-full lg:w-2/3">
         <div className="bg-white shadow-lg rounded-xl p-4 mb-6">
           {order.orderItems.length === 0 ? (
@@ -127,28 +107,19 @@ const Order = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {order.orderItems.map((item, index) => (
-                    <tr key={index} className="border-b">
+                  {order.orderItems.map((item, idx) => (
+                    <tr key={idx} className="border-b">
                       <td className="p-2">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-14 h-14 object-cover rounded"
-                        />
+                        <img src={item.image} alt={item.name} className="w-14 h-14 object-cover rounded" />
                       </td>
                       <td className="p-2">
-                        <Link
-                          to={`/product/${item.product}`}
-                          className="text-blue-600 hover:underline"
-                        >
+                        <Link to={`/product/${item.product}`} className="text-blue-600 hover:underline">
                           {item.name}
                         </Link>
                       </td>
                       <td className="p-2 text-center">{item.qty}</td>
                       <td className="p-2 text-center">KES {item.price}</td>
-                      <td className="p-2 text-center font-semibold">
-                        KES {(item.qty * item.price).toFixed(2)}
-                      </td>
+                      <td className="p-2 text-center font-semibold">KES {(item.qty * item.price).toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -158,65 +129,42 @@ const Order = () => {
         </div>
       </div>
 
+      {/* Order Summary + Payment */}
       <div className="w-full lg:w-1/3 relative">
         {!order.isPaid && (
           <div className="absolute top-0 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded-bl-md z-10">
             Not Paid
           </div>
         )}
-        <div className="bg-white shadow-md rounded-lg p-4">
+
+        {/* Shipping Info */}
+        <div className="bg-white shadow-md rounded-lg p-4 mb-6">
           <h2 className="text-xl font-bold mb-4">Shipping</h2>
-          <div className="text-sm mb-3">
+          <div className="text-sm">
+            <p><strong>Order:</strong> {order._id}</p>
+            <p><strong>Name:</strong> {order.user.username}</p>
+            <p><strong>Email:</strong> {order.user.email}</p>
+            <p><strong>Shop:</strong> {order.shop?.name || "N/A"}</p>
             <p>
-              <strong className="text-gray-600">Order:</strong> {order._id}
+              <strong>Address:</strong> {order.shippingAddress.address}, {order.shippingAddress.city},{" "}
+              {order.shippingAddress.postalCode}, {order.shippingAddress.country}, {order.shippingAddress.apartment}
             </p>
-            <p>
-              <strong className="text-gray-600">Name:</strong> {order.user.username}
-            </p>
-            <p>
-              <strong className="text-gray-600">Email:</strong> {order.user.email}
-            </p>
-            <p>
-              <strong className="text-gray-600">Shop:</strong> {getShopName()}
-            </p>
-            <p>
-              <strong className="text-gray-600">Address:</strong>{" "}
-              {order.shippingAddress.address}, {order.shippingAddress.city},{" "}
-              {order.shippingAddress.postalCode}, {order.shippingAddress.country}, {" "}
-              {order.shippingAddress.apartment}
-            </p>
-            <p>
-              <strong className="text-gray-600">Method:</strong> {order.paymentMethod}
-            </p>
+            <p><strong>Method:</strong> {order.paymentMethod}</p>
           </div>
-          {order.isPaid ? (
-            <Message variant="success">Paid on {order.paidAt}</Message>
-          ) : (
-            <Message variant="danger">Not paid</Message>
-          )}
+          {order.isPaid ? <Message variant="success">Paid on {order.paidAt}</Message> : <Message variant="danger">Not paid</Message>}
         </div>
 
-        <div className="bg-white mt-6 shadow-md rounded-lg p-4">
+        {/* Order Summary */}
+        <div className="bg-white shadow-md rounded-lg p-4">
           <h2 className="text-xl font-bold mb-4">Order Summary</h2>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>Items:</span>
-              <span>KES {order.itemsPrice}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Shipping:</span>
-              <span>KES {order.shippingPrice}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Tax:</span>
-              <span>KES {order.taxPrice}</span>
-            </div>
-            <div className="flex justify-between font-bold">
-              <span>Total:</span>
-              <span>KES {order.totalPrice}</span>
-            </div>
+            <div className="flex justify-between"><span>Items:</span><span>KES {order.itemsPrice}</span></div>
+            <div className="flex justify-between"><span>Shipping:</span><span>KES {order.shippingPrice}</span></div>
+            <div className="flex justify-between"><span>Tax:</span><span>KES {order.taxPrice}</span></div>
+            <div className="flex justify-between font-bold"><span>Total:</span><span>KES {order.totalPrice}</span></div>
           </div>
 
+          {/* Payment Section */}
           {!order.isPaid && (
             <div className="mt-6 space-y-4">
               {loadingPay && <Loader />}
@@ -228,11 +176,10 @@ const Order = () => {
                     <FaPaypal className="text-blue-600 text-lg" />
                     <span className="font-semibold">Pay with PayPal</span>
                   </div>
-                  <PayPalButtons
-                    createOrder={createOrder}
-                    onApprove={onApprove}
-                    onError={onError}
-                  />
+                  <div className="text-sm text-gray-600 mb-2">
+                    Total: KES {order.totalPrice} (~USD {usdAmount})
+                  </div>
+                  <PayPalButtons createOrder={createOrder} onApprove={onApprove} onError={onError} />
                 </div>
               )}
 
@@ -240,12 +187,11 @@ const Order = () => {
                 <FaMobileAlt className="text-green-600 text-lg" />
                 <span className="font-semibold">Pay with M-Pesa</span>
               </div>
-
               <MpesaButton
                 totalPrice={order.totalPrice}
                 orderId={order._id}
-                initialPhone={phone}
-                onPhoneChange={setPhone}
+                initialPhone=""
+                onPhoneChange={() => {}}
                 onSuccess={() => {
                   toast.success("Payment initiated successfully!");
                   toast.info("Please wait while we verify your M-Pesa payment...");
@@ -257,12 +203,8 @@ const Order = () => {
           )}
 
           {loadingDeliver && <Loader />}
-          {userInfo && userInfo.isAdmin && order.isPaid && !order.isDelivered && (
-            <button
-              type="button"
-              className="w-full mt-6 py-2 bg-pink-500 text-white rounded hover:bg-blue-600"
-              onClick={deliverHandler}
-            >
+          {userInfo?.isAdmin && order.isPaid && !order.isDelivered && (
+            <button type="button" className="w-full mt-6 py-2 bg-pink-500 text-white rounded hover:bg-blue-600" onClick={deliverHandler}>
               Mark As Delivered
             </button>
           )}

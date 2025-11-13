@@ -80,14 +80,17 @@ const router = createBrowserRouter(
 createRoot(document.getElementById('root')).render(
   <Provider store={store}>
 
-    <PayPalScriptProvider>
+    <PayPalScriptProvider options={{ 
+  "client-id": "Ae7PNlizaVtFe3xtWLBfAmd-CHgJGu6G28oiUxz7KfT5UWB4fyjdJjgsFq76q5WLbyaUFFqa643Pw6Vy", 
+  "currency": "USD", 
+   
+}}>
+  <>
+    <RouterProvider router={router} />
+    <Footer />
+  </>
+</PayPalScriptProvider>
 
-    <>
-      <RouterProvider router={router} />
-      <Footer />
-    </>
-
-    </PayPalScriptProvider>
       
   </Provider>
   

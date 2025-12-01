@@ -1,30 +1,31 @@
-import React from 'react';
-import { FaEnvelope } from 'react-icons/fa';
+// src/components/Footer.jsx
+import React from "react";
+import { FaEnvelope } from "react-icons/fa";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-
   return (
-    <footer className="w-full bg-gradient-to-r from-gray-900 via-black to-gray-900 text-cyan-400 text-center py-6 px-6 shadow-inner z-40">
-      <div className="flex flex-col items-center gap-2">
-       
+    <footer className="mt-12">
+      <div className="container mx-auto px-4 py-8">
+        <div className="backdrop-glass rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 border border-white/8 shadow-md">
+          <div className="text-zinc-900 dark:text-zinc-100">
+            <div className="font-semibold">TMcloud</div>
+            <div className="text-sm text-zinc-600 dark:text-zinc-300">
+              Shop smart — feel good
+            </div>
+          </div>
 
-        {/* Email */}
-        <p className="text-sm flex items-center gap-2">
-          <FaEnvelope className="text-cyan-400" />
-          <a
-            href="mailto:aobizness@gmail.com"
-            className="hover:underline hover:text-cyan-300 transition"
-          >
-            aobizness@gmail.com
-          </a>
-        </p>
+          <div className="text-sm text-zinc-600 dark:text-zinc-300 flex items-center gap-3">
+            <FaEnvelope />
+            <a href="mailto:aobizness@gmail.com" className="underline">
+              aobizness@gmail.com
+            </a>
+          </div>
 
-             {/* Centered name + year */}
-        <p className="text-sm font-semibold tracking-wide select-none">
-          &copy; TMcloud {currentYear}
-        </p>
-
+          <div className="text-sm text-zinc-600 dark:text-zinc-300">
+            &copy; TMcloud {currentYear}
+          </div>
+        </div>
       </div>
     </footer>
   );

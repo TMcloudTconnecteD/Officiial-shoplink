@@ -1,4 +1,9 @@
+import { useState, useEffect } from "react";
 import Chart from "react-apexcharts";
+import AdminMenu from "./AdminMenu";
+import OrderList from "./OrderList";
+import Loader from "../../components/Loader";
+
 import { useGetUsersQuery } from "../../redux/Api/usersApiSlice";
 import {
   useGetTotalOrdersQuery,
@@ -6,54 +11,26 @@ import {
   useGetTotalSalesQuery,
 } from "../../redux/Api/orderApiSlice";
 
-import { useState, useEffect } from "react";
-import AdminMenu from "./AdminMenu";
-import OrderList from "./OrderList";
-import Loader from "../../components/Loader";
-
 const AdminDashboard = () => {
-  const { data: sales, isLoading } = useGetTotalSalesQuery();
-  const { data: customers, isLoading: loading } = useGetUsersQuery();
-  const { data: orders, isLoading: loadingTwo } = useGetTotalOrdersQuery();
-  const { data: salesDetail } = useGetTotalSalesByDateQuery();
+  // Queries
+  const { data: sales, isLoading: loadingSales } = useGetTotalSalesQuery();
+  const { data: customers, isLoading: loadingCustomers } = useGetUsersQuery();
+  const { data: orders, isLoading: loadingOrders } = useGetTotalOrdersQuery();
+  const { data: salesDetail, isLoading: loadingSalesDetail } = useGetTotalSalesByDateQuery();
 
-  const [state, setState] = useState({
+  // Chart state
+  const [chartState, setChartState] = useState({
     options: {
-      chart: {
-        type: "line",
-      },
-      tooltip: {
-        theme: "dark",
-      },
+      chart: { type: "line" },
+      tooltip: { theme: "dark" },
       colors: ["#00E396"],
-      dataLabels: {
-        enabled: true,
-      },
-      stroke: {
-        curve: "smooth",
-      },
-      title: {
-        text: "Sales Trend",
-        align: "left",
-      },
-      grid: {
-        borderColor: "#ccc",
-      },
-      markers: {
-        size: 1,
-      },
-      xaxis: {
-        categories: [],
-        title: {
-          text: "Date",
-        },
-      },
-      yaxis: {
-        title: {
-          text: "Sales",
-        },
-        min: 0,
-      },
+      dataLabels: { enabled: true },
+      stroke: { curve: "smooth" },
+      title: { text: "Sales Trend", align: "left" },
+      grid: { borderColor: "#ccc" },
+      markers: { size: 3 },
+      xaxis: { categories: [], title: { text: "Date" } },
+      yaxis: { title: { text: "Sales (KES)" }, min: 0 },
       legend: {
         position: "top",
         horizontalAlign: "right",
@@ -65,83 +42,83 @@ const AdminDashboard = () => {
     series: [{ name: "Sales", data: [] }],
   });
 
+  // Update chart when salesDetail is available
   useEffect(() => {
-    if (salesDetail) {
-      const formattedSalesDate = salesDetail.map((item) => ({
+    if (salesDetail && salesDetail.length > 0) {
+      const formattedSales = salesDetail.map(item => ({
         x: item._id,
-        y: item.totalSales,
+        y: Number(item.totalSales),
       }));
 
-      setState((prevState) => ({
-        ...prevState,
+      setChartState(prev => ({
+        ...prev,
         options: {
-          ...prevState.options,
-          xaxis: {
-            categories: formattedSalesDate.map((item) => item.x),
-          },
+          ...prev.options,
+          xaxis: { ...prev.options.xaxis, categories: formattedSales.map(f => f.x) },
         },
-
-        series: [
-          { name: "Sales", data: formattedSalesDate.map((item) => item.y) },
-        ],
+        series: [{ name: "Sales", data: formattedSales.map(f => f.y) }],
       }));
     }
   }, [salesDetail]);
+
+  // Show loader if any critical data is still loading
+  if (loadingSales || loadingCustomers || loadingOrders || loadingSalesDetail) {
+    return <Loader />;
+  }
 
   return (
     <>
       <AdminMenu />
 
-      <section className="xl:ml-[4rem] md:ml-[0rem]">
-        <div className="w-[80%] flex justify-around flex-wrap">
-          <div className="rounded-lg bg-black p-5 w-[20rem] mt-5">
+      <section className="xl:ml-[4rem] md:ml-[0rem] p-4">
+        <div className="w-full flex flex-wrap justify-around gap-5">
+          {/* Sales Card */}
+          <div className="rounded-lg bg-black p-5 w-[20rem] text-white mt-5">
             <div className="font-bold rounded-full w-[3rem] bg-orange-500 text-center p-3">
               KES
             </div>
-
             <p className="mt-5">Sales</p>
             <h1 className="text-xl font-bold">
-              KES {isLoading ? <Loader /> : sales.totalSales.toFixed(2)}
+              {sales ? Number(sales.totalSales).toFixed(2) : "0.00"}
             </h1>
           </div>
-          <div className="rounded-lg bg-black p-5 w-[20rem] mt-5">
-            <div className="font-bold rounded-full w-[3rem] bg-orange-500 text-center p-3">
-              KES
-            </div>
 
+          {/* Customers Card */}
+          <div className="rounded-lg bg-black p-5 w-[20rem] text-white mt-5">
+            <div className="font-bold rounded-full w-[3rem] bg-orange-500 text-center p-3">
+              👥
+            </div>
             <p className="mt-5">Customers</p>
-            <h1 className="text-xl font-bold">
-              KES {isLoading ? <Loader /> : customers?.length}
-            </h1>
+            <h1 className="text-xl font-bold">{customers ? customers.length : 0}</h1>
           </div>
-          <div className="rounded-lg bg-black p-5 w-[20rem] mt-5">
-            <div className="font-bold rounded-full w-[3rem] bg-orange-500 text-center p-3">
-              KES
-            </div>
 
+          {/* Orders Card */}
+          <div className="rounded-lg bg-black p-5 w-[20rem] text-white mt-5">
+            <div className="font-bold rounded-full w-[3rem] bg-orange-500 text-center p-3">
+              📦
+            </div>
             <p className="mt-5">All Orders</p>
-            <h1 className="text-xl font-bold">
-              KES {isLoading ? <Loader /> : orders?.totalOrders}
-            </h1>
+            <h1 className="text-xl font-bold">{orders ? orders.totalOrders : 0}</h1>
           </div>
         </div>
 
-        <div className="ml-[10rem] mt-[4rem]">
+        {/* Sales Chart */}
+        <div className="mt-10 ml-[2rem]">
           <Chart
-            options={state.options}
-            series={state.series}
+            options={chartState.options}
+            series={chartState.series}
             type="bar"
-            width="70%"
+            width="80%"
           />
         </div>
 
-        <div className="mt-[4rem]">
+        {/* Recent Orders */}
+        <div className="mt-10">
           <OrderList />
         </div>
       </section>
     </>
   );
 };
-
 
 export default AdminDashboard;

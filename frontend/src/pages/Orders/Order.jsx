@@ -1,4 +1,3 @@
-// frontend/src/screens/Order/Order.jsx
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
@@ -27,7 +26,7 @@ const Order = () => {
   const [exchangeRate, setExchangeRate] = useState(null);
   const [usdAmount, setUsdAmount] = useState("0.00");
 
-  // Fetch conversion rate KES → USD
+  // Fetch conversion rate
   useEffect(() => {
     const fetchRate = async () => {
       try {
@@ -37,20 +36,20 @@ const Order = () => {
         else throw new Error("Rate fetch failed");
       } catch (err) {
         console.error("Exchange rate fetch error:", err);
-        setExchangeRate(0.0077); // fallback ~130 KES = 1 USD
+        setExchangeRate(0.0077);
       }
     };
     fetchRate();
   }, []);
 
-  // Compute USD total when order + rate available
+  // Compute USD
   useEffect(() => {
     if (order && exchangeRate) {
       setUsdAmount((order.totalPrice * exchangeRate).toFixed(2));
     }
   }, [order, exchangeRate]);
 
-  // Load PayPal script when clientId available
+  // Load PayPal
   useEffect(() => {
     if (!errorPayPal && !loadingPayPal && paypal?.clientId) {
       paypalDispatch({
@@ -63,7 +62,12 @@ const Order = () => {
 
   const createOrder = (data, actions) =>
     actions.order.create({
-      purchase_units: [{ amount: { value: usdAmount }, description: `Order ${order._id} (KES ${order.totalPrice})` }],
+      purchase_units: [
+        {
+          amount: { value: usdAmount },
+          description: `Order ${order._id} (KES ${order.totalPrice})`,
+        },
+      ],
     });
 
   const onApprove = (data, actions) =>
@@ -79,6 +83,27 @@ const Order = () => {
 
   const onError = (err) => toast.error(err.message);
 
+  // ----------------------------
+  // CASH PAYMENT HANDLER ADDED
+  // ----------------------------
+  const cashPayHandler = async () => {
+    try {
+      const cashDetails = {
+        id: "CASH-" + Date.now(),
+        status: "COMPLETED",
+        update_time: new Date().toISOString(),
+        payer: { email_address: "cash@local" },
+        method: "cash",
+      };
+
+      await payOrder({ orderId, details: cashDetails });
+      refetch();
+      toast.success("Order marked as PAID (Cash)");
+    } catch (err) {
+      toast.error(err?.data?.message || err?.message);
+    }
+  };
+const apiUrl = import.meta.env.VITE_API_URL;
   const deliverHandler = async () => {
     await deliverOrder(orderId);
     refetch();
@@ -151,12 +176,18 @@ const Order = () => {
             </p>
             <p><strong>Method:</strong> {order.paymentMethod}</p>
           </div>
-          {order.isPaid ? <Message variant="success">Paid on {order.paidAt}</Message> : <Message variant="danger">Not paid</Message>}
+
+          {order.isPaid ? (
+            <Message variant="success">Paid on {order.paidAt}</Message>
+          ) : (
+            <Message variant="danger">Not paid</Message>
+          )}
         </div>
 
         {/* Order Summary */}
         <div className="bg-white shadow-md rounded-lg p-4">
           <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+
           <div className="space-y-2 text-sm">
             <div className="flex justify-between"><span>Items:</span><span>KES {order.itemsPrice}</span></div>
             <div className="flex justify-between"><span>Shipping:</span><span>KES {order.shippingPrice}</span></div>
@@ -167,7 +198,8 @@ const Order = () => {
           {/* Payment Section */}
           {!order.isPaid && (
             <div className="mt-6 space-y-4">
-              {loadingPay && <Loader />}
+
+              {/* PayPal */}
               {isPending ? (
                 <Loader />
               ) : (
@@ -183,6 +215,7 @@ const Order = () => {
                 </div>
               )}
 
+              {/* M-Pesa */}
               <div className="flex items-center gap-2 mb-4">
                 <FaMobileAlt className="text-green-600 text-lg" />
                 <span className="font-semibold">Pay with M-Pesa</span>
@@ -194,19 +227,44 @@ const Order = () => {
                 onPhoneChange={() => {}}
                 onSuccess={() => {
                   toast.success("Payment initiated successfully!");
-                  toast.info("Please wait while we verify your M-Pesa payment...");
+                  toast.info("Verifying M-Pesa payment...");
                   refetch();
                 }}
                 disabled={loadingPay || order.isPaid}
               />
+
+              {/* ⭐ CASH PAYMENT ADDED HERE */}
+              <button
+                onClick={cashPayHandler}
+                disabled={loadingPay}
+                className="w-full py-2 border border-gray-300 rounded-lg hover:bg-green-200 transition-all text-sm font-semibold text-green-800"
+              >
+                Mark as Paid (Cash)
+              </button>
+             
             </div>
           )}
 
+                {order.isPaid && (
+                        <button
+                          onClick={() => window.open(`${apiUrl}/orders/${order._id}/receipt`)}
+                          className="w-full mt-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                        >
+                          Download Receipt (PDF)
+                        </button>
+                      )}
+
+          {/* Deliver */}
           {loadingDeliver && <Loader />}
           {userInfo?.isAdmin && order.isPaid && !order.isDelivered && (
-            <button type="button" className="w-full mt-6 py-2 bg-pink-500 text-white rounded hover:bg-blue-600" onClick={deliverHandler}>
+            <button
+              type="button"
+              className="w-full mt-6 py-2 bg-pink-500 text-white rounded hover:bg-blue-600"
+              onClick={deliverHandler}
+            >
               Mark As Delivered
             </button>
+            
           )}
         </div>
       </div>

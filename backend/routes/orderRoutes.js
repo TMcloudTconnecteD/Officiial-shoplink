@@ -11,9 +11,11 @@ import {
   findOrderById,
   markOrderAsPaid,
   markOrderAsDelivered,
+  getReceipt,
 } from "../controllers/orderController.js";
 
 import { authenticate, authorizeAdmin } from "../middlewares/authMiddlewares.js";
+
 
 router
   .route("/")
@@ -29,5 +31,7 @@ router.route("/:id/pay").put(authenticate, markOrderAsPaid);
 router
   .route("/:id/deliver")
   .put(authenticate, authorizeAdmin, markOrderAsDelivered);
+  router.get("/:id/receipt", authenticate, getReceipt);
+
 
 export default router;

@@ -38,6 +38,7 @@ import ShopUpdated from './pages/ShopUpdated.jsx'
 import ShopList from './components/ShopList.jsx'
 import Mall from './pages/shops/Mall.jsx'
 import HomeUpdated1 from './pages/HomeUpdated1.jsx'
+import ShopUpdate from './pages/Admin/ShopUpdate.jsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -61,18 +62,22 @@ const router = createBrowserRouter(
          
          {/* admin routes */}
         
-         <Route path='/admin' element={<AdminRoutes />} >
+                <Route path='/admin' element={<AdminRoutes />} >
             <Route path='users' element={<UserList />} />
             <Route path='categories' element={<CategoryList />} />
             <Route path="productlist" element={<ProductList />} />
             <Route path='productlist/:pageNumber' element={<ProductList />} />
             <Route path='allproductslist' element={<AllProducts />} />
             <Route path='product/update/:_id' element={<ProductUpdate />} />
-            
-            <Route path='shops' element={< AddShop/>} />
-            <Route path="orderlist" element={<OrderList />} />
-            <Route path="dashboard" element={<AdminDashboard />} />
-         </Route>
+
+            {/* Shops */}
+                  <Route path='shops' element={<ShopList />} />         {/* /admin/shops */}
+                  <Route path='shops/add' element={<AddShop />} />      {/* /admin/shops/add */}
+                  <Route path='shops/update/:id' element={<ShopUpdate />} /> {/* /admin/shops/update/:id */}
+                  <Route path='orderlist' element={<OrderList />} />
+                  <Route path='dashboard' element={<AdminDashboard />} />
+              </Route>
+
     </Route>
   )
 )

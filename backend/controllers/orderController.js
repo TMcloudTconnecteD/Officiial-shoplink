@@ -220,6 +220,57 @@ const markOrderAsDelivered = async (req, res) => {
   }
 };
 
+
+import PDFDocument from "pdfkit"; // make sure to install: npm i pdfkit
+
+const getReceipt = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate("user", "username email")
+      .populate("shop", "name location");
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    if (!order.isPaid) return res.status(400).json({ message: "Order not paid yet" });
+
+    const doc = new PDFDocument({ margin: 50 });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=receipt-${order._id}.pdf`
+    );
+
+    // Title
+    doc.fontSize(20).text("Receipt", { align: "center" });
+    doc.moveDown();
+
+    // Order info
+    doc.fontSize(12).text(`Order ID: ${order._id}`);
+    doc.text(`Date: ${new Date(order.paidAt).toLocaleString()}`);
+    doc.text(`Customer: ${order.user.username}`);
+    doc.text(`Email: ${order.user.email}`);
+    doc.text(`Shop: ${order.shop ? order.shop.name : "N/A"}`);
+    doc.text(`Payment Method: ${order.paymentMethod}`);
+    doc.moveDown();
+
+    // Items table
+    doc.text("Items:", { underline: true });
+    order.orderItems.forEach(item => {
+      doc.text(`${item.name} x${item.qty} = KES ${(item.qty * item.price).toFixed(2)}`);
+    });
+    doc.moveDown();
+
+    // Total
+    doc.fontSize(14).text(`Total: KES ${order.totalPrice}`, { align: "right" });
+
+    doc.end();
+    doc.pipe(res);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
 export {
   createOrder,
   getAllOrders,
@@ -230,4 +281,5 @@ export {
   findOrderById,
   markOrderAsPaid,
   markOrderAsDelivered,
+  getReceipt,
 };

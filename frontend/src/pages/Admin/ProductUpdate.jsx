@@ -10,6 +10,7 @@ import {
 import { useFetchCategoriesQuery } from "../../redux/Api/categoryApiSlice";
 import { toast } from "react-toastify";
 import { Pencil, Trash2 } from "lucide-react";
+import { useFetchShopsQuery } from "../../redux/Api/shopApiSlice";
 
 // 👇🏾 Loader Component (your custom one)
 const Loader = () => (
@@ -24,6 +25,8 @@ const AdminProductUpdate = () => {
 
   const { data: productData, isLoading } = useGetProductByIdQuery(params._id);
   const { data: categories = [] } = useFetchCategoriesQuery();
+  const { data: shops = [] } = useFetchShopsQuery();
+
 
   const [uploadProductImage] = useUploadProductImageMutation();
   const [updateProduct] = useUpdateProductMutation();
@@ -37,6 +40,8 @@ const AdminProductUpdate = () => {
   const [quantity, setQuantity] = useState("");
   const [brand, setBrand] = useState("");
   const [inStock, setInStock] = useState("");
+  const [shop, setShop] = useState("");
+
 
   useEffect(() => {
     if (productData && productData._id) {
@@ -48,6 +53,7 @@ const AdminProductUpdate = () => {
       setBrand(productData.brand);
       setImage(productData.image);
       setInStock(productData.inStock);
+      setShop(productData.shop?._id);
     }
   }, [productData]);
 
@@ -77,6 +83,7 @@ const AdminProductUpdate = () => {
       formData.append("quantity", quantity);
       formData.append("brand", brand);
       formData.append("inStock", inStock);
+      formData.append("shop", shop);
 
        const data = await updateProduct({ productId: params._id, formData })
 
@@ -201,6 +208,18 @@ const AdminProductUpdate = () => {
                 {categories.map((c) => (
                   <option key={c._id} value={c._id}>
                     {c.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="p-3 bg-[#101011] border border-cyan-600 rounded-lg"
+                onChange={(e) => setShop(e.target.value)}
+                value={shop}
+              >
+                <option>Choose Shop</option>
+                {shops.map((s) => (
+                  <option key={s._id} value={s._id}>
+                    {s.name}
                   </option>
                 ))}
               </select>

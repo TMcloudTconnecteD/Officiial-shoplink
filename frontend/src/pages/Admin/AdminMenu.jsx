@@ -88,15 +88,21 @@ const AdminMenu = () => {
                     })}>All Products</NavLink>
 
                 </li>
-
                 <li>
-                    <NavLink to="/admin/users" 
+                     <NavLink to="/admin/shops"
                     className="list-item py-2 px-3 block mb-5 hover:bg-green-700 rounded-sm"
-                    style={({isActive }) => ({
+                    style={({isActive}) => ({
                         color: isActive ? 'greenyellow' : 'white'
-                    })}>Manage Users</NavLink>
+                    })}
+                >
+                    Manage Shops
+                  </NavLink>
 
                 </li>
+
+                
+
+                
 
                 <li>
                     <NavLink to="/admin/orderlist" 

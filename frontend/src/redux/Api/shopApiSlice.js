@@ -27,13 +27,19 @@ export const shopApiSlice = apiSlice.injectEndpoints({
         }),
 
         // Update an existing shop
-        updateShop: builder.mutation({
+                    updateShop: builder.mutation({
             query: ({ mallId, formData }) => ({
                 url: `${SHOP_URL}/${mallId}`,
                 method: 'PUT',
                 body: formData,
             }),
-        }),
+            invalidatesTags: ['Shop'],
+            }),
+
+            getShopDetails: builder.query({
+            query: (mallId) => `${SHOP_URL}/${mallId}`,
+            providesTags: ['Shop'],
+            }),
 
         // Delete a shop
         deleteShop: builder.mutation({
@@ -77,5 +83,6 @@ export const {
     useFetchShopsQuery,
     useFetchShopsByCategoryQuery,
     useUploadShopImageMutation,
+    useGetShopDetailsQuery,
 
 } = shopApiSlice;

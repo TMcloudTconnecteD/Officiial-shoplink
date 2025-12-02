@@ -11,12 +11,13 @@ const HomeUpdated1 = () => {
   const { data, isLoading, error } = useGetProductsQuery({ keyword });
 
   return (
-    <>
+    
+        <>
       <HeaderUpdated />
 
-      <main className="pt-28 bg-gray-50 min-h-screen">
+      <main className="pt-28 bg-gray-100 min-h-screen">
         {!keyword && (
-          <div>
+          <div className="w-full max-w-6xl mx-auto rounded-xl overflow-hidden shadow-lg">
             <ProductCarousel />
           </div>
         )}
@@ -29,24 +30,29 @@ const HomeUpdated1 = () => {
           </Message>
         ) : (
           <>
-            <div className="flex justify-between items-center mt-10 bg-cyan-100 px-10">
-              <h1 className="text-3xl sm:text-4xl font-bold text-gray-800">
+            <div className="flex justify-between items-center mt-10 bg-white px-10 py-4 rounded-xl shadow-md max-w-6xl mx-auto">
+              <h1 className="text-3xl sm:text-4xl font-semibold text-gray-900 tracking-tight">
                 Special Products
               </h1>
 
               <Link
                 to="/shop"
-                className="bg-cyan-400 text-white font-bold rounded-full py-2 px-8 shadow-lg hover:bg-pink-700 transition"
+                className="bg-green-600 text-white font-semibold rounded-full py-2 px-8 shadow-md hover:bg-green-700 transition"
               >
                 Shop
               </Link>
             </div>
 
-            <div className="flex justify-center flex-wrap gap-6 mt-8 px-4">
-              {data?.products?.map((product) => (
-                <Product key={product._id} product={product} />
-              ))}
-            </div>
+          <div className="relative mt-8">
+  <div className="flex overflow-x-auto gap-6 px-4 py-4 scrollbar-hide">
+    {data?.products?.map((product) => (
+      <div key={product._id} className="flex-none w-64">
+        <Product product={product} />
+      </div>
+    ))}
+  </div>
+</div>
+
           </>
         )}
       </main>

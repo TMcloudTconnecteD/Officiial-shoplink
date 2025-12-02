@@ -10,7 +10,7 @@ import {
   AiOutlineClose,
   AiOutlineSearch,
 } from 'react-icons/ai'
-import { FaHeart } from 'react-icons/fa'
+import { FaHeart, FaStore } from 'react-icons/fa'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLogoutMutation } from '../../redux/Api/usersApiSlice.js'
@@ -109,11 +109,12 @@ const Navigation = () => {
               Shop
             </Link>
 
-            <Link to="/shops/all" className="hidden md:inline-flex text-zinc-800 dark:text-zinc-100">
-              Malls
+            <Link to="/shops/all" className="relative ">
+            <FaStore className="text-zinc-700 dark:text-zinc-100" />
+              
             </Link>
 
-            <Link to="/favorite" className="relative">
+            <Link to="/favorite" className="relative hidden md:inline-flex">
               <FaHeart className="text-zinc-700 dark:text-zinc-100" />
               <span className="absolute -top-2 -right-3 w-5 h-5 rounded-full bg-emerald-500 text-white text-xs grid place-items-center">
                 <FavoritesCount />

@@ -34,3 +34,11 @@
   display: none;
   transition: opacity 0.2s ease-in-out; /* Add opacity transition */
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.18s ease-out;
+}

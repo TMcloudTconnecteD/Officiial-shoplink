@@ -1,27 +1,27 @@
+// controllers/orderController.js
 import Order from "../models/orderModel.js";
 import Product from "../models/productModel.js";
 import Shop from "../models/shopModel.js";
+import PDFDocument from "pdfkit"; // npm i pdfkit
 
-// Utility Function
+// Utility Function - returns numbers (not strings)
 function calcPrices(orderItems) {
   const itemsPrice = orderItems.reduce(
-    (acc, item) => acc + item.price * item.qty,
+    (acc, item) => acc + Number(item.price) * Number(item.qty),
     0
   );
 
   const shippingPrice = itemsPrice > 5000 ? 0 : 100;
   const taxRate = 0.15;
-  const taxPrice = (itemsPrice * taxRate).toFixed(2);
+  const taxPrice = Number((itemsPrice * taxRate).toFixed(2));
 
-  const totalPrice = (
-    itemsPrice +
-    shippingPrice +
-    parseFloat(taxPrice)
-  ).toFixed(2);
+  const totalPrice = Number(
+    (itemsPrice + shippingPrice + taxPrice).toFixed(2)
+  );
 
   return {
-    itemsPrice: itemsPrice.toFixed(2),
-    shippingPrice: shippingPrice.toFixed(2),
+    itemsPrice,
+    shippingPrice,
     taxPrice,
     totalPrice,
   };
@@ -31,7 +31,7 @@ const createOrder = async (req, res) => {
   try {
     const { orderItems, shippingAddress, paymentMethod, shop } = req.body;
 
-    if (orderItems && orderItems.length === 0) {
+    if (!orderItems || orderItems.length === 0) {
       res.status(400);
       throw new Error("No order items");
     }
@@ -51,10 +51,11 @@ const createOrder = async (req, res) => {
       }
 
       return {
-        ...itemFromClient,
+        name: itemFromClient.name,
+        qty: Number(itemFromClient.qty),
+        image: itemFromClient.image || matchingItemFromDB.image,
+        price: Number(matchingItemFromDB.price),
         product: itemFromClient._id,
-        price: matchingItemFromDB.price,
-        _id: undefined,
       };
     });
 
@@ -92,10 +93,10 @@ const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find({})
       .populate("user", "id username")
-      .populate("shop", "name location") // populate shop details
+      .populate("shop", "name location")
       .populate({
         path: "orderItems.product",
-        populate: { path: "shop", select: "name location" }, // populate shop inside product
+        populate: { path: "shop", select: "name location" },
       });
     res.json(orders);
   } catch (error) {
@@ -124,7 +125,10 @@ const countTotalOrders = async (req, res) => {
 const calculateTotalSales = async (req, res) => {
   try {
     const orders = await Order.find();
-    const totalSales = orders.reduce((sum, order) => sum + order.totalPrice, 0);
+    const totalSales = orders.reduce(
+      (sum, order) => sum + Number(order.totalPrice || 0),
+      0
+    );
     res.json({ totalSales });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -147,6 +151,7 @@ const calcualteTotalSalesByDate = async (req, res) => {
           totalSales: { $sum: "$totalPrice" },
         },
       },
+      { $sort: { _id: 1 } },
     ]);
 
     res.json(salesByDate);
@@ -162,7 +167,6 @@ const findOrderById = async (req, res) => {
       .populate("shop", "name location");
 
     if (order) {
-      // Ensure shippingAddress.shopName is set from populated shop if missing
       if (!order.shippingAddress.shopName && order.shop && order.shop.name) {
         order.shippingAddress.shopName = order.shop.name;
       }
@@ -187,7 +191,11 @@ const markOrderAsPaid = async (req, res) => {
         id: req.body.id,
         status: req.body.status,
         update_time: req.body.update_time,
-        email_address: req.body.payer.email_address,
+        email_address:
+          (req.body.payer && req.body.payer.email_address) ||
+          req.body.email_address ||
+          (req.body.payer && req.body.payer.email) ||
+          "",
       };
 
       const updateOrder = await order.save();
@@ -220,9 +228,6 @@ const markOrderAsDelivered = async (req, res) => {
   }
 };
 
-
-import PDFDocument from "pdfkit"; // make sure to install: npm i pdfkit
-
 const getReceipt = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
@@ -239,6 +244,9 @@ const getReceipt = async (req, res) => {
       "Content-Disposition",
       `attachment; filename=receipt-${order._id}.pdf`
     );
+
+    // Pipe first, then write and end
+    doc.pipe(res);
 
     // Title
     doc.fontSize(20).text("Receipt", { align: "center" });
@@ -260,16 +268,19 @@ const getReceipt = async (req, res) => {
     });
     doc.moveDown();
 
-    // Total
-    doc.fontSize(14).text(`Total: KES ${order.totalPrice}`, { align: "right" });
+    // Totals
+    doc.fontSize(12).text(`Items: KES ${Number(order.itemsPrice).toFixed(2)}`);
+    doc.fontSize(12).text(`Shipping: KES ${Number(order.shippingPrice).toFixed(2)}`);
+    doc.fontSize(12).text(`Tax: KES ${Number(order.taxPrice).toFixed(2)}`);
+    doc.moveDown();
+    doc.fontSize(14).text(`Total: KES ${Number(order.totalPrice).toFixed(2)}`, { align: "right" });
 
     doc.end();
-    doc.pipe(res);
   } catch (err) {
+    console.error("getReceipt error:", err);
     res.status(500).json({ message: err.message });
   }
 };
-
 
 export {
   createOrder,

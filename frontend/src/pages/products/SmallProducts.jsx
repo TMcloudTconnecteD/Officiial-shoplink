@@ -1,27 +1,32 @@
+// src/pages/products/SmallProduct.jsx
 import { Link } from "react-router-dom";
 import HeartIcon from "./HeartIcon";
 
 const SmallProduct = ({ product }) => {
   return (
-    <div className="w-[20rem] ml-[2rem] p-3">
+    <div className="rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition bg-white">
       <div className="relative">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="h-auto rounded"
-        />
-        <HeartIcon product={product} />
+        <Link to={`/product/${product._id}`}>
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-48 md:h-56 object-cover rounded-t-2xl transition-transform hover:scale-105"
+          />
+        </Link>
+        <div className="absolute top-2 right-2">
+          <HeartIcon product={product} />
+        </div>
       </div>
 
-      <div className="p-4">
+      <div className="p-3 md:p-4">
         <Link to={`/product/${product._id}`}>
-          <h2 className="flex justify-between items-center">
-            <div>{product.name}</div>
-            <span className="bg-pink-100 text-pink-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full dark:bg-pink-900 dark:text-pink-300">
-              KES{product.price}
-            </span>
-          </h2>
+          <h3 className="text-sm md:text-base font-semibold text-zinc-900 truncate">
+            {product.name}
+          </h3>
         </Link>
+        <p className="text-xs md:text-sm text-emerald-600 font-bold mt-1">
+          KES {product.price?.toLocaleString()}
+        </p>
       </div>
     </div>
   );

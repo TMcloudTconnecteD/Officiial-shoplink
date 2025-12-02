@@ -1,3 +1,4 @@
+// models/orderModel.js
 import mongoose from "mongoose";
 
 const orderSchema = mongoose.Schema(
@@ -23,6 +24,8 @@ const orderSchema = mongoose.Schema(
       city: { type: String, required: true },
       postalCode: { type: String, required: true },
       country: { type: String, required: true },
+      apartment: { type: String },
+      shopName: { type: String }, // added to store shop name
     },
 
     paymentMethod: {

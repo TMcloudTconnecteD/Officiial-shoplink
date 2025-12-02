@@ -1,3 +1,4 @@
+// routes/orderRoutes.js
 import express from "express";
 const router = express.Router();
 
@@ -16,7 +17,6 @@ import {
 
 import { authenticate, authorizeAdmin } from "../middlewares/authMiddlewares.js";
 
-
 router
   .route("/")
   .post(authenticate, createOrder)
@@ -26,12 +26,14 @@ router.route("/mine").get(authenticate, getUserOrders);
 router.route("/total-orders").get(countTotalOrders);
 router.route("/total-sales").get(calculateTotalSales);
 router.route("/total-sales-by-date").get(calcualteTotalSalesByDate);
+
+// receipt route (auth required)
+router.get("/:id/receipt", authenticate, getReceipt);
+
 router.route("/:id").get(authenticate, findOrderById);
 router.route("/:id/pay").put(authenticate, markOrderAsPaid);
 router
   .route("/:id/deliver")
   .put(authenticate, authorizeAdmin, markOrderAsDelivered);
-  router.get("/:id/receipt", authenticate, getReceipt);
-
 
 export default router;

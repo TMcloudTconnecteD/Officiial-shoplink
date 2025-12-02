@@ -1,84 +1,74 @@
+// src/components/ProductCard.jsx
 import { Link } from "react-router-dom";
 import { AiOutlineShoppingCart } from "react-icons/ai";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../../redux/features/cart/cartSlice";
 import { toast } from "react-toastify";
-import HeartIcon from "./HeartIcon";
+import HeartIcon from "../products/HeartIcon";
+
 
 const ProductCard = ({ p }) => {
   const dispatch = useDispatch();
 
-  const addToCartHandler = (product, qty) => {
-    dispatch(addToCart({ ...product, qty }));
-    toast.success("Item added successfully", {
-      position: toast.POSITION.TOP_RIGHT,
-      autoClose: 2000,
-    });
+  const addToCartHandler = (product) => {
+    dispatch(addToCart({ ...product, qty: 1 }));
+    toast.success("Added to cart", { autoClose: 1500 });
   };
 
   return (
-    <div className="max-w-sm bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform transform hover:scale-105">
-      <section className="relative">
-        <Link to={`/product/${p._id}`}>
-          <span className="absolute top-3 left-3 bg-pink-100 text-pink-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-pink-900 dark:text-pink-300">
-            {p?.brand}
-          </span>
+    <article className="rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-transform hover:scale-[1.03] bg-white dark:bg-zinc-900">
+      {/* IMAGE */}
+      <div className="relative w-full">
+        <Link to={`/product/${p._id}`} state={{ fromShop: p.shop?._id }}>
           <img
-            className="cursor-pointer w-full h-48 object-cover"
             src={p.image}
             alt={p.name}
+            className="w-full h-64 md:h-72 lg:h-80 object-cover rounded-t-2xl transition-transform hover:scale-105"
           />
         </Link>
-        <HeartIcon product={p} />
-      </section>
 
-      <div className="p-5">
-        <div className="flex justify-between items-start">
-          <h5 className="text-xl font-semibold text-white">{p?.name}</h5>
-          <p className="text-lg font-semibold text-pink-500">
-            {p?.price?.toLocaleString("en-US", {
-              style: "currency",
-              currency: "KES",
-            })}
-          </p>
+        {/* Brand Tag */}
+        <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs bg-white/80 dark:bg-zinc-800/70 text-zinc-900 dark:text-zinc-100 font-semibold">
+          {p.brand}
+        </span>
+
+        {/* Heart Icon */}
+        <div className="absolute top-3 right-3">
+          <HeartIcon product={p} />
         </div>
+      </div>
 
-        <p className="mt-2 text-sm text-gray-300">
-          {p?.description?.substring(0, 60)}...
+      {/* DETAILS */}
+      <div className="p-4 ext-zinc-500 dark:text-zinc-300">
+        <Link to={`/product/${p._id}`} state={{ fromShop: p.shop?._id }}>
+          <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate">
+            {p.name}
+          </h3>
+        </Link>
+
+        <p className="text-sm text-zinc-600 dark:text-zinc-300 mt-1 line-clamp-2">
+          {p.description || "Amazing product you’ll love!"}
         </p>
 
-        <div className="flex justify-between items-center mt-4">
-          <Link
-            to={`/product/${p._id}`}
-            className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-pink-700 rounded-lg hover:bg-pink-800 focus:ring-4 focus:outline-none focus:ring-pink-300"
-          >
-            Read More
-            <svg
-              className="w-3 h-3 ml-2"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 14 10"
-            >
-              <path
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M1 5h12m0 0L9 1m4 4L9 9"
-              />
-            </svg>
-          </Link>
+        <div className="mt-4 flex items-center justify-between">
+          <div>
+            <div className="text-2xl font-bold text-emerald-600">
+              KES {p.price?.toLocaleString()}
+            </div>
+            <div className="text-xs text-zinc-500 dark:text-zinc-400">
+              In stock: {p.inStock}
+            </div>
+          </div>
 
           <button
-            className="p-2 rounded-full bg-pink-600 hover:bg-pink-700 text-white"
-            onClick={() => addToCartHandler(p, 1)}
+            onClick={() => addToCartHandler(p)}
+            className="p-3 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 transition shadow"
           >
-            <AiOutlineShoppingCart size={25} />
+            <AiOutlineShoppingCart />
           </button>
         </div>
       </div>
-    </div>
+    </article>
   );
 };
 

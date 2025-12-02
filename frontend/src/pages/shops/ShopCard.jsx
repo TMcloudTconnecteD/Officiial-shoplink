@@ -12,7 +12,7 @@ const ShopCard = ({ shop }) => {
           className="w-full h-full md:h-64 object-cover"
         />
         <div className="absolute top-3 left-3 bg-white/90 px-3 py-1 rounded-full text-xs font-semibold">
-          {shop.tag || "Shop"}
+          {shop.tag || "Mall"}
         </div>
       </div>
 

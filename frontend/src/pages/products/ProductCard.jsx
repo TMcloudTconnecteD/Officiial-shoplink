@@ -39,7 +39,7 @@ const ProductCard = ({ p }) => {
       </div>
 
       {/* DETAILS */}
-      <div className="p-4 ext-zinc-500 dark:text-zinc-300">
+      <div className="p-4 ">
         <Link to={`/product/${p._id}`} state={{ fromShop: p.shop?._id }}>
           <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate">
             {p.name}

@@ -107,7 +107,6 @@ const ShopUpdated = () => {
   const handlePriceChange = (e) => setPriceFilter(e.target.value);
 
   const resetFilters = () => {
-    // safer reset without full reload
     dispatch(setChecked([]));
     setPriceFilter("");
     const sourceData = keyword.length > 0 ? searchedProductsQuery.data : filteredProductsQuery.data;
@@ -134,7 +133,7 @@ const ShopUpdated = () => {
 
       <div className="pt-28 container mx-auto px-4 pb-28">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filters */}
+          {/* Sidebar Filters */}
           <aside className="w-full lg:w-80 order-2 lg:order-1">
             <div className="hidden lg:block sticky top-28">
               <div className="backdrop-glass rounded-2xl p-5 shadow-xl border border-white/6">
@@ -156,50 +155,6 @@ const ShopUpdated = () => {
                     ))}
                   </div>
                 </div>
-
-                <div className="mb-4">
-                  <p className="text-sm mb-2 text-zinc-600 dark:text-zinc-300">Brands</p>
-                  <div className="space-y-2">
-                    {uniqueBrands?.map((brand) => (
-                      <div key={brand} className="flex items-center gap-3">
-                        <input
-                          type="radio"
-                          id={brand}
-                          name="brand"
-                          onChange={() => handleBrandClick(brand)}
-                          className="w-4 h-4 accent-emerald-400"
-                        />
-                        <label htmlFor={brand} className="text-sm">{brand}</label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm mb-2 text-zinc-600 dark:text-zinc-300">Price</p>
-                  <input
-                    type="text"
-                    placeholder="e.g. 1500"
-                    value={priceFilter}
-                    onChange={handlePriceChange}
-                    className="w-full px-3 py-2 rounded-lg bg-white/30 placeholder:text-zinc-500 text-zinc-900 dark:bg-black/30"
-                  />
-                </div>
-
-                <div className="mt-5 flex gap-3">
-                  <button
-                    onClick={resetFilters}
-                    className="flex-1 py-2 rounded-lg text-sm bg-zinc-800 text-white hover:opacity-90 transition"
-                  >
-                    Reset
-                  </button>
-                  <button
-                    onClick={handleMallClick}
-                    className="flex-1 py-2 rounded-lg text-sm bg-emerald-500 text-white hover:bg-emerald-600 transition"
-                  >
-                    Apply
-                  </button>
-                </div>
               </div>
             </div>
 
@@ -216,26 +171,16 @@ const ShopUpdated = () => {
                   </button>
                 ))}
               </div>
-
-              <div className="flex items-center gap-3 mt-3">
-                <input
-                  type="text"
-                  placeholder="Price e.g. 1500"
-                  value={priceFilter}
-                  onChange={handlePriceChange}
-                  className="flex-1 px-3 py-2 rounded-lg bg-white/80"
-                />
-                <button onClick={handleMallClick} className="px-4 py-2 rounded-lg bg-emerald-500 text-white">Apply</button>
-              </div>
             </div>
           </aside>
 
-          {/* Main */}
+          {/* Main Content */}
           <main className="flex-1 order-1 lg:order-2">
             <div className="mb-6">
               <MallCard onClick={handleMallClick} />
             </div>
 
+            {/* Curated and grouped */}
             <div className="mb-6 backdrop-glass rounded-2xl p-4 shadow-md border border-white/8">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
@@ -246,10 +191,60 @@ const ShopUpdated = () => {
                   <div className="text-sm text-zinc-700 dark:text-zinc-300">{products?.length || 0} products</div>
                 </div>
               </div>
+
+              {/* Filters below curated */}
+              <div className="mt-4 space-y-4">
+                {/* Brands */}
+                <div>
+                  <p className="text-sm mb-2 text-zinc-600 dark:text-zinc-300">Brands</p>
+                  <div className="flex flex-wrap gap-3">
+                    {uniqueBrands?.map((brand) => (
+                      <button
+                        key={brand}
+                        onClick={() => handleBrandClick(brand)}
+                        className="px-3 py-1 rounded-full text-sm bg-emerald-100 dark:bg-emerald-700 hover:bg-emerald-200 dark:hover:bg-emerald-600"
+                      >
+                        {brand}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Price */}
+                <div>
+                  <p className="text-sm mb-2 text-zinc-600 dark:text-zinc-300">Price</p>
+                  <input
+                    type="text"
+                    placeholder="e.g. 1500"
+                    value={priceFilter}
+                    onChange={handlePriceChange}
+                    className="w-full px-3 py-2 rounded-lg bg-white/30 placeholder:text-zinc-500 text-zinc-900 dark:bg-black/30"
+                  />
+                </div>
+
+                {/* Apply & Reset */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={resetFilters}
+                    className="flex-1 py-2 rounded-lg text-sm bg-zinc-800 text-white hover:opacity-90 transition"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    onClick={handleMallClick}
+                    className="flex-1 py-2 rounded-lg text-sm bg-emerald-500 text-white hover:bg-emerald-600 transition"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
             </div>
 
+            {/* Grouped Products */}
             {Object.keys(grouped).length === 0 ? (
-              <div className="mt-6">{filteredProductsQuery.isLoading ? <Loader /> : <p className="text-center text-zinc-600 dark:text-zinc-300">No products found</p>}</div>
+              <div className="mt-6">
+                {filteredProductsQuery.isLoading ? <Loader /> : <p className="text-center text-zinc-600 dark:text-zinc-300">No products found</p>}
+              </div>
             ) : (
               Object.entries(grouped).map(([catId, block]) => (
                 <section key={catId} className="mb-10">

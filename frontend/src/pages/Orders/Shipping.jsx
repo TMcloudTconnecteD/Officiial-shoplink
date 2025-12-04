@@ -12,7 +12,7 @@ const Shipping = () => {
   const { shippingAddress } = cart;
 
   const [paymentMethod, setPaymentMethod] = useState("PayPal");
-  const [address, setAddress] = useState(shippingAddress.address || "");
+  const [phone, setPhone] = useState(shippingAddress.phone || "");
   const [city, setCity] = useState(shippingAddress.city || "");
   const [postalCode, setPostalCode] = useState(
     shippingAddress.postalCode || ""
@@ -26,13 +26,13 @@ const Shipping = () => {
 
   const submitHandler = (e) => {
     e.preventDefault();
-    dispatch(saveShippingAddress({ address, city, postalCode, country, apartment }));
+    dispatch(saveShippingAddress({ phone, city, postalCode, country, apartment }));
     dispatch(savePaymentMethod(paymentMethod));
     navigate("/placeorder");
   };
 
   useEffect(() => {
-    if (!shippingAddress.address) {
+    if (!shippingAddress.phone) {
       navigate("/shipping");
     }
   }, [navigate, shippingAddress]);
@@ -54,15 +54,15 @@ const Shipping = () => {
           <div className="space-y-5">
             <div>
               <label className="block text-gray-300 mb-2 font-medium">
-                Address
+                phone number
               </label>
               <input
                 type="text"
                 className="w-full px-4 py-3 rounded-xl bg-gray-800 text-white border border-gray-600 focus:ring-2 focus:ring-cyan-400 focus:outline-none placeholder-gray-500"
-                placeholder="Enter address"
-                value={address}
+                placeholder="Enter phone number"
+                value={phone}
                 required
-                onChange={(e) => setAddress(e.target.value)}
+                onChange={(e) => setPhone(e.target.value)}
               />
             </div>
 

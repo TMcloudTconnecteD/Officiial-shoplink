@@ -234,6 +234,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
               />
 
               {/* ⭐ CASH PAYMENT ADDED HERE */}
+              {userInfo?.isAdmin && (
               <button
                 onClick={cashPayHandler}
                 disabled={loadingPay}
@@ -241,7 +242,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
               >
                 Mark as Paid (Cash)
               </button>
-             
+              )}
             </div>
           )}
 

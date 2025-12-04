@@ -114,7 +114,7 @@ const Navigation = () => {
               
             </Link>
 
-            <Link to="/favorite" className="relative hidden md:inline-flex">
+            <Link to="/favorite" className="relative">
               <FaHeart className="text-zinc-700 dark:text-zinc-100" />
               <span className="absolute -top-2 -right-3 w-5 h-5 rounded-full bg-emerald-500 text-white text-xs grid place-items-center">
                 <FavoritesCount />

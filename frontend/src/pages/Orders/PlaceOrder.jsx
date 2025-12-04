@@ -17,10 +17,10 @@ const PlaceOrder = () => {
   const [createOrder, { isLoading, error }] = useCreateOrderMutation();
 
   useEffect(() => {
-    if (!cart.shippingAddress.address) {
+    if (!cart.shippingAddress.phone) {
       navigate("/shipping");
     }
-  }, [cart.shippingAddress.address, navigate]);
+  }, [cart.shippingAddress.phone, navigate]);
 
   const placeOrderHandler = async () => {
     try {
@@ -114,7 +114,7 @@ const PlaceOrder = () => {
             <div className="flex-1 min-w-[200px]">
               <h2 className="text-2xl font-semibold mb-4">Shipping</h2>
               <p>
-                <strong>Address:</strong> {cart.shippingAddress.address},{" "}
+                <strong>Phone:</strong> {cart.shippingAddress.phone},{" "}
                 {cart.shippingAddress.city} {cart.shippingAddress.postalCode},{" "}
                 {cart.shippingAddress.country}, {cart.shippingAddress.apartment}
               </p>

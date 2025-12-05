@@ -1,26 +1,49 @@
 import express from "express";
-import { createUser, deleteUserById, getAllUsers, getCurrentUserProfile, getUserById, logUser,logoutCurrentUser, updateCurrentUserProfile, updateUserById } from "../controllers/userController.js";
-import { authenticate, authorizeAdmin, authorizeSuperAdmin } from "../middlewares/authMiddlewares.js";
-import { get } from "mongoose";
+import {
+  createUser,
+  deleteUserById,
+  getAllUsers,
+  getCurrentUserProfile,
+  getUserById,
+  logUser,
+  logoutCurrentUser,
+  updateCurrentUserProfile,
+  updateUserById,
+} from "../controllers/userController.js";
+import { authenticate } from "../middlewares/authMiddlewares.js";
+
 const router = express.Router();
 
-router.route("/").post(createUser)
-.get(authenticate, authorizeAdmin, authorizeSuperAdmin, getAllUsers)
+// Public routes
+router.post("/", createUser); // Register
+router.post("/auth", logUser); // Login
+router.post("/logout", authenticate, logoutCurrentUser); // Logout
 
-router.post("/auth", logUser)
-router.post('/logout', logoutCurrentUser)
+// User profile routes
+router
+  .route("/profile")
+  .get(authenticate, getCurrentUserProfile)
+  .put(authenticate, updateCurrentUserProfile);
 
+// Admin routes
+router.route("/")
+  .get(authenticate, (req, res, next) => {
+    if (req.user.isAdmin || req.user.isSuperAdmin) return next();
+    res.status(403).json({ error: "Not authorized" });
+  }, getAllUsers);
 
-router.route('/profile')
-.get(authenticate, getCurrentUserProfile)
-.put( authenticate, updateCurrentUserProfile)
-
-
-//admin routes!!👇
-router.route('/:id')
-.delete(authenticate, authorizeAdmin, authorizeSuperAdmin,deleteUserById)
-.get(authenticate, authorizeAdmin,authorizeSuperAdmin, getUserById)
-.put(authenticate, authorizeAdmin, authorizeSuperAdmin,updateUserById)
+router.route("/:id")
+  .get(authenticate, (req, res, next) => {
+    if (req.user.isAdmin || req.user.isSuperAdmin) return next();
+    res.status(403).json({ error: "Not authorized" });
+  }, getUserById)
+  .put(authenticate, (req, res, next) => {
+    if (req.user.isAdmin || req.user.isSuperAdmin) return next();
+    res.status(403).json({ error: "Not authorized" });
+  }, updateUserById)
+  .delete(authenticate, (req, res, next) => {
+    if (req.user.isAdmin || req.user.isSuperAdmin) return next();
+    res.status(403).json({ error: "Not authorized" });
+  }, deleteUserById);
 
 export default router;
-

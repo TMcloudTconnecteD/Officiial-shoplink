@@ -8,10 +8,11 @@ import {
   useUploadProductImageMutation,
 } from "../../redux/Api/productApiSlice";
 import { useFetchCategoriesQuery } from "../../redux/Api/categoryApiSlice";
+import { useFetchShopsQuery } from "../../redux/Api/shopApiSlice"; // <- added
 import { toast } from "react-toastify";
 import { Pencil, Trash2 } from "lucide-react";
 
-// 👇🏾 Loader Component (your custom one)
+// Loader Component
 const Loader = () => (
   <div className="flex justify-center bg-black items-center min-h-[30vh]">
     <div className="loader animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-cyan-400"></div>
@@ -24,6 +25,7 @@ const AdminProductUpdate = () => {
 
   const { data: productData, isLoading } = useGetProductByIdQuery(params._id);
   const { data: categories = [] } = useFetchCategoriesQuery();
+  const { data: shops = [] } = useFetchShopsQuery(); // <- fetch shops
 
   const [uploadProductImage] = useUploadProductImageMutation();
   const [updateProduct] = useUpdateProductMutation();
@@ -37,6 +39,7 @@ const AdminProductUpdate = () => {
   const [quantity, setQuantity] = useState("");
   const [brand, setBrand] = useState("");
   const [inStock, setInStock] = useState("");
+  const [shop, setShop] = useState(""); // <- shop state
 
   useEffect(() => {
     if (productData && productData._id) {
@@ -48,16 +51,21 @@ const AdminProductUpdate = () => {
       setBrand(productData.brand);
       setImage(productData.image);
       setInStock(productData.inStock);
+      setShop(productData.shop?._id || ""); // <- default shop
     }
   }, [productData]);
 
   const uploadFileHandler = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
     const formData = new FormData();
-    formData.append("image", e.target.files[0]);
+    formData.append("image", file);
+
     try {
       const res = await uploadProductImage(formData).unwrap();
+      setImage(res.imageUrl || res.image);
       toast.success("Image uploaded successfully", { position: "top-right", autoClose: 2000 });
-  setImage(res.imageUrl || res.image);
     } catch (error) {
       console.error("Image Upload Error:", error);
       const msg = error?.data?.message || error?.error || "Failed to upload image.";
@@ -67,9 +75,13 @@ const AdminProductUpdate = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!name || !price || !category || !quantity || !brand || !inStock || !shop || !description) {
+      return toast.error("Please fill in all required fields.", { position: "top-right" });
+    }
+
     try {
       const formData = new FormData();
-      formData.append("image", image);
       formData.append("name", name);
       formData.append("description", description);
       formData.append("price", price);
@@ -77,21 +89,17 @@ const AdminProductUpdate = () => {
       formData.append("quantity", quantity);
       formData.append("brand", brand);
       formData.append("inStock", inStock);
+      formData.append("image", image);
+      formData.append("shop", shop); // <- send shop ID
 
-       const data = await updateProduct({ productId: params._id, formData })
+      const data = await updateProduct({ productId: params._id, formData });
 
-       if (data?.error) {
-        toast.error(data.error, {
-            position: "top-right", autoClose: 3000
-        });
+      if (data?.error) {
+        toast.error(data.error, { position: "top-right", autoClose: 3000 });
       } else {
-        toast.success(`Product successfully updated`, {
-            position: "top-right", autoClose: 3000
-        });
+        toast.success(`Product successfully updated`, { position: "top-right", autoClose: 3000 });
         navigate("/admin/allproductslist");
       }
-
-
     } catch (err) {
       console.log("Update Error:", err);
       const errorMessage = err?.data?.message || err?.error || "Product update failed. Try again.";
@@ -100,29 +108,19 @@ const AdminProductUpdate = () => {
   };
 
   const handleDelete = async () => {
-    const answer = window.confirm("Are you sure you want to delete this product?");
-    if (!answer) return;
-  
+    if (!window.confirm(`Are you sure you want to delete "${productData?.name}"?`)) return;
+
     try {
-      // Simply passing the product ID without needing to check or update other details
       await deleteProduct(params._id).unwrap();
-      toast.success(`"${productData?.name}" has been deleted`, {
-        position: "top-right", // Ensure this is in quotes
-        autoClose: 2000,
-      });
-  
+      toast.success(`"${productData?.name}" has been deleted`, { position: "top-right", autoClose: 2000 });
       navigate("/admin/allproductslist");
     } catch (err) {
       console.error("Delete Error:", err);
       const errorMessage = err?.data?.message || err?.error || "Delete failed. Please try again.";
-      toast.error(errorMessage, {
-        position: "top-right", // Ensure this is in quotes
-        autoClose: 3000,
-      });
+      toast.error(errorMessage, { position: "top-right", autoClose: 3000 });
     }
   };
-  
- 
+
   if (isLoading) return <Loader />;
 
   return (
@@ -151,84 +149,36 @@ const AdminProductUpdate = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <input
-                type="text"
-                placeholder="Product Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="p-3 bg-[#101011] border border-cyan-600 rounded-lg"
-              />
+              <input type="text" placeholder="Product Name" value={name} onChange={(e) => setName(e.target.value)} className="p-3 bg-[#101011] border border-cyan-600 rounded-lg" />
+              <input type="number" placeholder="Price" value={price} onChange={(e) => setPrice(e.target.value)} className="p-3 bg-[#101011] border border-cyan-600 rounded-lg" />
+              <input type="number" placeholder="Quantity" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="p-3 bg-[#101011] border border-cyan-600 rounded-lg" />
+              <input type="text" placeholder="Brand" value={brand} onChange={(e) => setBrand(e.target.value)} className="p-3 bg-[#101011] border border-cyan-600 rounded-lg" />
+              <input type="number" placeholder="Stock" value={inStock} onChange={(e) => setInStock(e.target.value)} className="p-3 bg-[#101011] border border-cyan-600 rounded-lg" />
 
-              <input
-                type="number"
-                placeholder="Price"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="p-3 bg-[#101011] border border-cyan-600 rounded-lg"
-              />
-
-              <input
-                type="number"
-                placeholder="Quantity"
-                min="1"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                className="p-3 bg-[#101011] border border-cyan-600 rounded-lg"
-              />
-
-              <input
-                type="text"
-                placeholder="Brand"
-                value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-                className="p-3 bg-[#101011] border border-cyan-600 rounded-lg"
-              />
-
-              <input
-                type="number"
-                placeholder="Stock"
-                value={inStock}
-                onChange={(e) => setInStock(e.target.value)}
-                className="p-3 bg-[#101011] border border-cyan-600 rounded-lg"
-              />
-
-              <select
-                className="p-3 bg-[#101011] border border-cyan-600 rounded-lg"
-                onChange={(e) => setCategory(e.target.value)}
-                value={category}
-              >
+              <select value={category} onChange={(e) => setCategory(e.target.value)} className="p-3 bg-[#101011] border border-cyan-600 rounded-lg">
                 <option>Choose Category</option>
                 {categories.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.name}
-                  </option>
+                  <option key={c._id} value={c._id}>{c.name}</option>
+                ))}
+              </select>
+
+              <select value={shop} onChange={(e) => setShop(e.target.value)} className="p-3 bg-[#101011] border border-cyan-600 rounded-lg">
+                <option>Choose Shop</option>
+                {shops.map((s) => (
+                  <option key={s._id} value={s._id}>{s.name}</option>
                 ))}
               </select>
             </div>
 
-            <textarea
-              placeholder="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="mt-5 p-3 w-full h-40 bg-[#101011] border border-cyan-600 rounded-lg resize-none"
-            />
+            <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} className="mt-5 p-3 w-full h-40 bg-[#101011] border border-cyan-600 rounded-lg resize-none" />
 
             <div className="mt-8 flex gap-6">
-              <button
-                type="submit"
-                className="flex items-center gap-2 py-4 px-10 rounded-lg text-lg font-bold bg-cyan-600 text-white hover:bg-cyan-700 hover:scale-105 transition-all duration-300 shadow-lg"
-              >
-                <Pencil className="w-5 h-5 animate-pulse" />
-                Update
+              <button type="submit" className="flex items-center gap-2 py-4 px-10 rounded-lg text-lg font-bold bg-cyan-600 text-white hover:bg-cyan-700 hover:scale-105 transition-all duration-300 shadow-lg">
+                <Pencil className="w-5 h-5 animate-pulse" /> Update
               </button>
 
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="flex items-center gap-2 py-4 px-10 rounded-lg text-lg font-bold bg-pink-600 text-white hover:bg-pink-700 hover:scale-105 transition-all duration-300 shadow-lg"
-              >
-                <Trash2 className="w-5 h-5 animate-bounce" />
-                Delete
+              <button type="button" onClick={handleDelete} className="flex items-center gap-2 py-4 px-10 rounded-lg text-lg font-bold bg-pink-600 text-white hover:bg-pink-700 hover:scale-105 transition-all duration-300 shadow-lg">
+                <Trash2 className="w-5 h-5 animate-bounce" /> Delete
               </button>
             </div>
           </form>

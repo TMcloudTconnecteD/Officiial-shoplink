@@ -5,6 +5,7 @@ import Message from "../components/Message";
 import HeaderUpdated from "../components/HeaderUpdated";
 import ProductCarousel from "./products/ProductCarousel";
 import Product from "./products/Product";
+import UltraLoader from "../components/UltraLoader";
 
 const HomeUpdated1 = () => {
   const { keyword } = useParams();
@@ -23,7 +24,7 @@ const HomeUpdated1 = () => {
         )}
 
         {isLoading ? (
-          <Loader />
+          <UltraLoader />
         ) : error ? (
           <Message variant="danger">
             {error?.data?.message || error.error}

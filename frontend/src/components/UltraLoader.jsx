@@ -1,30 +1,59 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { FaShoePrints, FaStore, FaMotorcycle } from 'react-icons/fa';
 
 const UltraLoader = () => {
+  const [isVisible, setIsVisible] = useState(true);
+
+  // Auto-hide loader after 10 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(false);
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!isVisible) return null;
+
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-background z-[9999]">
-      
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-background z-[9999] animate-fadeIn">
+
       {/* Loader Container */}
-      <div className="relative w-32 h-32 flex items-center justify-center">
+      <div className="relative w-40 h-40 flex items-center justify-center">
 
         {/* Outer rotating halo */}
         <div className="absolute inset-0 rounded-full border-4 border-secondary border-t-transparent border-b-transparent animate-spin-slow opacity-80"></div>
 
-        {/* Mid ring shimmer */}
-        <div className="absolute inset-3 rounded-full border-4 border-primary border-r-transparent animate-spin-fast opacity-70"></div>
+        {/* Middle ring */}
+        <div className="absolute inset-4 rounded-full border-4 border-primary border-r-transparent animate-spin-fast opacity-70"></div>
 
-        {/* Inner ripple effect */}
-        <div className="absolute w-20 h-20 rounded-full bg-accent opacity-30 animate-ping"></div>
+        {/* Inner ripple */}
+        <div className="absolute w-24 h-24 rounded-full bg-accent opacity-30 animate-ping"></div>
 
-        {/* Core energy orb */}
-        <div className="absolute w-10 h-10 rounded-full bg-primary shadow-floating animate-pulse"></div>
+        {/* Core orb */}
+        <div className="absolute w-12 h-12 rounded-full bg-primary shadow-floating animate-pulse"></div>
+
+        {/* ===== Floating Icons Orbiting Around ===== */}
+        <FaShoePrints
+          className="absolute text-primary text-2xl animate-spin-slow"
+          style={{ top: '-18px', left: '50%', transform: 'translateX(-50%)' }}
+        />
+
+        <FaStore
+          className="absolute text-secondary text-2xl animate-spin-slower"
+          style={{ bottom: '-18px', left: '50%', transform: 'translateX(-50%)' }}
+        />
+
+        <FaMotorcycle
+          className="absolute text-accent text-2xl animate-spin-fast"
+          style={{ left: '-18px', top: '50%', transform: 'translateY(-50%)' }}
+        />
       </div>
 
       {/* Loading text */}
-      <p className="mt-10 text-ink text-lg font-medium tracking-wide animate-fadeIn opacity-80">
+      <p className="mt-10 text-ink text-lg font-medium tracking-wide animate-floatUp opacity-90">
         Preparing your experience...
       </p>
-
     </div>
   );
 };

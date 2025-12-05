@@ -1,19 +1,35 @@
 import { Link, useParams } from "react-router-dom";
 import { useGetProductsQuery } from "../redux/Api/productApiSlice";
-import Loader from "../components/Loader";
+import { useEffect, useState } from "react";
+
+import UltraLoader from "../components/UltraLoader";
 import Message from "../components/Message";
 import HeaderUpdated from "../components/HeaderUpdated";
 import ProductCarousel from "./products/ProductCarousel";
 import Product from "./products/Product";
-import UltraLoader from "../components/UltraLoader";
 
 const HomeUpdated1 = () => {
   const { keyword } = useParams();
   const { data, isLoading, error } = useGetProductsQuery({ keyword });
 
+  const [showLoader, setShowLoader] = useState(true);
+
+  // force loader for exactly 10 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowLoader(false);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // still show loader if API is loading OR 10sec delay is active
+  if (showLoader || isLoading) {
+    return <UltraLoader />;
+  }
+
   return (
-    
-        <>
+    <>
       <HeaderUpdated />
 
       <main className="pt-28 bg-gray-100 min-h-screen">
@@ -23,9 +39,7 @@ const HomeUpdated1 = () => {
           </div>
         )}
 
-        {isLoading ? (
-          <UltraLoader />
-        ) : error ? (
+        {error ? (
           <Message variant="danger">
             {error?.data?.message || error.error}
           </Message>
@@ -44,16 +58,15 @@ const HomeUpdated1 = () => {
               </Link>
             </div>
 
-          <div className="relative mt-8">
-  <div className="flex overflow-x-auto gap-6 px-4 py-4 scrollbar-hide">
-    {data?.products?.map((product) => (
-      <div key={product._id} className="flex-none w-64">
-        <Product product={product} />
-      </div>
-    ))}
-  </div>
-</div>
-
+            <div className="relative mt-8">
+              <div className="flex overflow-x-auto gap-6 px-4 py-4 scrollbar-hide">
+                {data?.products?.map((product) => (
+                  <div key={product._id} className="flex-none w-64">
+                    <Product product={product} />
+                  </div>
+                ))}
+              </div>
+            </div>
           </>
         )}
       </main>

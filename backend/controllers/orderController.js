@@ -35,9 +35,24 @@ const createOrder = async (req, res) => {
       return res.status(400).json({ message: "No order items" });
     }
 
-    if (!shippingAddress || !shippingAddress.phone || !shippingAddress.city) {
-      return res.status(400).json({ message: "Incomplete shipping info" });
-    }
+   if (
+  !shippingAddress ||
+  !shippingAddress.phone ||
+  !shippingAddress.city ||
+  !shippingAddress.postalCode ||
+  !shippingAddress.country
+) {
+  return res.status(400).json({
+    message: "Incomplete shipping info",
+    missingFields: [
+      !shippingAddress?.phone && "phone",
+      !shippingAddress?.city && "city",
+      !shippingAddress?.postalCode && "postalCode",
+      !shippingAddress?.country && "country",
+    ].filter(Boolean),
+  });
+}
+
 
     const itemsFromDB = await Product.find({
       _id: { $in: orderItems.map((x) => x._id) },

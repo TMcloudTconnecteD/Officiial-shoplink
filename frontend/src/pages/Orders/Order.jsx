@@ -171,7 +171,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
             <p><strong>Email:</strong> {order.user.email}</p>
             <p><strong>Shop:</strong> {order.shop?.name || "N/A"}</p>
             <p>
-              <strong>Address:</strong> {order.shippingAddress.address}, {order.shippingAddress.city},{" "}
+              <strong>Address:</strong> {order.shippingAddress.phone}, {order.shippingAddress.city},{" "}
               {order.shippingAddress.postalCode}, {order.shippingAddress.country}, {order.shippingAddress.apartment}
             </p>
             <p><strong>Method:</strong> {order.paymentMethod}</p>

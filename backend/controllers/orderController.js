@@ -36,7 +36,7 @@ const createOrder = async (req, res) => {
     }
 
    if (
-  !shippingAddress ||
+  
   !shippingAddress.phone ||
   !shippingAddress.city ||
   !shippingAddress.postalCode ||

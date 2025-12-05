@@ -14,7 +14,7 @@ const Mall = () => {
   const [locationFilter, setLocationFilter] = useState('');
   const [selectedCategories, setSelectedCategories] = useState([]);
 
-  // Get unique locations for radio buttons
+  // Unique locations
   const locations = useMemo(() => {
     const unique = [...new Set(shops.map(shop => shop.location))];
     return unique;
@@ -47,7 +47,7 @@ const Mall = () => {
   return (
     <div className="max-w-6xl mx-auto mt-20 px-4">
       <div className="bg-white rounded-2xl shadow-xl p-6 md:p-10">
-        {/* Header with Add Shop Button */}
+        {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">All Shops 🏬</h2>
           <button
@@ -106,13 +106,11 @@ const Mall = () => {
         {isLoading && <Loader />}
         {isError && <p>Error loading shops.</p>}
 
-        {/* Horizontal Scrollable Shops */}
-        <div className="flex overflow-x-auto gap-6 py-4">
+        {/* Vertical Shop List */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredShops.length > 0 ? (
             filteredShops.map((shop) => (
-              <div key={shop._id} className="flex-shrink-0 w-64">
-                <ShopCard shop={shop} />
-              </div>
+              <ShopCard key={shop._id} shop={shop} />
             ))
           ) : (
             <p className="text-gray-500">No shops found for this filter.</p>

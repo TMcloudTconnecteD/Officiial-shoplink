@@ -159,16 +159,8 @@ const Navigation = () => {
           animate-fadeIn z-[9999]
         "
       >
-        <li>
-          <Link
-            to="/profile"
-            onClick={handleOptionClick}
-            className="block px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          >
-            Profile
-          </Link>
-        </li>
-
+     
+     
         {userInfo.isAdmin && (
           <>
             <li>

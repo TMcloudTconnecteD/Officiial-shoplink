@@ -238,42 +238,31 @@ const getReceipt = async (req, res) => {
     if (!order.isPaid) return res.status(400).json({ message: "Order not paid yet" });
 
     const doc = new PDFDocument({ margin: 50 });
-
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=receipt-${order._id}.pdf`
-    );
-
-    // Pipe first, then write and end
+    res.setHeader("Content-Disposition", `attachment; filename=receipt-${order._id}.pdf`);
     doc.pipe(res);
 
-    // Title
     doc.fontSize(20).text("Receipt", { align: "center" });
     doc.moveDown();
-
-    // Order info
     doc.fontSize(12).text(`Order ID: ${order._id}`);
     doc.text(`Date: ${new Date(order.paidAt).toLocaleString()}`);
     doc.text(`Customer: ${order.user.username}`);
     doc.text(`Email: ${order.user.email}`);
-    doc.text(`Shop: ${order.shop ? order.shop.name : "N/A"}`);
+    doc.text(`Shop: ${order.shop?.name || "N/A"}`);
     doc.text(`Payment Method: ${order.paymentMethod}`);
     doc.moveDown();
 
-    // Items table
     doc.text("Items:", { underline: true });
-    order.orderItems.forEach(item => {
+    order.orderItems.forEach((item) => {
       doc.text(`${item.name} x${item.qty} = KES ${(item.qty * item.price).toFixed(2)}`);
     });
     doc.moveDown();
 
-    // Totals
-    doc.fontSize(12).text(`Items: KES ${Number(order.itemsPrice).toFixed(2)}`);
-    doc.fontSize(12).text(`Shipping: KES ${Number(order.shippingPrice).toFixed(2)}`);
-    doc.fontSize(12).text(`Tax: KES ${Number(order.taxPrice).toFixed(2)}`);
+    doc.text(`Items: KES ${order.itemsPrice.toFixed(2)}`);
+    doc.text(`Shipping: KES ${order.shippingPrice.toFixed(2)}`);
+    doc.text(`Tax: KES ${order.taxPrice.toFixed(2)}`);
     doc.moveDown();
-    doc.fontSize(14).text(`Total: KES ${Number(order.totalPrice).toFixed(2)}`, { align: "right" });
+    doc.fontSize(14).text(`Total: KES ${order.totalPrice.toFixed(2)}`, { align: "right" });
 
     doc.end();
   } catch (err) {

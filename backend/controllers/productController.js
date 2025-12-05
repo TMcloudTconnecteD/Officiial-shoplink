@@ -134,7 +134,7 @@ const createProductReviews = asyncHandler(async (req, res) => {
 
 const fetchTopProducts = asyncHandler(async (req, res) => {
   try {
-    const products = await Product.find({}).sort({rating: -1}).limit(4).populate("shop", "name location");
+    const products = await Product.find({}).sort({rating: -1}).limit(10).populate("shop", "name location");
     res.json(products);
   } catch (error) {
     console.error(error);
@@ -144,7 +144,7 @@ const fetchTopProducts = asyncHandler(async (req, res) => {
 
 const fetchNewProducts = asyncHandler(async (req, res) => {
   try {
-    const products = await Product.find({}).sort({_id: -1}).limit(5).populate("shop", "name location");
+    const products = await Product.find({}).sort({_id: -1}).limit(10).populate("shop", "name location");
     res.json(products);
   } catch (error) {
     console.error(error);

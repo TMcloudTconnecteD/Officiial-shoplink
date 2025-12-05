@@ -32,8 +32,11 @@ const createOrder = async (req, res) => {
     const { orderItems, shippingAddress, paymentMethod, shop } = req.body;
 
     if (!orderItems || orderItems.length === 0) {
-      res.status(400);
-      throw new Error("No order items");
+      return res.status(400).json({ message: "No order items" });
+    }
+
+    if (!shippingAddress || !shippingAddress.phone || !shippingAddress.city) {
+      return res.status(400).json({ message: "Incomplete shipping info" });
     }
 
     const itemsFromDB = await Product.find({
@@ -46,7 +49,6 @@ const createOrder = async (req, res) => {
       );
 
       if (!matchingItemFromDB) {
-        res.status(404);
         throw new Error(`Product not found: ${itemFromClient._id}`);
       }
 
@@ -62,7 +64,6 @@ const createOrder = async (req, res) => {
     const { itemsPrice, taxPrice, shippingPrice, totalPrice } =
       calcPrices(dbOrderItems);
 
-    // Fetch shop name
     const shopDoc = await Shop.findById(shop);
     const shippingAddressWithShopName = {
       ...shippingAddress,
@@ -139,15 +140,11 @@ const calculateTotalSalesByDate = async (req, res) => {
   try {
     const salesByDate = await Order.aggregate([
       {
-        $match: {
-          isPaid: true,
-        },
+        $match: { isPaid: true },
       },
       {
         $group: {
-          _id: {
-            $dateToString: { format: "%Y-%m-%d", date: "$paidAt" },
-          },
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$paidAt" } },
           totalSales: { $sum: "$totalPrice" },
         },
       },
@@ -172,8 +169,7 @@ const findOrderById = async (req, res) => {
       }
       res.json(order);
     } else {
-      res.status(404);
-      throw new Error("Order not found");
+      res.status(404).json({ message: "Order not found" });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -198,11 +194,10 @@ const markOrderAsPaid = async (req, res) => {
           "",
       };
 
-      const updateOrder = await order.save();
-      res.status(200).json(updateOrder);
+      const updatedOrder = await order.save();
+      res.status(200).json(updatedOrder);
     } else {
-      res.status(404);
-      throw new Error("Order not found");
+      res.status(404).json({ message: "Order not found" });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -220,8 +215,7 @@ const markOrderAsDelivered = async (req, res) => {
       const updatedOrder = await order.save();
       res.json(updatedOrder);
     } else {
-      res.status(404);
-      throw new Error("Order not found");
+      res.status(404).json({ message: "Order not found" });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -239,7 +233,10 @@ const getReceipt = async (req, res) => {
 
     const doc = new PDFDocument({ margin: 50 });
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename=receipt-${order._id}.pdf`);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=receipt-${order._id}.pdf`
+    );
     doc.pipe(res);
 
     doc.fontSize(20).text("Receipt", { align: "center" });
@@ -249,12 +246,15 @@ const getReceipt = async (req, res) => {
     doc.text(`Customer: ${order.user.username}`);
     doc.text(`Email: ${order.user.email}`);
     doc.text(`Shop: ${order.shop?.name || "N/A"}`);
+    doc.text(`Phone: ${order.shippingAddress.phone}`);
     doc.text(`Payment Method: ${order.paymentMethod}`);
     doc.moveDown();
 
     doc.text("Items:", { underline: true });
     order.orderItems.forEach((item) => {
-      doc.text(`${item.name} x${item.qty} = KES ${(item.qty * item.price).toFixed(2)}`);
+      doc.text(
+        `${item.name} x${item.qty} = KES ${(item.qty * item.price).toFixed(2)}`
+      );
     });
     doc.moveDown();
 
@@ -262,7 +262,9 @@ const getReceipt = async (req, res) => {
     doc.text(`Shipping: KES ${order.shippingPrice.toFixed(2)}`);
     doc.text(`Tax: KES ${order.taxPrice.toFixed(2)}`);
     doc.moveDown();
-    doc.fontSize(14).text(`Total: KES ${order.totalPrice.toFixed(2)}`, { align: "right" });
+    doc.fontSize(14).text(`Total: KES ${order.totalPrice.toFixed(2)}`, {
+      align: "right",
+    });
 
     doc.end();
   } catch (err) {

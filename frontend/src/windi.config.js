@@ -9,8 +9,6 @@ export default defineConfig({
         secondary: '#4ECDC4',
         accent: '#FFD93D',
         background: '#F7FFF7',
-
-        // Premium neutrals for luxury UI
         soft: '#fafafa',
         stone: '#e9e9e9',
         ink: '#1a1a1a',
@@ -18,28 +16,24 @@ export default defineConfig({
         jet: 'rgba(0,0,0,0.45)',
       },
 
-      // Premium spacing for hero banners + shop sections
       spacing: {
         '128': '32rem',
         '144': '36rem',
         '160': '40rem',
       },
 
-      // Roundness for luxury cards, modals, product galleries
       borderRadius: {
         xl2: '1.25rem',
         xl3: '1.75rem',
         bubble: '2.5rem',
       },
 
-      // Soft shadows inspired by Apple and Airbnb
       boxShadow: {
         soft: '0 4px 18px rgba(0,0,0,0.08)',
         medium: '0 8px 30px rgba(0,0,0,0.12)',
         floating: '0 12px 40px rgba(0,0,0,0.15)',
       },
 
-      // Animations for cart fly, button hover, hero fade
       keyframes: {
         floatUp: {
           '0%': { transform: 'translateY(10px)', opacity: '0' },
@@ -53,12 +47,29 @@ export default defineConfig({
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
+
+        orbit: {
+          '0%': { transform: 'rotate(0deg) translateX(70px) rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg) translateX(70px) rotate(-360deg)' },
+        },
+        orbitSlow: {
+          '0%': { transform: 'rotate(0deg) translateX(90px) rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg) translateX(90px) rotate(-360deg)' },
+        },
+        orbitFast: {
+          '0%': { transform: 'rotate(0deg) translateX(50px) rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg) translateX(50px) rotate(-360deg)' },
+        },
       },
 
       animation: {
         floatUp: 'floatUp .5s ease-in-out',
         pop: 'pop .2s ease-out',
         fadeIn: 'fadeIn .6s ease-out',
+
+        orbit: 'orbit 3s linear infinite',
+        orbitSlow: 'orbitSlow 5s linear infinite',
+        orbitFast: 'orbitFast 2s linear infinite',
       },
     },
   },

@@ -5,7 +5,7 @@ const UltraLoader = () => {
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(false), 10000)
+    const timer = setTimeout(() => setIsVisible(false), 3000)
     return () => clearTimeout(timer)
   }, [])
 

@@ -1,43 +1,57 @@
-import React, { useEffect, useState } from 'react'
-import { FaShoePrints, FaStore, FaMotorcycle } from 'react-icons/fa'
+import React from 'react'
+import { FaMotorcycle } from 'react-icons/fa'
 
 const UltraLoader = () => {
-  const [isVisible, setIsVisible] = useState(true)
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(false), 200)
-    return () => clearTimeout(timer)
-  }, [])
-
-  if (!isVisible) return null
-
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-background z-[9999] animate-fadeIn">
+    <div className="simple-loader">
 
-      {/* Loader Container */}
-      <div className="relative w-40 h-40 flex items-center justify-center">
+      {/* Spinner */}
+      <div className="spinner"></div>
 
-        {/* Outer halo */}
-        <div className="absolute inset-0 rounded-full border-4 border-secondary border-t-transparent border-b-transparent animate-spin-slow opacity-80"></div>
-        <div className="absolute inset-4 rounded-full border-4 border-primary border-r-transparent animate-spin-fast opacity-70"></div>
-        <div className="absolute w-24 h-24 rounded-full bg-accent opacity-30 animate-ping"></div>
-        <div className="absolute w-12 h-12 rounded-full bg-primary shadow-floating animate-pulse"></div>
+      {/* Bike Icon */}
+      <FaMotorcycle className="bike-icon" />
 
-        {/* Orbiting icons */}
-        <div className="absolute w-full h-full animate-bikeOrbit">
-          <FaShoePrints className="text-primary text-2xl absolute top-0 left-1/2 -translate-x-1/2" />
-        </div>
-        <div className="absolute w-full h-full animate-bikeOrbit animate-delay-1500">
-          <FaStore className="text-secondary text-2xl absolute bottom-0 left-1/2 -translate-x-1/2" />
-        </div>
-        <div className="absolute w-full h-full animate-bikeOrbit animate-delay-3000">
-          <FaMotorcycle className="text-accent text-2xl absolute left-0 top-1/2 -translate-y-1/2" />
-        </div>
-      </div>
+      <style>{`
+        .simple-loader {
+          position: fixed;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          background: #0a0a0c;
+          z-index: 9999;
+        }
 
-      <p className="mt-10 text-ink text-lg font-medium tracking-wide animate-floatUp opacity-90">
-        Preparing your experience...
-      </p>
+        .spinner {
+          width: 55px;
+          height: 55px;
+          border: 4px solid rgba(255,255,255,0.15);
+          border-top-color: white;
+          border-radius: 50%;
+          animation: spin 0.9s linear infinite;
+          margin-bottom: 18px;
+        }
+
+        .bike-icon {
+          color: white;
+          font-size: 30px;
+          opacity: 0.9;
+          animation: pulse 1.6s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+          0% { opacity: 0.6; transform: scale(0.95); }
+          50% { opacity: 1; transform: scale(1); }
+          100% { opacity: 0.6; transform: scale(0.95); }
+        }
+      `}</style>
+
     </div>
   )
 }

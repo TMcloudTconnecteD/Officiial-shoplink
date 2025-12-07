@@ -189,7 +189,8 @@ const Navigation = () => {
       </nav>
 
       {/* Bottom Mobile Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-white/10 z-50 shadow-t flex justify-around py-2 md:hidden">
+     <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-white/10 z-50 shadow-t flex justify-around py-2 lg:hidden">
+
         {bottomNavItems.map((item) => {
           const isActive = location.pathname === item.path;
           let badge = 0;

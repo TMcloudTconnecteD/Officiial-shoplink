@@ -27,6 +27,8 @@ function calcPrices(orderItems) {
   };
 }
 
+
+
 const createOrder = async (req, res) => {
   try {
     const { orderItems, shippingAddress, paymentMethod, shop } = req.body;
@@ -35,25 +37,19 @@ const createOrder = async (req, res) => {
       return res.status(400).json({ message: "No order items" });
     }
 
-   if (
-  
-  !shippingAddress.phone ||
-  !shippingAddress.city ||
-  !shippingAddress.postalCode ||
-  !shippingAddress.country
-) {
-  return res.status(400).json({
-    message: "Incomplete shipping info",
-    missingFields: [
-      !shippingAddress?.phone && "phone",
-      !shippingAddress?.city && "city",
-      !shippingAddress?.postalCode && "postalCode",
-      !shippingAddress?.country && "country",
-    ].filter(Boolean),
-  });
-}
+    // Ensure required shipping fields exist
+    if (!shippingAddress.city || !shippingAddress.postalCode || !shippingAddress.country) {
+      return res.status(400).json({
+        message: "Incomplete shipping info",
+        missingFields: [
+          !shippingAddress?.city && "city",
+          !shippingAddress?.postalCode && "postalCode",
+          !shippingAddress?.country && "country",
+        ].filter(Boolean),
+      });
+    }
 
-
+    // Fetch products from DB
     const itemsFromDB = await Product.find({
       _id: { $in: orderItems.map((x) => x._id) },
     });
@@ -76,20 +72,27 @@ const createOrder = async (req, res) => {
       };
     });
 
-    const { itemsPrice, taxPrice, shippingPrice, totalPrice } =
-      calcPrices(dbOrderItems);
+    // Calculate prices
+    const { itemsPrice, taxPrice, shippingPrice, totalPrice } = calcPrices(dbOrderItems);
 
+    // Fetch shop details
     const shopDoc = await Shop.findById(shop);
-    const shippingAddressWithShopName = {
+
+    // Clean shipping address: move old 'address' → 'apartment', ensure phone exists
+    const shippingAddressCleaned = {
       ...shippingAddress,
+      apartment: shippingAddress.apartment || shippingAddress.address || "",
+      phone: shippingAddress.phone || "0000000000",
       shopName: shopDoc ? shopDoc.name : undefined,
     };
+    delete shippingAddressCleaned.address; // remove old 'address'
 
+    // Create new order
     const order = new Order({
       orderItems: dbOrderItems,
       user: req.user._id,
       shop,
-      shippingAddress: shippingAddressWithShopName,
+      shippingAddress: shippingAddressCleaned,
       paymentMethod,
       itemsPrice,
       taxPrice,
@@ -104,6 +107,9 @@ const createOrder = async (req, res) => {
     res.status(500).json({ error: error.message || "Server error" });
   }
 };
+
+
+
 
 const getAllOrders = async (req, res) => {
   try {

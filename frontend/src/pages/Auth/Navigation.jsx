@@ -2,9 +2,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   AiOutlineHome,
-  AiOutlineUserAdd,
-  AiOutlineShoppingCart,
   AiOutlineShop,
+  AiOutlineShoppingCart,
   AiOutlineSearch,
 } from "react-icons/ai";
 import { FaHeart, FaStore } from "react-icons/fa";
@@ -20,7 +19,6 @@ import {
 } from "../../redux/features/cart/cartSlice.js";
 
 import {
-  setFavorites,
   loadFavoritesForUser,
   clearFavorites,
 } from "../../redux/features/favorites/favoriteSlice.js";
@@ -28,6 +26,7 @@ import {
 const Navigation = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.cart);
+  const { favoriteItems } = useSelector((state) => state.favorites);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -35,7 +34,6 @@ const Navigation = () => {
 
   const [search, setSearch] = useState("");
   const searchRef = useRef();
-
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const cartCount = cartItems?.reduce((a, c) => a + (c.qty || 1), 0) || 0;
@@ -43,9 +41,8 @@ const Navigation = () => {
   const logoutHandler = async () => {
     try {
       await logoutApiCall().unwrap();
-    } catch (e) {
-      // ignore
-    } finally {
+    } catch (e) {}
+    finally {
       dispatch(clearCartItems());
       dispatch(clearFavorites());
       dispatch(logout());
@@ -54,7 +51,6 @@ const Navigation = () => {
   };
 
   const toggleDropdown = () => setDropdownOpen((prev) => !prev);
-
   const handleOptionClick = () => setDropdownOpen(false);
 
   useEffect(() => {
@@ -87,13 +83,13 @@ const Navigation = () => {
     }
   }, [userInfo, dispatch]);
 
-  // Define bottom nav items
+  // Bottom nav items - compute badge dynamically
   const bottomNavItems = [
     { name: "Home", icon: <AiOutlineHome size={24} />, path: "/" },
     { name: "Shop", icon: <AiOutlineShop size={24} />, path: "/shop" },
     { name: "Malls", icon: <FaStore size={22} />, path: "/shops/all" },
-    { name: "Favorites", icon: <FaHeart size={22} />, path: "/favorite", badge: cartItems.length },
-    { name: "Cart", icon: <AiOutlineShoppingCart size={24} />, path: "/cart", badge: cartCount },
+    { name: "Favorites", icon: <FaHeart size={22} />, path: "/favorite" },
+    { name: "Cart", icon: <AiOutlineShoppingCart size={24} />, path: "/cart" },
   ];
 
   return (
@@ -170,36 +166,18 @@ const Navigation = () => {
                   <ul className="absolute right-0 mt-3 w-44 bg-white dark:bg-zinc-900 text-gray-800 dark:text-gray-100 rounded-xl shadow-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 animate-fadeIn z-[9999]">
                     {userInfo.isAdmin && (
                       <>
-                        <li>
-                          <Link to="/admin/productlist" onClick={handleOptionClick} className="block px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                            Products
-                          </Link>
-                        </li>
-                        <li>
-                          <Link to="/admin/orderlist" onClick={handleOptionClick} className="block px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                            Orders
-                          </Link>
-                        </li>
+                        <li><Link to="/admin/productlist" onClick={handleOptionClick} className="block px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">Products</Link></li>
+                        <li><Link to="/admin/orderlist" onClick={handleOptionClick} className="block px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">Orders</Link></li>
                       </>
                     )}
                     {userInfo.isSuperAdmin && (
                       <>
-                        <li>
-                          <Link to="/admin/shops" onClick={handleOptionClick} className="block px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">Shops</Link>
-                        </li>
-                        <li>
-                          <Link to="/admin/users" onClick={handleOptionClick} className="block px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">Users</Link>
-                        </li>
-                        <li>
-                          <Link to="/admin/categories" onClick={handleOptionClick} className="block px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">Categories</Link>
-                        </li>
+                        <li><Link to="/admin/shops" onClick={handleOptionClick} className="block px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">Shops</Link></li>
+                        <li><Link to="/admin/users" onClick={handleOptionClick} className="block px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">Users</Link></li>
+                        <li><Link to="/admin/categories" onClick={handleOptionClick} className="block px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">Categories</Link></li>
                       </>
                     )}
-                    <li>
-                      <button onClick={logoutHandler} className="block w-full text-left px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                        Logout
-                      </button>
-                    </li>
+                    <li><button onClick={logoutHandler} className="block w-full text-left px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">Logout</button></li>
                   </ul>
                 )}
               </div>
@@ -210,10 +188,14 @@ const Navigation = () => {
         </div>
       </nav>
 
-      {/* Bottom Mobile Navigation with Active Indicator */}
+      {/* Bottom Mobile Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-white/10 z-50 shadow-t flex justify-around py-2 md:hidden">
         {bottomNavItems.map((item) => {
           const isActive = location.pathname === item.path;
+          let badge = 0;
+          if (item.name === "Favorites") badge = favoriteItems?.length || 0;
+          if (item.name === "Cart") badge = cartCount;
+
           return (
             <Link
               key={item.name}
@@ -221,13 +203,12 @@ const Navigation = () => {
               className={`flex flex-col items-center text-zinc-700 dark:text-zinc-100 hover:text-emerald-500 relative transition-all duration-200`}
             >
               {item.icon}
-              {item.badge > 0 && (
+              {badge > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white text-[10px] grid place-items-center">
-                  {item.badge}
+                  {badge}
                 </span>
               )}
               <span className="text-xs mt-1">{item.name}</span>
-              {/* Active indicator */}
               {isActive && (
                 <span className="absolute -top-0.5 w-6 h-0.5 rounded-full bg-emerald-500 transition-all duration-300"></span>
               )}

@@ -1,13 +1,159 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-   
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shop_Link</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shop_Link</title>
+
+  <link rel="icon" href="https://res.cloudinary.com/tmcloud/image/upload/v1765073472/shoplink_uploads/zhj9iddpymn8z441krtg.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      height: 100%;
+      width: 100%;
+      overflow-x: hidden;
+      background: linear-gradient(135deg, #4ade80, #16a34a, #14b8a6);
+      color: #fff;
+    }
+
+    #splash {
+      position: fixed;
+      top:0; left:0; right:0; bottom:0;
+      display:flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.1);
+      z-index: 9999;
+      perspective: 1000px;
+      overflow: hidden;
+    }
+
+    #logo {
+      width: 120px;
+      height: 120px;
+      background: url('https://res.cloudinary.com/tmcloud/image/upload/v1765073472/shoplink_uploads/zhj9iddpymn8z441krtg.png') no-repeat center/contain;
+      margin-bottom: 20px;
+      transform-style: preserve-3d;
+      transition: transform 0.2s ease-out;
+    }
+
+    #brandName {
+      display: flex;
+      font-size: 2rem;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(0,0,0,0.3);
+      transform-style: preserve-3d;
+    }
+
+    #brandName span {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.6s forwards;
+    }
+
+    #bike {
+      font-size: 2.5rem;
+      margin-top: 20px;
+      transform: translateX(-50px);
+      opacity: 0;
+      transition: transform 0.2s ease-out;
+    }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    #particles {
+      position: fixed;
+      top:0; left:0; right:0; bottom:0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    #root {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="particles"></div>
+
+  <div id="splash">
+    <div id="logo"></div>
+    <div id="brandName"></div>
+    <div id="bike">🛵</div>
+  </div>
+
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+
+  <audio id="splashSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+  <script>
+    const sound = document.getElementById('splashSound');
+    try { sound.play(); } catch(e) { console.log('Audio blocked'); }
+
+    const name = "Shop_Link";
+    const brandDiv = document.getElementById('brandName');
+    name.split('').forEach((letter, i) => {
+      const span = document.createElement('span');
+      span.textContent = letter;
+      span.style.animationDelay = `${i * 0.15}s`;
+      brandDiv.appendChild(span);
+    });
+
+    // 3D tilt effect
+    const logo = document.getElementById('logo');
+    const bike = document.getElementById('bike');
+    document.addEventListener('mousemove', e => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 20;
+      const y = (e.clientY / window.innerHeight - 0.5) * 20;
+      logo.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
+      bike.style.transform = `translateX(0) rotateY(${x/2}deg) rotateX(${-y/2}deg)`;
+    });
+
+    // Device orientation for phones
+    window.addEventListener('deviceorientation', e => {
+      const x = e.gamma; // left-right
+      const y = e.beta; // front-back
+      logo.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
+      bike.style.transform = `translateX(0) rotateY(${x/2}deg) rotateX(${-y/2}deg)`;
+    });
+
+    setTimeout(() => {
+      document.getElementById('splash').style.transition = 'opacity 0.6s';
+      document.getElementById('splash').style.opacity = 0;
+      setTimeout(() => { document.getElementById('splash').style.display = 'none'; }, 600);
+    }, 4000);
+
+    // Particle.js config
+    particlesJS("particles", {
+      "particles": {
+        "number": { "value": 80 },
+        "color": { "value": "#ffffff" },
+        "shape": { "type": "circle" },
+        "opacity": { "value": 0.5 },
+        "size": { "value": 3 },
+        "line_linked": { "enable": true, "distance": 150, "color": "#ffffff", "opacity": 0.2, "width": 1 },
+        "move": { "enable": true, "speed": 2, "direction": "none", "random": false, "straight": false, "out_mode": "out" }
+      },
+      "interactivity": {
+        "detect_on": "canvas",
+        "events": { "onhover": { "enable": true, "mode": "repulse" }, "onclick": { "enable": true, "mode": "push" } },
+        "modes": { "repulse": { "distance": 100 }, "push": { "particles_nb": 4 } }
+      },
+      "retina_detect": true
+    });
+  </script>
+
+</body>
 </html>

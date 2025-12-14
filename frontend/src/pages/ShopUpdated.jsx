@@ -202,7 +202,7 @@ const ShopUpdated = () => {
                       <button
                         key={brand}
                         onClick={() => handleBrandClick(brand)}
-                        className="px-3 py-1 rounded-full text-sm bg-emerald-100 dark:bg-emerald-700 hover:bg-emerald-200 dark:hover:bg-emerald-600"
+                        className="px-3 py-1 rounded-full text-sm bg-cyan-900 dark:bg-emerald-700 hover:bg-emerald-200 dark:hover:bg-emerald-600"
                       >
                         {brand}
                       </button>

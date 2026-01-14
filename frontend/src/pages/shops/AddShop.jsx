@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import ShopList from '../../components/ShopList.jsx';
-
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useCreateShopMutation, useUploadShopImageMutation } from '../../redux/Api/shopApiSlice';
+import {
+  useCreateShopMutation,
+  useUploadShopImageMutation,
+} from '../../redux/Api/shopApiSlice';
 import { useFetchCategoriesQuery } from '../../redux/Api/categoryApiSlice';
 import AdminMenu from '../Admin/AdminMenu';
 import Loader from '../../components/Loader.jsx';
@@ -17,7 +19,8 @@ const AddShop = () => {
   const [category, setCategory] = useState('');
   const [countryCode, setCountryCode] = useState('+254');
   const [isLoading, setIsLoading] = useState(false);
-  const[errors, setErrors] = useState({
+
+  const [errors, setErrors] = useState({
     name: '',
     location: '',
     telephone: '',
@@ -31,6 +34,7 @@ const AddShop = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+
     try {
       const mallData = new FormData();
       mallData.append('image', image);
@@ -42,10 +46,12 @@ const AddShop = () => {
       const response = await createShop(mallData);
 
       if (response.error) {
-        toast.error(response.error.data?.message || 'Cannot create mall, try again');
+        toast.error(
+          response.error.data?.message || 'Cannot create shop, try again'
+        );
       } else if (response.data) {
         toast.success(`${response.data.name} created successfully`);
-        navigate('/shops/all'); // Corrected navigation path
+        navigate('/shops/all');
       } else {
         toast.error('Unexpected error occurred');
       }
@@ -61,29 +67,36 @@ const AddShop = () => {
     const formData = new FormData();
     formData.append('image', e.target.files[0]);
 
-      try {
-        const res = await uploadShopImage(formData).unwrap();
-        toast.success(res.message || 'Image uploaded');
-        // server returns { imageUrl }
-        // Normalize preview URL so production (different origin) can fetch it
-  import('../../utils/resolveImageUrl').then(({ default: resolveImageUrl }) => {
+    try {
+      const res = await uploadShopImage(formData).unwrap();
+      toast.success(res.message || 'Image uploaded');
+
+      import('../../utils/resolveImageUrl')
+        .then(({ default: resolveImageUrl }) => {
           const resolved = resolveImageUrl(res.imageUrl || res.image);
           setImage(resolved);
           setImageUrl(resolved);
-        }).catch(() => {
+        })
+        .catch(() => {
           setImage(res.imageUrl || res.image);
           setImageUrl(res.imageUrl || res.image);
         });
-      } catch (error) {
-        toast.error(error?.data?.message || 'Image upload failed');
-      }
+    } catch (error) {
+      toast.error(error?.data?.message || 'Image upload failed');
+    }
   };
+
+  const inputBase =
+    'w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400';
 
   return (
     <div className="max-w-6xl mx-auto mt-20 px-4">
       <AdminMenu />
+
       <div className="bg-white rounded-2xl shadow-xl p-6 md:p-10">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">Create Shop 🏬</h2>
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">
+          Create Shop 🏬
+        </h2>
 
         {imageUrl && (
           <div className="text-center mb-4">
@@ -100,7 +113,6 @@ const AddShop = () => {
             {image ? 'Change Shop Image' : 'Upload Shop Image'}
             <input
               type="file"
-              name="image"
               accept="image/*"
               onChange={uploadFileHandler}
               className="hidden"
@@ -111,67 +123,85 @@ const AddShop = () => {
         <form onSubmit={handleSubmit}>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium mb-1">Shop Name {errors.name &&  <span className="text-red-500 text-xs"> - {errors.name}</span>}
+              <label className="block text-sm font-medium mb-1 text-gray-700">
+                Shop Name
+                {errors.name && (
+                  <span className="text-red-500 text-xs">
+                    {' '}
+                    - {errors.name}
+                  </span>
+                )}
               </label>
+
               <input
                 type="text"
                 value={name}
                 onChange={(e) => {
-                   if (e.target.value.length > 50) {
-                      setErrors({...errors, name: 'Max 50 characters'});
-                    } else {
-                      setErrors({...errors, name: ''});
-                      setName(e.target.value);
-                    }
-                  }}
+                  if (e.target.value.length > 50) {
+                    setErrors({ ...errors, name: 'Max 50 characters' });
+                  } else {
+                    setErrors({ ...errors, name: '' });
+                    setName(e.target.value);
+                  }
+                }}
                 placeholder="Shop name"
-                className={`w-full p-3 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400`}
+                className={`${inputBase} ${
+                  errors.name ? 'border-red-500' : ''
+                }`}
               />
+
               <div className="text-xs text-gray-500 text-right mt-1">
                 {name.length}/50
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Location</label>
+              <label className="block text-sm font-medium mb-1 text-gray-700">
+                Location
+              </label>
               <input
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="Location"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+                className={inputBase}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Contact Info</label>
+              <label className="block text-sm font-medium mb-1 text-gray-700">
+                Contact Info
+              </label>
               <div className="flex gap-2">
                 <select
                   value={countryCode}
                   onChange={(e) => setCountryCode(e.target.value)}
-                  className="w-1/3 p-3 border border-gray-300 rounded-lg"
+                  className="w-1/3 p-3 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-400"
                 >
                   <option value="+254">🇰🇪 +254</option>
                   <option value="+1">🇺🇸 +1</option>
                   <option value="+44">🇬🇧 +44</option>
                   <option value="+91">🇮🇳 +91</option>
                 </select>
+
                 <input
                   type="number"
                   value={telephone}
                   onChange={(e) => setTelephone(e.target.value)}
                   placeholder="712345678"
-                  className="w-2/3 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  className="w-2/3 p-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Category</label>
+              <label className="block text-sm font-medium mb-1 text-gray-700">
+                Category
+              </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+                className={inputBase}
               >
                 <option disabled value="">
                   Select Category
@@ -191,7 +221,7 @@ const AddShop = () => {
               disabled={isLoading}
               className="bg-pink-500 hover:bg-pink-600 text-white px-8 py-3 rounded-lg font-semibold shadow-md transition-all disabled:opacity-50"
             >
-              {isLoading ? <Loader className='bg-green-200' /> : 'Submit'}
+              {isLoading ? <Loader /> : 'Submit'}
             </button>
           </div>
         </form>

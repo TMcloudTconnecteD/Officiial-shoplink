@@ -38,7 +38,7 @@ const Login = () => {
   }
 
   const inputBase =
-    'mt-1 p-2 border border-gray-300 rounded w-full bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500'
+    'mt-1 p-2 border border-gray-300 rounded w-full bg-white !text-black caret-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500'
 
   return (
     <div className="bg-black min-h-screen">
@@ -63,6 +63,7 @@ const Login = () => {
                 className={inputBase}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
+                autoComplete="email"
               />
             </div>
 
@@ -80,6 +81,7 @@ const Login = () => {
                 className={inputBase}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                autoComplete="current-password"
               />
             </div>
 
@@ -96,13 +98,9 @@ const Login = () => {
 
           <div className="mt-4">
             <p className="text-white">
-              <i>New Customer? </i>{' '}
+              <i>New Customer? </i>
               <Link
-                to={
-                  redirect
-                    ? `/register?redirect=${redirect}`
-                    : '/register'
-                }
+                to={redirect ? `/register?redirect=${redirect}` : '/register'}
                 className="text-pink-500 hover:underline"
               >
                 Register

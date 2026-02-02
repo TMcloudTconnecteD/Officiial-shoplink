@@ -58,12 +58,10 @@ const HomeUpdated1 = () => {
               </Link>
             </div>
 
-            <div className="relative mt-8">
-              <div className="flex overflow-x-auto gap-6 px-4 py-4 scrollbar-hide">
+            <div className="relative mt-8 max-w-6xl mx-auto px-4">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {data?.products?.map((product) => (
-                  <div key={product._id} className="flex-none">
-                    <Product product={product} />
-                  </div>
+                  <Product key={product._id} product={product} />
                 ))}
               </div>
             </div>

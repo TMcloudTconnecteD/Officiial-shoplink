@@ -284,7 +284,7 @@ const getReceipt = async (req, res) => {
 
     doc.pipe(res);
 
-    // Try to include a logo (shop image if available, otherwise site fallback)
+    // Try to include a small centered logo (shop image if available, otherwise site fallback)
     const logoUrl = (order.shop && order.shop.image) || process.env.SITE_LOGO_URL || 'https://res.cloudinary.com/tmcloud/image/upload/v1765073472/shoplink_uploads/zhj9iddpymn8z441krtg.png';
     try {
       if (typeof fetch === 'function') {
@@ -292,8 +292,15 @@ const getReceipt = async (req, res) => {
         if (logoResp.ok) {
           const arrayBuffer = await logoResp.arrayBuffer();
           const buf = Buffer.from(arrayBuffer);
-          // place logo at top-left with a fit box
-          doc.image(buf, doc.x, doc.y, { fit: [120, 120] });
+          // place a small centered logo for a luxurious look
+          const logoSize = 72; // small and refined
+          const pageWidth = doc.page.width; 
+          const left = (pageWidth - logoSize) / 2;
+          // use a fixed y to create consistent spacing
+          const logoY = doc.page.margins.top || 40;
+          doc.image(buf, left, logoY, { fit: [logoSize, logoSize] });
+          // move cursor below the logo
+          doc.moveTo(doc.x, logoY + logoSize + 10);
           doc.moveDown();
         }
       }
@@ -301,9 +308,17 @@ const getReceipt = async (req, res) => {
       console.warn('Could not fetch logo for receipt:', err.message || err);
     }
 
-    doc.moveDown();
-    doc.fontSize(20).text("Receipt", { align: "center" });
-    doc.moveDown();
+    // Luxurious centered title with a gold accent
+    try {
+      doc.font('Times-Roman');
+    } catch (e) {
+      // Times-Roman is built-in, but ignore if unavailable
+    }
+    doc.moveDown(0.5);
+    doc.fontSize(18).fillColor('#b58b28').text((order.shop && order.shop.name) ? String(order.shop.name) : 'Shop_Link', { align: 'center' });
+    doc.moveDown(0.3);
+    doc.fontSize(14).fillColor('#111827').text('RECEIPT', { align: 'center', characterSpacing: 1 });
+    doc.moveDown(0.8);
 
     doc.fontSize(12).text(`Order ID: ${order._id}`);
     doc.text(`Date: ${new Date(order.paidAt).toLocaleString()}`);
@@ -332,6 +347,33 @@ const getReceipt = async (req, res) => {
     doc.fontSize(14).text(`Total: KES ${order.totalPrice.toFixed(2)}`, {
       align: "right",
     });
+
+    // Footer helper - centers a luxurious footer with contact and copyright
+    const addFooter = (docInstance) => {
+      try {
+        const footerY = docInstance.page.height - 40;
+        const shopName = (order.shop && order.shop.name) ? String(order.shop.name) : 'Shop_Link';
+        const contact = (order.shop && order.shop.telephone) ? String(order.shop.telephone) : (process.env.SUPPORT_PHONE || 'N/A');
+        const center = `© ${new Date().getFullYear()} ${shopName} — Contact: ${contact}`;
+        docInstance.fontSize(9).fillColor('#6b7280');
+        docInstance.text(center, docInstance.page.margins.left, footerY, { align: 'center' });
+        // subtle separator line
+        docInstance.moveTo(docInstance.page.margins.left, footerY - 8)
+          .lineTo(docInstance.page.width - docInstance.page.margins.right, footerY - 8)
+          .strokeColor('#e5e7eb')
+          .lineWidth(0.5)
+          .stroke();
+        // reset color for body content
+        docInstance.fillColor('#111827');
+      } catch (e) {
+        console.warn('Failed to render footer:', e.message || e);
+      }
+    };
+
+    // Ensure footer appears on every page
+    doc.on('pageAdded', () => addFooter(doc));
+    // add footer on the first page as well
+    addFooter(doc);
 
     doc.end();
   } catch (err) {

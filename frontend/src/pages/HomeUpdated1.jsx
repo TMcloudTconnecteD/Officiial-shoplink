@@ -18,7 +18,7 @@ const HomeUpdated1 = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowLoader(false);
-    }, 5000);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -61,7 +61,7 @@ const HomeUpdated1 = () => {
             <div className="relative mt-8">
               <div className="flex overflow-x-auto gap-6 px-4 py-4 scrollbar-hide">
                 {data?.products?.map((product) => (
-                  <div key={product._id} className="flex-none w-64">
+                  <div key={product._id} className="flex-none">
                     <Product product={product} />
                   </div>
                 ))}

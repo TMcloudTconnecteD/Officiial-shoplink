@@ -17,6 +17,12 @@
       width: 100%;
       overflow-x: hidden;
       background: linear-gradient(135deg, #3eeee2, #37b3e0, #638ff6);
+      /* Use a sensible default page text color instead of global white */
+      color: #111827;
+    }
+
+    /* Keep the splash overlay white so it looks as designed */
+    #splash, #splash * {
       color: #fff;
     }
 
@@ -100,7 +106,13 @@
 
   <script>
     const sound = document.getElementById('splashSound');
-    try { sound.play(); } catch(e) { console.log('Audio blocked'); }
+    // Modern browsers return a Promise from play(); handle rejection to avoid uncaught error
+    if (sound && sound.play) {
+      sound.play().catch(() => {
+        // autoplay blocked — wait for user interaction if you still want to play
+        console.log('Audio blocked or autoplay not allowed');
+      });
+    }
 
     const name = "Shop_Link";
     const brandDiv = document.getElementById('brandName');

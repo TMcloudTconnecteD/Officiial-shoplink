@@ -10,6 +10,8 @@ const Product = ({ product }) => {
         <img
           src={product.image}
           alt={product.name}
+          loading="lazy"
+          decoding="async"
           className="w-full h-[18rem] object-cover rounded-lg"
         />
 

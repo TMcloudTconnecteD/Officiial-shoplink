@@ -106,6 +106,14 @@ const Login = () => {
                 Register
               </Link>
             </p>
+            <div className="mt-4">
+              <a
+                href="/clerk-auth?mode=signin"
+                className="inline-block mt-2 bg-white text-black px-4 py-2 rounded hover:opacity-90"
+              >
+                Sign in with Clerk
+              </a>
+            </div>
           </div>
         </div>
 

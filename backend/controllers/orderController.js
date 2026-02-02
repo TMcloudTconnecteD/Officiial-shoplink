@@ -3,6 +3,7 @@ import Order from "../models/orderModel.js";
 import Product from "../models/productModel.js";
 import Shop from "../models/shopModel.js";
 import PDFDocument from "pdfkit"; // npm i pdfkit
+import { sendWatiMessage } from "../utils/wati.js";
 
 // Utility Function - returns numbers (not strings)
 function calcPrices(orderItems) {
@@ -90,7 +91,8 @@ const createOrder = async (req, res) => {
     // Create new order
     const order = new Order({
       orderItems: dbOrderItems,
-      user: req.user._id,
+      // Support guest checkout - user is optional
+      user: req.user ? req.user._id : undefined,
       shop,
       shippingAddress: shippingAddressCleaned,
       paymentMethod,
@@ -101,6 +103,20 @@ const createOrder = async (req, res) => {
     });
 
     const createdOrder = await order.save();
+
+    // Notify shop owner via WATI (if configured)
+    try {
+      if (shopDoc && shopDoc.telephone) {
+        const phone = shopDoc.telephone.toString();
+        sendWatiMessage(
+          phone,
+          `You have a new order (${createdOrder._id}). Please check your dashboard.`
+        );
+      }
+    } catch (err) {
+      console.error("WATI notification error:", err);
+    }
+
     res.status(201).json(createdOrder);
   } catch (error) {
     console.error("Error in createOrder:", error);
@@ -245,6 +261,7 @@ const markOrderAsDelivered = async (req, res) => {
 
 const getReceipt = async (req, res) => {
   try {
+    console.log(`getReceipt called for order id: ${req.params.id}`);
     const order = await Order.findById(req.params.id)
       .populate("user", "username email")
       .populate("shop", "name location");
@@ -264,8 +281,10 @@ const getReceipt = async (req, res) => {
     doc.moveDown();
     doc.fontSize(12).text(`Order ID: ${order._id}`);
     doc.text(`Date: ${new Date(order.paidAt).toLocaleString()}`);
-    doc.text(`Customer: ${order.user.username}`);
-    doc.text(`Email: ${order.user.email}`);
+    const customerName = order.user ? order.user.username : (order.shippingAddress?.name || 'Guest');
+    const customerEmail = order.user ? order.user.email : (order.shippingAddress?.email || 'N/A');
+    doc.text(`Customer: ${customerName}`);
+    doc.text(`Email: ${customerEmail}`);
     doc.text(`Shop: ${order.shop?.name || "N/A"}`);
     doc.text(`Phone: ${order.shippingAddress.phone}`);
     doc.text(`Payment Method: ${order.paymentMethod}`);

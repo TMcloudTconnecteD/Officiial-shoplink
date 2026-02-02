@@ -19,7 +19,7 @@ import { authenticate, authorizeAdmin } from "../middlewares/authMiddlewares.js"
 
 router
   .route("/")
-  .post(authenticate, createOrder)
+  .post(createOrder)
   .get(authenticate, authorizeAdmin, getAllOrders);
 
 router.route("/mine").get(authenticate, getUserOrders);
@@ -27,10 +27,11 @@ router.route("/total-orders").get(countTotalOrders);
 router.route("/total-sales").get(calculateTotalSales);
 router.route("/total-sales-by-date").get(calculateTotalSalesByDate);
 
-// receipt route (auth required)
-router.get("/:id/receipt", authenticate, getReceipt);
+// receipt route (no auth required so guests can download receipts)
+router.get("/:id/receipt", getReceipt);
 
-router.route("/:id").get(authenticate, findOrderById);
+// allow anyone to fetch an order by id (useful for guests after checkout)
+router.route("/:id").get(findOrderById);
 router.route("/:id/pay").put(authenticate, markOrderAsPaid);
 router
   .route("/:id/deliver")

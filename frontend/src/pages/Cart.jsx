@@ -19,7 +19,8 @@ const Cart = () => {
   };
 
   const checkoutHandler = () => {
-    navigate("/login?redirect=/shipping");
+    // Allow guest checkout: navigate directly to shipping form
+    navigate("/shipping");
   };
 
   return (

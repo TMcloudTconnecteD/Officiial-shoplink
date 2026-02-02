@@ -19,7 +19,7 @@ const Order = () => {
   const { data: order, refetch, isLoading, error } = useGetOrderDetailsQuery(orderId);
   const [payOrder, { isLoading: loadingPay }] = usePayOrderMutation();
   const [deliverOrder, { isLoading: loadingDeliver }] = useDeliverOrderMutation();
-  const { userInfo } = useSelector((state) => state.auth);
+  const { userInfo, token } = useSelector((state) => state.auth);
   const [{ isPending }, paypalDispatch] = usePayPalScriptReducer();
   const { data: paypal, isLoading: loadingPayPal, error: errorPayPal } = useGetPaypalClientIdQuery();
 
@@ -103,10 +103,41 @@ const Order = () => {
       toast.error(err?.data?.message || err?.message);
     }
   };
-const apiUrl = import.meta.env.VITE_API_URL;
+
+  const apiUrl = import.meta.env.VITE_API_URL;
   const deliverHandler = async () => {
     await deliverOrder(orderId);
     refetch();
+  };
+
+  const downloadReceipt = async () => {
+    try {
+      const token = userInfo?.token;
+      const headers = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const res = await fetch(`${apiUrl}/api/orders/${order._id}/receipt`, {
+        headers,
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to download receipt");
+      }
+      const blob = await res.blob();
+      // guard: empty PDF
+      if (!blob || blob.size === 0) {
+        throw new Error('Received empty receipt PDF');
+      }
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `receipt-${order._id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      toast.error(err.message || "Download failed");
+    }
   };
 
   if (isLoading) return <Loader />;
@@ -135,7 +166,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
                   {order.orderItems.map((item, idx) => (
                     <tr key={idx} className="border-b">
                       <td className="p-2">
-                        <img src={item.image} alt={item.name} className="w-14 h-14 object-cover rounded" />
+                        <img src={item.image} alt={item.name} loading="lazy" decoding="async" className="w-14 h-14 object-cover rounded" />
                       </td>
                       <td className="p-2">
                         <Link to={`/product/${item.product}`} className="text-blue-600 hover:underline">
@@ -167,8 +198,8 @@ const apiUrl = import.meta.env.VITE_API_URL;
           <h2 className="text-xl font-bold mb-4">Shipping</h2>
           <div className="text-sm">
             <p><strong>Order:</strong> {order._id}</p>
-            <p><strong>Name:</strong> {order.user.username}</p>
-            <p><strong>Email:</strong> {order.user.email}</p>
+            <p><strong>Name:</strong> {order.user ? order.user.username : 'Guest'}</p>
+            <p><strong>Email:</strong> {order.user ? order.user.email : 'N/A'}</p>
             <p><strong>Shop:</strong> {order.shop?.name || "N/A"}</p>
             <p>
               <strong>Address:</strong> {order.shippingAddress.phone}, {order.shippingAddress.city},{" "}
@@ -248,7 +279,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
                 {order.isPaid && (
                         <button
-                          onClick={() => window.open(`${apiUrl}/orders/${order._id}/receipt`)}
+                          onClick={downloadReceipt}
                           className="w-full mt-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
                         >
                           Download Receipt (PDF)

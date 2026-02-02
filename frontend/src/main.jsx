@@ -7,6 +7,7 @@ import { createRoutesFromElements, Route, RouterProvider } from 'react-router-do
 import { createBrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import store from './redux/features/store.js';
+import { ClerkProvider } from '@clerk/clerk-react';
 
 import Login from './pages/Auth/Login.jsx';
 import Register from './pages/Auth/Register.jsx';
@@ -30,6 +31,7 @@ import AddShop from './pages/shops/AddShop.jsx';
 
 // Frontend pages
 import HomeUpdated1 from './pages/HomeUpdated1.jsx';
+import ClerkAuth from './pages/Auth/ClerkAuth.jsx';
 import Favorites from "./pages/products/Favorites.jsx";
 import ProductDetails from "./pages/products/ProductDetails.jsx";
 import Cart from "./pages/Cart.jsx";
@@ -47,6 +49,7 @@ const router = createBrowserRouter(
     <Route path="/" element={<App />}>
       {/* Public routes */}
       <Route index element={<HomeUpdated1 />} />
+      <Route path="clerk-auth" element={<ClerkAuth />} />
       <Route path="login" element={<Login />} />
       <Route path="register" element={<Register />} />
       <Route path="favorite" element={<Favorites />} />
@@ -59,10 +62,12 @@ const router = createBrowserRouter(
       {/* Private routes */}
       <Route element={<PrivateRoutes />}>
         <Route path="profile" element={<Profile />} />
-        <Route path="shipping" element={<Shipping />} />
-        <Route path="placeorder" element={<PlaceOrder />} />
-        <Route path="order/:id" element={<Order />} />
       </Route>
+
+      {/* Public routes needed for guest checkout */}
+      <Route path="shipping" element={<Shipping />} />
+      <Route path="placeorder" element={<PlaceOrder />} />
+      <Route path="order/:id" element={<Order />} />
 
       {/* Admin routes */}
       <Route path="admin" element={<AdminRoutes />}>
@@ -87,6 +92,7 @@ const router = createBrowserRouter(
 
 createRoot(document.getElementById('root')).render(
   <Provider store={store}>
+    <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
     <PayPalScriptProvider
       options={{
         "client-id": "Ae7PNlizaVtFe3xtWLBfAmd-CHgJGu6G28oiUxz7KfT5UWB4fyjdJjgsFq76q5WLbyaUFFqa643Pw6Vy",
@@ -98,5 +104,6 @@ createRoot(document.getElementById('root')).render(
         <Footer />
       </>
     </PayPalScriptProvider>
+    </ClerkProvider>
   </Provider>
 );

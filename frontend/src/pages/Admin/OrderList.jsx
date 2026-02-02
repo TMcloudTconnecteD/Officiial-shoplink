@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import Message from "../../components/Message";
 import Loader from "../../components/Loader";
 import { Link } from "react-router-dom";
@@ -21,7 +21,7 @@ const OrderList = () => {
         </Message>
       ) : (
         <div className="container mx-auto overflow-x-auto">
-          <table className="w-full border border-gray-300 bg-white rounded-lg overflow-hidden">
+          <table style={{ color: '#111827' }} className="w-full border border-gray-300 bg-white rounded-lg overflow-hidden text-gray-900 dark:text-gray-900">
             <thead className="bg-gray-100 border-b">
               <tr>
                 <th className="text-left p-3">ITEM</th>
@@ -36,8 +36,14 @@ const OrderList = () => {
             </thead>
 
             <tbody>
-              {orders.map(order => (
-                <>
+              {(orders || []).length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="p-4">
+                    <Message variant="info">No orders found</Message>
+                  </td>
+                </tr>
+              ) : (
+                (orders || []).map((order) => [
                   <tr
                     key={order._id}
                     className="border-b hover:bg-gray-50 transition"
@@ -106,10 +112,10 @@ const OrderList = () => {
                         </button>
                       </Link>
                     </td>
-                  </tr>
+                  </tr>,
 
-                  {expandedRow === order._id && (
-                    <tr className="bg-gray-50">
+                  expandedRow === order._id && (
+                    <tr key={`${order._id}-expanded`} className="bg-gray-50">
                       <td colSpan="8" className="p-4">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                           <div>
@@ -141,9 +147,9 @@ const OrderList = () => {
                         </div>
                       </td>
                     </tr>
-                  )}
-                </>
-              ))}
+                  )
+                ])
+              )}
             </tbody>
           </table>
         </div>

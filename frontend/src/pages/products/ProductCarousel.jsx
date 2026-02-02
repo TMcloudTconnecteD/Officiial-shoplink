@@ -74,7 +74,7 @@ const ProductCarousel = ({ products: propProducts }) => {
                     <img
                       src={image}
                       alt={name}
-                      className="w-full h-[28rem] object-cover rounded-xl shadow-lg"
+                      className="w-full h-48 sm:h-64 md:h-80 lg:h-[28rem] object-cover rounded-xl shadow-lg"
                     />
 
                     <div className="mt-6 flex flex-col lg:flex-row justify-between items-start">

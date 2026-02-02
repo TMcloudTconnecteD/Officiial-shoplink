@@ -131,12 +131,20 @@ const Order = () => {
       const v2 = apiUrl ? `${apiUrl}/api/v2/orders/${order._id}/receipt?cb=${ts}` : `/api/v2/orders/${order._id}/receipt?cb=${ts}`;
       const fallback = `/api/orders/${order._id}/receipt?cb=${ts}`;
 
+      // Known backend host (Render service) as an extra fallback when frontend domain serves index.html
+      const knownBackend = 'https://shoplink-b.onrender.com';
+      const backendPrimary = `${knownBackend}/api/orders/${order._id}/receipt?cb=${ts}`;
+      const backendV2 = `${knownBackend}/api/v2/orders/${order._id}/receipt?cb=${ts}`;
+
       let res = null;
       // 1) try configured API URL
       if (primary) res = await tryFetch(primary, headers);
       // 2) try v2 path (helps bypass stale CDN caches)
       if ((!res || !res.ok) && v2) res = await tryFetch(v2, headers);
-      // 3) finally try relative path
+      // 3) try known backend (use auth header if available)
+      if ((!res || !res.ok)) res = await tryFetch(backendV2, headers);
+      if ((!res || !res.ok)) res = await tryFetch(backendPrimary, headers);
+      // 4) finally try relative path
       if ((!res || !res.ok)) {
         // try fallback without auth header (public endpoint)
         res = await tryFetch(fallback, {});

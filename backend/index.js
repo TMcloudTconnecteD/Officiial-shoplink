@@ -119,6 +119,28 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Debug PDF endpoint: quick way to confirm backend origin is serving PDFs
+app.get('/api/debug/receipt-test', (req, res) => {
+  try {
+    // import PDFDocument locally to avoid increasing startup cost for all processes
+    const PDFDocument = require('pdfkit');
+    const doc = new PDFDocument();
+    // identify origin for caching/debugging tools
+    res.setHeader('X-Receipt-Source', 'debug-origin');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename=debug-receipt.pdf');
+
+    doc.pipe(res);
+    doc.fontSize(14).text('Debug Receipt - Backend is reachable', { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(10).text(`Timestamp: ${new Date().toISOString()}`);
+    doc.end();
+  } catch (err) {
+    console.error('Debug receipt error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get("/api/config/paypal", (req, res) => {
   res.send({ clientId: process.env.PAYPAL_CLIENT_ID });
 });

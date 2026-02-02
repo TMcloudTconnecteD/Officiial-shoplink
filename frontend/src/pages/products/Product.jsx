@@ -12,7 +12,7 @@ const Product = ({ product }) => {
           alt={product.name}
           loading="lazy"
           decoding="async"
-          className="w-full h-[18rem] object-cover rounded-lg"
+          className="w-full h-40 sm:h-48 md:h-[18rem] object-cover rounded-lg"
         />
 
         {/* Heart icon for wishlist */}

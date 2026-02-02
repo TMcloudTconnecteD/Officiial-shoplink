@@ -10,7 +10,7 @@ const SmallProduct = ({ product }) => {
           <img
             src={product.image}
             alt={product.name}
-            className="w-full h-48 md:h-56 object-cover rounded-t-2xl transition-transform hover:scale-105"
+            className="w-full h-36 sm:h-44 md:h-56 object-cover rounded-t-2xl transition-transform hover:scale-105"
           />
         </Link>
         <div className="absolute top-2 right-2">

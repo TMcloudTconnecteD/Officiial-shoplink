@@ -293,13 +293,14 @@ const getReceipt = async (req, res) => {
           const arrayBuffer = await logoResp.arrayBuffer();
           const buf = Buffer.from(arrayBuffer);
           // place a smaller logo at the top-right to avoid overlapping text
-          const logoSize = 48; // smaller and refined
+          const logoSize = 36; // smaller and refined
           const pageWidth = doc.page.width;
-          const right = pageWidth - doc.page.margins.right - logoSize;
+          const right = pageWidth - doc.page.margins.right - logoSize - 8; // add small padding from edge
           const logoY = doc.page.margins.top || 40;
           doc.image(buf, right, logoY, { fit: [logoSize, logoSize] });
+          console.log(`Receipt logo placed at x=${right} y=${logoY} size=${logoSize}`);
           // Ensure text starts below the logo to avoid overlap
-          const headerY = logoY + logoSize + 10;
+          const headerY = logoY + logoSize + 12;
           if (doc.y < headerY) {
             doc.y = headerY;
           }

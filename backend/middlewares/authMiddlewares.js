@@ -82,4 +82,4 @@ const authorizeSuperAdmin = (req, res, next) => {
     }
 }
 
-export { authenticate, authorizeAdmin, authorizeSuperAdmin };
+export { authenticate, authorizeAdmin, authorizeSuperAdmin, optionalAuthenticate };

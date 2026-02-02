@@ -284,7 +284,7 @@ const getReceipt = async (req, res) => {
 
     doc.pipe(res);
 
-    // Try to include a small top-right logo (shop image if available, otherwise site fallback)
+    // Try to include logo as a watermark (semi-transparent, centered behind text)
     const logoUrl = (order.shop && order.shop.image) || process.env.SITE_LOGO_URL || 'https://res.cloudinary.com/tmcloud/image/upload/v1765073472/shoplink_uploads/zhj9iddpymn8z441krtg.png';
     try {
       if (typeof fetch === 'function') {
@@ -292,22 +292,22 @@ const getReceipt = async (req, res) => {
         if (logoResp.ok) {
           const arrayBuffer = await logoResp.arrayBuffer();
           const buf = Buffer.from(arrayBuffer);
-          // place a smaller logo at the top-right to avoid overlapping text
-          const logoSize = 36; // smaller and refined
+          // place a large semi-transparent watermark centered on the page behind text
+          const watermarkSize = 200; // large watermark for subtle background effect
           const pageWidth = doc.page.width;
-          const right = pageWidth - doc.page.margins.right - logoSize - 8; // add small padding from edge
-          const logoY = doc.page.margins.top || 40;
-          doc.image(buf, right, logoY, { fit: [logoSize, logoSize] });
-          console.log(`Receipt logo placed at x=${right} y=${logoY} size=${logoSize}`);
-          // Ensure text starts below the logo to avoid overlap
-          const headerY = logoY + logoSize + 12;
-          if (doc.y < headerY) {
-            doc.y = headerY;
-          }
+          const pageHeight = doc.page.height;
+          const left = (pageWidth - watermarkSize) / 2;
+          const top = (pageHeight - watermarkSize) / 2;
+          // set opacity to ~15% for a subtle watermark effect
+          doc.opacity(0.15);
+          doc.image(buf, left, top, { fit: [watermarkSize, watermarkSize] });
+          // restore full opacity for content
+          doc.opacity(1);
+          console.log(`Receipt watermark placed at center with opacity=0.15 size=${watermarkSize}`);
         }
       }
     } catch (err) {
-      console.warn('Could not fetch logo for receipt:', err.message || err);
+      console.warn('Could not fetch logo for watermark:', err.message || err);
     }
 
     // Luxurious centered title with a gold accent (starts below logo)
@@ -350,21 +350,30 @@ const getReceipt = async (req, res) => {
       align: "right",
     });
 
-    // Footer helper - centers a luxurious footer with contact and copyright
+    // Footer helper - centers a clear footer with contact, email, and page number
     const addFooter = (docInstance) => {
       try {
-        const footerY = docInstance.page.height - 40;
+        const footerY = docInstance.page.height - 60; // a bit higher for visibility
         const shopName = (order.shop && order.shop.name) ? String(order.shop.name) : 'Shop_Link';
         const contact = (order.shop && order.shop.telephone) ? String(order.shop.telephone) : (process.env.SUPPORT_PHONE || 'N/A');
-        const center = `© ${new Date().getFullYear()} ${shopName} — Contact: ${contact}`;
-        docInstance.fontSize(9).fillColor('#6b7280');
-        docInstance.text(center, docInstance.page.margins.left, footerY, { align: 'center' });
-        // subtle separator line
-        docInstance.moveTo(docInstance.page.margins.left, footerY - 8)
-          .lineTo(docInstance.page.width - docInstance.page.margins.right, footerY - 8)
-          .strokeColor('#e5e7eb')
-          .lineWidth(0.5)
+        const email = process.env.SUPPORT_EMAIL || (order.shop && order.shop.contactEmail) || '';
+        const center = `© ${new Date().getFullYear()} ${shopName} — Contact: ${contact}${email ? ' — ' + email : ''}`;
+
+        // separator line (subtle but visible)
+        docInstance.strokeColor('#d1d5db').lineWidth(0.6);
+        docInstance.moveTo(docInstance.page.margins.left, footerY - 12)
+          .lineTo(docInstance.page.width - docInstance.page.margins.right, footerY - 12)
           .stroke();
+
+        // footer text
+        docInstance.fontSize(10).fillColor('#374151');
+        docInstance.text(center, docInstance.page.margins.left, footerY - 8, { align: 'center' });
+
+        // page number on the right
+        const pageNumber = docInstance.page && docInstance.page.number ? docInstance.page.number : 1;
+        docInstance.fontSize(9).fillColor('#6b7280');
+        docInstance.text(`Page ${pageNumber}`, docInstance.page.margins.left, footerY + 6, { align: 'right' });
+
         // reset color for body content
         docInstance.fillColor('#111827');
       } catch (e) {

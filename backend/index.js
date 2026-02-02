@@ -72,6 +72,14 @@ app.use((req, res, next) => {
 
 app.use(cors(corsOptions));
 
+// Prevent CDN/Edge caching of API endpoints. Some CDNs (e.g. Cloudflare, Render)
+// may cache responses for paths that look static — explicitly disable caching
+// for all /api/* responses so clients always get fresh data.
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0');
+  next();
+});
+
 // Startup env validation for critical services
 const requiredEnvs = [
   'MONGO_URI',

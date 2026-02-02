@@ -8,93 +8,83 @@
   <link rel="icon" href="https://res.cloudinary.com/tmcloud/image/upload/v1765073472/shoplink_uploads/zhj9iddpymn8z441krtg.png" type="image/png">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Roboto', sans-serif;
-      height: 100%;
-      width: 100%;
-      overflow-x: hidden;
-      background: linear-gradient(135deg, #3eeee2, #37b3e0, #638ff6);
-      /* Use a sensible default page text color instead of global white */
-      color: #111827;
-    }
-
-    /* Keep the splash overlay white so it looks as designed */
-    #splash, #splash * {
-      color: #fff;
-    }
-
-    /* Ensure images maintain aspect ratio on all screens to avoid stretching */
-    img {
-      max-width: 100%;
-      height: auto;
-      object-fit: cover;
-      display: block;
-    }
-
-    #splash {
-      position: fixed;
-      top:0; left:0; right:0; bottom:0;
-      display:flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,0,0,0.1);
-      z-index: 9999;
-      perspective: 1000px;
-      overflow: hidden;
-    }
-
-    #logo {
-      width: 120px;
-      height: 120px;
-      background: url('https://res.cloudinary.com/tmcloud/image/upload/v1765073472/shoplink_uploads/zhj9iddpymn8z441krtg.png') no-repeat center/contain;
-      margin-bottom: 20px;
-      transform-style: preserve-3d;
-      transition: transform 0.2s ease-out;
-    }
-
-    #brandName {
-      display: flex;
-      font-size: 2rem;
-      letter-spacing: 2px;
-      text-shadow: 0 0 10px rgba(0,0,0,0.3);
-      transform-style: preserve-3d;
-    }
-
-    #brandName span {
-      opacity: 0;
-      transform: translateY(20px);
-      animation: fadeUp 0.6s forwards;
-    }
-
-    #bike {
-      font-size: 2.5rem;
-      margin-top: 20px;
-      transform: translateX(-50px);
-      opacity: 0;
-      transition: transform 0.2s ease-out;
-    }
-
-    @keyframes fadeUp {
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    #particles {
-      position: fixed;
-      top:0; left:0; right:0; bottom:0;
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    #root {
-      position: relative;
-      z-index: 1;
-      min-height: 100vh;
-    }
-  </style>
+  <style>html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  background: linear-gradient(135deg, #3eeee2, #37b3e0, #638ff6);
+  color: #111827;
+}
+#splash, #splash * {
+  color: #fff;
+}
+#splash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.1);
+  z-index: 9999;
+  perspective: 1000px;
+  overflow: hidden;
+}
+#logo {
+  width: 120px;
+  height: 120px;
+  background: url('https://res.cloudinary.com/tmcloud/image/upload/v1765073472/shoplink_uploads/zhj9iddpymn8z441krtg.png') no-repeat center/contain;
+  margin-bottom: 20px;
+  transform-style: preserve-3d;
+  transition: transform 0.2s ease-out;
+}
+#brandName {
+  display: flex;
+  font-size: 2rem;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(0,0,0,0.3);
+  transform-style: preserve-3d;
+}
+#brandName span {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.6s forwards;
+}
+#bike {
+  font-size: 2.5rem;
+  margin-top: 20px;
+  transform: translateX(-50px);
+  opacity: 0;
+  transition: transform 0.2s ease-out;
+}
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+#particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+#root {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}</style>
+  <script type="module" crossorigin src="/assets/index-CehVO4yU.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DAqn1qEK.css">
 </head>
 <body>
 
@@ -107,7 +97,6 @@
   </div>
 
   <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
 
   <audio id="splashSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
   <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>

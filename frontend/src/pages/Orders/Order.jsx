@@ -111,17 +111,37 @@ const Order = () => {
   };
 
   const downloadReceipt = async () => {
+    const tryFetch = async (url, headers = {}) => {
+      try {
+        const res = await fetch(url, { headers });
+        return res;
+      } catch (e) {
+        return { ok: false, status: 0, _networkError: true, text: async () => e.message };
+      }
+    };
+
     try {
       const token = userInfo?.token;
       const headers = {};
       if (token) headers.Authorization = `Bearer ${token}`;
-      const res = await fetch(`${apiUrl}/api/orders/${order._id}/receipt`, {
-        headers,
-      });
+
+      // Try configured API URL first, then fall back to relative path
+      const primary = apiUrl ? `${apiUrl}/api/orders/${order._id}/receipt` : null;
+      const fallback = `/api/orders/${order._id}/receipt`;
+
+      let res = null;
+      if (primary) res = await tryFetch(primary, headers);
+      if (!res || !res.ok) {
+        // try fallback without auth header (public endpoint)
+        res = await tryFetch(fallback, {});
+      }
+
       if (!res.ok) {
         const text = await res.text();
-        throw new Error(text || "Failed to download receipt");
+        const statusMsg = res._networkError ? 'Network error' : `Status ${res.status}`;
+        throw new Error(`${statusMsg}: ${text || 'Failed to download receipt'}`);
       }
+
       const blob = await res.blob();
       // guard: empty PDF
       if (!blob || blob.size === 0) {

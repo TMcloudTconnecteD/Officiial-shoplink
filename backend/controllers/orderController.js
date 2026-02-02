@@ -270,6 +270,8 @@ const getReceipt = async (req, res) => {
     if (!order.isPaid) return res.status(400).json({ message: "Order not paid yet" });
 
     const doc = new PDFDocument({ margin: 50 });
+    // Ensure PDFs are never cached by CDNs
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0");
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",

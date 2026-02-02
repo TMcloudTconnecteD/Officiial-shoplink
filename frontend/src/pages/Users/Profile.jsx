@@ -16,12 +16,14 @@ const Profile = () => {
     const [updateProfile, {isLoading: loadingUpdateProfile}] = useProfileMutation()
   
   useEffect(() => {
-    setUsername(userInfo.username)
-    setEmail(userInfo.email)
+    if (userInfo) {
+      setUsername(userInfo.username)
+      setEmail(userInfo.email)
+    }
 
   
    
-  }, [userInfo.email, userInfo.username])
+  }, [userInfo])
 
   const dispatch = useDispatch()
 

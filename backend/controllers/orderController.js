@@ -277,20 +277,43 @@ const getReceipt = async (req, res) => {
       "Content-Disposition",
       `attachment; filename=receipt-${order._id}.pdf`
     );
+    // also explicitly prevent caching for PDF
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0');
+
     doc.pipe(res);
 
+    // Try to include a logo (shop image if available, otherwise site fallback)
+    const logoUrl = (order.shop && order.shop.image) || process.env.SITE_LOGO_URL || 'https://res.cloudinary.com/tmcloud/image/upload/v1765073472/shoplink_uploads/zhj9iddpymn8z441krtg.png';
+    try {
+      if (typeof fetch === 'function') {
+        const logoResp = await fetch(logoUrl);
+        if (logoResp.ok) {
+          const arrayBuffer = await logoResp.arrayBuffer();
+          const buf = Buffer.from(arrayBuffer);
+          // place logo at top-left with a fit box
+          doc.image(buf, doc.x, doc.y, { fit: [120, 120] });
+          doc.moveDown();
+        }
+      }
+    } catch (err) {
+      console.warn('Could not fetch logo for receipt:', err.message || err);
+    }
+
+    doc.moveDown();
     doc.fontSize(20).text("Receipt", { align: "center" });
     doc.moveDown();
+
     doc.fontSize(12).text(`Order ID: ${order._id}`);
     doc.text(`Date: ${new Date(order.paidAt).toLocaleString()}`);
-    const customerName = order.user ? order.user.username : (order.shippingAddress?.name || 'Guest');
-    const customerEmail = order.user ? order.user.email : (order.shippingAddress?.email || 'N/A');
+    const customerName = order.user ? order.user.username : 'Guest';
+    const customerEmail = order.user ? order.user.email : 'N/A';
     doc.text(`Customer: ${customerName}`);
     doc.text(`Email: ${customerEmail}`);
     doc.text(`Shop: ${order.shop?.name || "N/A"}`);
     doc.text(`Phone: ${order.shippingAddress.phone}`);
     doc.text(`Payment Method: ${order.paymentMethod}`);
     doc.moveDown();
+
 
     doc.text("Items:", { underline: true });
     order.orderItems.forEach((item) => {

@@ -125,9 +125,10 @@ const Order = () => {
       const headers = {};
       if (token) headers.Authorization = `Bearer ${token}`;
 
-      // Try configured API URL first, then fall back to relative path
-      const primary = apiUrl ? `${apiUrl}/api/orders/${order._id}/receipt` : null;
-      const fallback = `/api/orders/${order._id}/receipt`;
+      // Try configured API URL first (with cache-buster), then fall back to relative path (also cache-busted)
+      const ts = Date.now();
+      const primary = apiUrl ? `${apiUrl}/api/orders/${order._id}/receipt?cb=${ts}` : null;
+      const fallback = `/api/orders/${order._id}/receipt?cb=${ts}`;
 
       let res = null;
       if (primary) res = await tryFetch(primary, headers);
@@ -140,6 +141,13 @@ const Order = () => {
         const text = await res.text();
         const statusMsg = res._networkError ? 'Network error' : `Status ${res.status}`;
         throw new Error(`${statusMsg}: ${text || 'Failed to download receipt'}`);
+      }
+
+      const contentType = res.headers && res.headers.get ? res.headers.get('content-type') : '';
+      if (!contentType || !contentType.includes('application/pdf')) {
+        // Server returned HTML or error page instead of PDF
+        const text = await res.text();
+        throw new Error(`Unexpected response content-type: ${contentType || 'unknown'} - ${text.slice(0, 200)}`);
       }
 
       const blob = await res.blob();

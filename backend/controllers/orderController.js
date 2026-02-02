@@ -284,7 +284,7 @@ const getReceipt = async (req, res) => {
 
     doc.pipe(res);
 
-    // Try to include a small centered logo (shop image if available, otherwise site fallback)
+    // Try to include a small top-right logo (shop image if available, otherwise site fallback)
     const logoUrl = (order.shop && order.shop.image) || process.env.SITE_LOGO_URL || 'https://res.cloudinary.com/tmcloud/image/upload/v1765073472/shoplink_uploads/zhj9iddpymn8z441krtg.png';
     try {
       if (typeof fetch === 'function') {
@@ -292,23 +292,24 @@ const getReceipt = async (req, res) => {
         if (logoResp.ok) {
           const arrayBuffer = await logoResp.arrayBuffer();
           const buf = Buffer.from(arrayBuffer);
-          // place a small centered logo for a luxurious look
-          const logoSize = 72; // small and refined
-          const pageWidth = doc.page.width; 
-          const left = (pageWidth - logoSize) / 2;
-          // use a fixed y to create consistent spacing
+          // place a smaller logo at the top-right to avoid overlapping text
+          const logoSize = 48; // smaller and refined
+          const pageWidth = doc.page.width;
+          const right = pageWidth - doc.page.margins.right - logoSize;
           const logoY = doc.page.margins.top || 40;
-          doc.image(buf, left, logoY, { fit: [logoSize, logoSize] });
-          // move cursor below the logo
-          doc.moveTo(doc.x, logoY + logoSize + 10);
-          doc.moveDown();
+          doc.image(buf, right, logoY, { fit: [logoSize, logoSize] });
+          // Ensure text starts below the logo to avoid overlap
+          const headerY = logoY + logoSize + 10;
+          if (doc.y < headerY) {
+            doc.y = headerY;
+          }
         }
       }
     } catch (err) {
       console.warn('Could not fetch logo for receipt:', err.message || err);
     }
 
-    // Luxurious centered title with a gold accent
+    // Luxurious centered title with a gold accent (starts below logo)
     try {
       doc.font('Times-Roman');
     } catch (e) {

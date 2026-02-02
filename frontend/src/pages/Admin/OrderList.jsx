@@ -59,7 +59,7 @@ const OrderList = () => {
                     <td className="p-3 text-sm">{order._id}</td>
 
                     <td className="p-3">
-                      {order.user ? order.user.username : "N/A"}
+                      {order.user?.username || order.user?.email || "Guest"}
                     </td>
 
                     <td className="p-3">

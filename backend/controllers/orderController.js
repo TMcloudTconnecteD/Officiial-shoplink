@@ -130,7 +130,7 @@ const createOrder = async (req, res) => {
 const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find({})
-      .populate("user", "id username")
+      .populate("user", "username email")
       .populate("shop", "name location")
       .populate({
         path: "orderItems.product",
@@ -271,6 +271,8 @@ const getReceipt = async (req, res) => {
 
     const doc = new PDFDocument({ margin: 50 });
     // Ensure PDFs are never cached by CDNs
+    // Mark origin for debugging (helps identify when a CDN is returning stale HTML)
+    res.setHeader('X-Receipt-Source', 'origin');
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0");
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(

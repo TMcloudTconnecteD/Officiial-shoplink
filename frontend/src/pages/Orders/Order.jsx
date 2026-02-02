@@ -128,11 +128,16 @@ const Order = () => {
       // Try configured API URL first (with cache-buster), then fall back to relative path (also cache-busted)
       const ts = Date.now();
       const primary = apiUrl ? `${apiUrl}/api/orders/${order._id}/receipt?cb=${ts}` : null;
+      const v2 = apiUrl ? `${apiUrl}/api/v2/orders/${order._id}/receipt?cb=${ts}` : `/api/v2/orders/${order._id}/receipt?cb=${ts}`;
       const fallback = `/api/orders/${order._id}/receipt?cb=${ts}`;
 
       let res = null;
+      // 1) try configured API URL
       if (primary) res = await tryFetch(primary, headers);
-      if (!res || !res.ok) {
+      // 2) try v2 path (helps bypass stale CDN caches)
+      if ((!res || !res.ok) && v2) res = await tryFetch(v2, headers);
+      // 3) finally try relative path
+      if ((!res || !res.ok)) {
         // try fallback without auth header (public endpoint)
         res = await tryFetch(fallback, {});
       }
@@ -147,7 +152,15 @@ const Order = () => {
       if (!contentType || !contentType.includes('application/pdf')) {
         // Server returned HTML or error page instead of PDF
         const text = await res.text();
-        throw new Error(`Unexpected response content-type: ${contentType || 'unknown'} - ${text.slice(0, 200)}`);
+        const preview = (text || '').slice(0, 400);
+        const debugUrl = primary || v2 || fallback;
+        try {
+          // open a debug tab so the developer can inspect the HTML response quickly
+          window.open(debugUrl, "_blank");
+          // try copying to clipboard for convenience
+          navigator.clipboard && navigator.clipboard.writeText(debugUrl);
+        } catch (e) {}
+        throw new Error(`Unexpected response content-type: ${contentType || 'unknown'} - ${preview}`);
       }
 
       const blob = await res.blob();

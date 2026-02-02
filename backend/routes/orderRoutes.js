@@ -15,11 +15,11 @@ import {
   getReceipt,
 } from "../controllers/orderController.js";
 
-import { authenticate, authorizeAdmin } from "../middlewares/authMiddlewares.js";
+import { authenticate, authorizeAdmin, optionalAuthenticate } from "../middlewares/authMiddlewares.js";
 
 router
   .route("/")
-  .post(createOrder)
+  .post(optionalAuthenticate, createOrder)
   .get(authenticate, authorizeAdmin, getAllOrders);
 
 router.route("/mine").get(authenticate, getUserOrders);
@@ -29,6 +29,8 @@ router.route("/total-sales-by-date").get(calculateTotalSalesByDate);
 
 // receipt route (no auth required so guests can download receipts)
 router.get("/:id/receipt", getReceipt);
+// temporary v2 route (helps bypass stale CDN caches while you purge)
+router.get("/v2/:id/receipt", getReceipt);
 
 // allow anyone to fetch an order by id (useful for guests after checkout)
 router.route("/:id").get(findOrderById);

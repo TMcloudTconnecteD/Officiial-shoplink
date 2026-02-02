@@ -27,10 +27,10 @@ router.route("/total-orders").get(countTotalOrders);
 router.route("/total-sales").get(calculateTotalSales);
 router.route("/total-sales-by-date").get(calculateTotalSalesByDate);
 
-// receipt route (no auth required so guests can download receipts)
-router.get("/:id/receipt", getReceipt);
-// temporary v2 route (helps bypass stale CDN caches while you purge)
-router.get("/v2/:id/receipt", getReceipt);
+// receipt route: allow optional authentication so logged-in users' details can be used in receipts
+router.get("/:id/receipt", optionalAuthenticate, getReceipt);
+// temporary v2 route (helps bypass stale CDN caches while you purge) with optional auth
+router.get("/v2/:id/receipt", optionalAuthenticate, getReceipt);
 
 // allow anyone to fetch an order by id (useful for guests after checkout)
 router.route("/:id").get(findOrderById);

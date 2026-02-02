@@ -13,7 +13,8 @@ function calcPrices(orderItems) {
   );
 
   const shippingPrice = itemsPrice > 5000 ? 0 : 100;
-  const taxRate = 0.15;
+  const taxRate = 0.08
+  ;
   const taxPrice = Number((itemsPrice * taxRate).toFixed(2));
 
   const totalPrice = Number(
@@ -293,7 +294,7 @@ const getReceipt = async (req, res) => {
           const arrayBuffer = await logoResp.arrayBuffer();
           const buf = Buffer.from(arrayBuffer);
           // place a large semi-transparent watermark centered on the page behind text
-          const watermarkSize = 200; // large watermark for subtle background effect
+          const watermarkSize = 150; // large watermark for subtle background effect
           const pageWidth = doc.page.width;
           const pageHeight = doc.page.height;
           const left = (pageWidth - watermarkSize) / 2;
@@ -324,8 +325,23 @@ const getReceipt = async (req, res) => {
 
     doc.fontSize(12).text(`Order ID: ${order._id}`);
     doc.text(`Date: ${new Date(order.paidAt).toLocaleString()}`);
-    const customerName = order.user ? order.user.username : 'Guest';
-    const customerEmail = order.user ? order.user.email : 'N/A';
+    // Determine customer info: prefer recorded order user, then request-authenticated user, else Guest
+    let customerSource = 'guest';
+    let customerName = 'Guest';
+    let customerEmail = 'N/A';
+
+    if (order.user && (order.user.username || order.user.email)) {
+      customerSource = 'order.user';
+      customerName = order.user.username || `User:${order.user._id}`;
+      customerEmail = order.user.email || 'N/A';
+    } else if (req.user) {
+      customerSource = 'request.user';
+      customerName = req.user.username || `User:${req.user._id}`;
+      customerEmail = req.user.email || 'N/A';
+    }
+
+    console.log(`Receipt customer source: ${customerSource} (name=${customerName}, email=${customerEmail})`);
+
     doc.text(`Customer: ${customerName}`);
     doc.text(`Email: ${customerEmail}`);
     doc.text(`Shop: ${order.shop?.name || "N/A"}`);

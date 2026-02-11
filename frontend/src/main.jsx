@@ -96,7 +96,7 @@ createRoot(document.getElementById('root')).render(
     <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
     <PayPalScriptProvider
       options={{
-        "client-id": "Ae7PNlizaVtFe3xtWLBfAmd-CHgJGu6G28oiUxz7KfT5UWB4fyjdJjgsFq76q5WLbyaUFFqa643Pw6Vy",
+        "client-id": "AVAGZFhfvoeAp1LJlvNDtAALlmeY5tdtTxmQJ-cFCX8TiJeSW7oEeQ_VYA32UVLlOIkz9fxV-H5XRMt8",
         "currency": "USD",
       }}
     >

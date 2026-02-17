@@ -13,6 +13,7 @@ import {
 } from "react-icons/fa";
 import Loader from "../../components/Loader";
 import { useGetTopProductsQuery } from "../../redux/Api/productApiSlice";
+import { getOptimizedHeroImage } from "../../utils/imageOptimization";
 
 const ProductCarousel = ({ products: propProducts }) => {
   const { data: topProducts, isLoading, error } = useGetTopProductsQuery();
@@ -27,7 +28,7 @@ const ProductCarousel = ({ products: propProducts }) => {
     slidesToShow: 1,
     slidesToScroll: 1,
     arrows: true,
-    autoplay: true,
+    autoplay: false,
     autoplaySpeed: 3000,
   };
 
@@ -72,8 +73,10 @@ const ProductCarousel = ({ products: propProducts }) => {
                     className="block bg-white rounded-xl p-4 hover:opacity-95 transition"
                   >
                     <img
-                      src={image}
+                      src={getOptimizedHeroImage(image)}
                       alt={name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-48 sm:h-64 md:h-80 lg:h-[28rem] object-cover rounded-xl shadow-lg"
                     />
 

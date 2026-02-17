@@ -20,6 +20,7 @@ import HeartIcon from "./HeartIcon";
 import Ratings from "./Ratings";
 import ProductTabs from "./ProductTabs";
 import { addToCart } from "../../redux/features/cart/cartSlice";
+import { getOptimizedHeroImage } from "../../utils/imageOptimization";
 
 const ProductDetails = () => {
   const { id: productId } = useParams();
@@ -88,8 +89,10 @@ const ProductDetails = () => {
             {/* Left Side - Product Image & Heart Icon */}
             <div className="relative w-full lg:w-1/2">
               <img
-                src={product.image}
+                src={getOptimizedHeroImage(product.image)}
                 alt={product.name}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-auto max-h-[30rem] object-cover rounded-lg shadow-lg"
               />
               <div className="absolute top-4 right-4">

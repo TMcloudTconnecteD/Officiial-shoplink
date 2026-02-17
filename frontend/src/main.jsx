@@ -4,6 +4,7 @@ import App from './App.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import Footer from './components/Footer.jsx';
 import 'virtual:windi.css';
+import './styles/theme.css';
 import { createRoutesFromElements, Route, RouterProvider } from 'react-router-dom';
 import { createBrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';

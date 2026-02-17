@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { addToCart } from "../../redux/features/cart/cartSlice";
 import { toast } from "react-toastify";
 import HeartIcon from "../products/HeartIcon";
+import { getOptimizedProductImage } from "../../utils/imageOptimization";
 
 
 const ProductCard = ({ p }) => {
@@ -21,8 +22,10 @@ const ProductCard = ({ p }) => {
       <div className="relative w-full">
         <Link to={`/product/${p._id}`} state={{ fromShop: p.shop?._id }}>
           <img
-            src={p.image}
+            src={getOptimizedProductImage(p.image, 400)}
             alt={p.name}
+            loading="lazy"
+            decoding="async"
             className="w-full h-44 sm:h-56 md:h-72 lg:h-80 object-cover rounded-t-2xl transition-transform hover:scale-105"
           />
         </Link>

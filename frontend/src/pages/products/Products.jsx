@@ -20,6 +20,7 @@ import {
 import moment from "moment";
 import ProductTabs from "./Tabs";
 import HeartIcon from "./HeartIcon";
+import { getOptimizedHeroImage } from "../../utils/imageOptimization";
 
 const Products = () => {
   const { id: productId } = useParams();
@@ -84,8 +85,10 @@ const Products = () => {
           <div className="container mx-auto px-4 py-10 flex flex-col lg:flex-row gap-8 items-start">
             <div className="relative w-full lg:w-1/2">
               <img
-                src={product.image}
+                src={getOptimizedHeroImage(product.image)}
                 alt={product.name}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-auto max-h-[30rem] object-cover rounded-xl"
               />
               <div className="absolute top-4 right-4">

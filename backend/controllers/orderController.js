@@ -270,7 +270,7 @@ const getReceipt = async (req, res) => {
     if (!order) return res.status(404).json({ message: "Order not found" });
     if (!order.isPaid) return res.status(400).json({ message: "Order not paid yet" });
 
-    const doc = new PDFDocument({ margin: 50 });
+    const doc = new PDFDocument({ size: 'A5', margin: 20 });
     // Ensure PDFs are never cached by CDNs
     // Mark origin for debugging (helps identify when a CDN is returning stale HTML)
     res.setHeader('X-Receipt-Source', 'origin');
@@ -293,18 +293,18 @@ const getReceipt = async (req, res) => {
         if (logoResp.ok) {
           const arrayBuffer = await logoResp.arrayBuffer();
           const buf = Buffer.from(arrayBuffer);
-          // place a large semi-transparent watermark centered on the page behind text
-          const watermarkSize = 150; // large watermark for subtle background effect
+          // place a small semi-transparent watermark for A5 format
+          const watermarkSize = 60; // smaller for A5 page
           const pageWidth = doc.page.width;
           const pageHeight = doc.page.height;
           const left = (pageWidth - watermarkSize) / 2;
           const top = (pageHeight - watermarkSize) / 2;
-          // set opacity to ~15% for a subtle watermark effect
-          doc.opacity(0.15);
+          // set opacity to ~10% for a subtle watermark effect
+          doc.opacity(0.1);
           doc.image(buf, left, top, { fit: [watermarkSize, watermarkSize] });
           // restore full opacity for content
           doc.opacity(1);
-          console.log(`Receipt watermark placed at center with opacity=0.15 size=${watermarkSize}`);
+          console.log(`Receipt watermark placed at center with opacity=0.1 size=${watermarkSize}`);
         }
       }
     } catch (err) {
@@ -317,13 +317,13 @@ const getReceipt = async (req, res) => {
     } catch (e) {
       // Times-Roman is built-in, but ignore if unavailable
     }
-    doc.moveDown(0.5);
-    doc.fontSize(18).fillColor('#b58b28').text((order.shop && order.shop.name) ? String(order.shop.name) : 'Shop_Link', { align: 'center' });
+    doc.moveDown(0.2);
+    doc.fontSize(14).fillColor('#b58b28').text((order.shop && order.shop.name) ? String(order.shop.name) : 'Shop_Link', { align: 'center' });
+    doc.moveDown(0.2);
+    doc.fontSize(11).fillColor('#111827').text('RECEIPT', { align: 'center', characterSpacing: 1 });
     doc.moveDown(0.3);
-    doc.fontSize(14).fillColor('#111827').text('RECEIPT', { align: 'center', characterSpacing: 1 });
-    doc.moveDown(0.8);
 
-    doc.fontSize(12).text(`Order ID: ${order._id}`);
+    doc.fontSize(9).text(`Order ID: ${order._id}`);
     doc.text(`Date: ${new Date(order.paidAt).toLocaleString()}`);
     // Determine customer info: prefer recorded order user, then request-authenticated user, else Guest
     let customerSource = 'guest';
@@ -346,49 +346,43 @@ const getReceipt = async (req, res) => {
     doc.text(`Email: ${customerEmail}`);
     doc.text(`Shop: ${order.shop?.name || "N/A"}`);
     doc.text(`Phone: ${order.shippingAddress.phone}`);
-    doc.text(`Payment Method: ${order.paymentMethod}`);
-    doc.moveDown();
+    doc.text(`Payment: ${order.paymentMethod}`);
+    doc.moveDown(0.2);
 
 
-    doc.text("Items:", { underline: true });
+    doc.fontSize(9).text("Items:", { underline: true });
     order.orderItems.forEach((item) => {
-      doc.text(
+      doc.fontSize(8).text(
         `${item.name} x${item.qty} = KES ${(item.qty * item.price).toFixed(2)}`
       );
     });
-    doc.moveDown();
+    doc.moveDown(0.1);
 
-    doc.text(`Items: KES ${order.itemsPrice.toFixed(2)}`);
+    doc.fontSize(9).text(`Items: KES ${order.itemsPrice.toFixed(2)}`);
     doc.text(`Shipping: KES ${order.shippingPrice.toFixed(2)}`);
     doc.text(`Tax: KES ${order.taxPrice.toFixed(2)}`);
-    doc.moveDown();
-    doc.fontSize(14).text(`Total: KES ${order.totalPrice.toFixed(2)}`, {
+    doc.moveDown(0.1);
+    doc.fontSize(11).text(`Total: KES ${order.totalPrice.toFixed(2)}`, {
       align: "right",
     });
 
-    // Footer helper - centers a clear footer with contact, email, and page number
+    // Footer helper - compact footer for A5 format
     const addFooter = (docInstance) => {
       try {
-        const footerY = docInstance.page.height - 60; // a bit higher for visibility
+        const footerY = docInstance.page.height - 30; // compact for A5
         const shopName = (order.shop && order.shop.name) ? String(order.shop.name) : 'Shop_Link';
         const contact = (order.shop && order.shop.telephone) ? String(order.shop.telephone) : (process.env.SUPPORT_PHONE || 'N/A');
-        const email = process.env.SUPPORT_EMAIL || (order.shop && order.shop.contactEmail) || '';
-        const center = `© ${new Date().getFullYear()} ${shopName} — Contact: ${contact}${email ? ' — ' + email : ''}`;
+        const center = `© ${new Date().getFullYear()} ${shopName} — ${contact}`;
 
         // separator line (subtle but visible)
-        docInstance.strokeColor('#d1d5db').lineWidth(0.6);
-        docInstance.moveTo(docInstance.page.margins.left, footerY - 12)
-          .lineTo(docInstance.page.width - docInstance.page.margins.right, footerY - 12)
+        docInstance.strokeColor('#d1d5db').lineWidth(0.5);
+        docInstance.moveTo(docInstance.page.margins.left, footerY - 8)
+          .lineTo(docInstance.page.width - docInstance.page.margins.right, footerY - 8)
           .stroke();
 
         // footer text
-        docInstance.fontSize(10).fillColor('#374151');
-        docInstance.text(center, docInstance.page.margins.left, footerY - 8, { align: 'center' });
-
-        // page number on the right
-        const pageNumber = docInstance.page && docInstance.page.number ? docInstance.page.number : 1;
-        docInstance.fontSize(9).fillColor('#6b7280');
-        docInstance.text(`Page ${pageNumber}`, docInstance.page.margins.left, footerY + 6, { align: 'right' });
+        docInstance.fontSize(7).fillColor('#374151');
+        docInstance.text(center, docInstance.page.margins.left, footerY - 4, { align: 'center' });
 
         // reset color for body content
         docInstance.fillColor('#111827');
@@ -397,9 +391,7 @@ const getReceipt = async (req, res) => {
       }
     };
 
-    // Ensure footer appears on every page
-    doc.on('pageAdded', () => addFooter(doc));
-    // add footer on the first page as well
+    // Only add footer to single A5 page (don't trigger pageAdded event for unwanted extra pages)
     addFooter(doc);
 
     doc.end();

@@ -9,7 +9,6 @@ import { useFetchCategoriesQuery } from "../redux/Api/categoryApiSlice";
 import { setCategories, setProducts, setChecked } from "../redux/features/shop/shopSlice";
 import Loader from "../components/Loader";
 import ProductCard from "../pages/products/ProductCard";
-import MallCard from "../components/MallCard";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useLocation } from "react-router-dom";
@@ -176,9 +175,6 @@ const ShopUpdated = () => {
 
           {/* Main Content */}
           <main className="flex-1 order-1 lg:order-2">
-            <div className="mb-6">
-              <MallCard onClick={handleMallClick} />
-            </div>
 
             {/* Curated and grouped */}
             <div className="mb-6 backdrop-glass rounded-2xl p-4 shadow-md border border-white/8">

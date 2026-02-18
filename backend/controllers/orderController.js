@@ -270,7 +270,11 @@ const getReceipt = async (req, res) => {
     if (!order) return res.status(404).json({ message: "Order not found" });
     if (!order.isPaid) return res.status(400).json({ message: "Order not paid yet" });
 
-    const doc = new PDFDocument({ size: 'A5', margin: 20 });
+    // force a single A5 sheet – prevent automatic multi-page output
+    const doc = new PDFDocument({ size: 'A5', margin: 20, autoFirstPage: false });
+    doc.addPage();
+
+    // Ensure PDFs are never cached by CDNs
     // Ensure PDFs are never cached by CDNs
     // Mark origin for debugging (helps identify when a CDN is returning stale HTML)
     res.setHeader('X-Receipt-Source', 'origin');

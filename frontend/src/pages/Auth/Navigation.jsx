@@ -126,7 +126,7 @@ const Navigation = () => {
             <Link to="/shops/all" className="relative"><FaStore className="text-zinc-700 dark:text-zinc-100" /></Link>
             <Link to="/favorite" className="relative">
               <FaHeart className="text-zinc-700 dark:text-zinc-100" />
-              <span className="absolute -top-2 -right-3 w-5 h-5 rounded-full bg-emerald-500 text-white text-xs grid place-items-center">
+              <span className="absolute -top-1 -right-2 w-4 h-4 rounded-full bg-emerald-500 text-white text-[10px] grid place-items-center">
                 <FavoritesCount />
               </span>
             </Link>

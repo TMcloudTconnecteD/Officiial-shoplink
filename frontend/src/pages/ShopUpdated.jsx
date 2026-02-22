@@ -21,6 +21,7 @@ const ShopUpdated = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const keyword = queryParams.get("keyword") || "";
+  const categoryParam = queryParams.get("category") || "";
 
   const categoriesQuery = useFetchCategoriesQuery(undefined, {
     refetchOnMountOrArgChange: false,
@@ -53,6 +54,16 @@ const ShopUpdated = () => {
       dispatch(setCategories(categoriesQuery.data));
     }
   }, [categoriesQuery.data, dispatch]);
+
+  // Auto-select category from URL parameter
+  useEffect(() => {
+    if (categoryParam && categories && categories.length > 0) {
+      const categoryObj = categories.find((c) => c.name === categoryParam);
+      if (categoryObj && !checked.includes(categoryObj._id)) {
+        dispatch(setChecked([...checked, categoryObj._id]));
+      }
+    }
+  }, [categoryParam, categories, dispatch]);
 
   useEffect(() => {
     if (keyword.length > 0) {

@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useGetProductsQuery } from "../redux/Api/productApiSlice";
 import { useEffect, useState } from "react";
 
@@ -13,11 +13,17 @@ import { ProductGridSkeleton } from "../components/SkeletonLoader";
 import HeroSection from "../components/sections/HeroSection";
 import CategoryStrip from "../components/sections/CategoryStrip";
 import FeaturedShops from "../components/sections/FeaturedShops";
+import LocalShops from "../components/sections/LocalShops";
 import TrustSection from "../components/sections/TrustSection";
 
 const HomeUpdated1 = () => {
-  const { keyword } = useParams();
-  const { data, isLoading, error } = useGetProductsQuery({ keyword });
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const keyword = queryParams.get("keyword") || "";
+  const { data, isLoading, error } = useGetProductsQuery(
+    { keyword },
+    { skip: !keyword }
+  );
 
   const [showLoader, setShowLoader] = useState(true);
 
@@ -48,6 +54,9 @@ const HomeUpdated1 = () => {
 
         {/* Featured Shops */}
         {!keyword && <FeaturedShops />}
+
+        {/* Local Shops */}
+        {!keyword && <LocalShops />}
 
         {/* Featured Products Carousel */}
         {!keyword && (

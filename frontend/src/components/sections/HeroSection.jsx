@@ -1,6 +1,28 @@
 import './HeroSection.css';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+  const { userInfo } = useSelector((state) => state.auth);
+
+  const handleBrowseShops = () => {
+    navigate('/shops/all');
+  };
+
+  const handleStartSelling = () => {
+    if (!userInfo) {
+      navigate('/login');
+      return;
+    }
+    // If user is admin, take them to add shop page, otherwise to malls page
+    if (userInfo.isSuperAdmin || userInfo.isAdmin) {
+      navigate('/admin/shop/add');
+    } else {
+      navigate('/shops/all');
+    }
+  };
+
   return (
     <section className="hero-section">
       {/* Background gradient */}
@@ -15,10 +37,16 @@ const HeroSection = () => {
           </p>
           
           <div className="hero-ctas">
-            <button className="btn btn-primary btn-lg">
+            <button 
+              onClick={handleBrowseShops}
+              className="btn btn-primary btn-lg"
+            >
               Browse Shops
             </button>
-            <button className="btn btn-secondary btn-lg">
+            <button 
+              onClick={handleStartSelling}
+              className="btn btn-secondary btn-lg"
+            >
               Start Selling
             </button>
           </div>

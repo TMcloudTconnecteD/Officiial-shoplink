@@ -13,6 +13,8 @@ import productRoutes from './routes/productRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import mpesaRoutes from './routes/mpesaRoutes.js';
+import cropRoutes from './routes/cropRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 
 dotenv.config();
 const port = process.env.PORT || 8000;
@@ -106,6 +108,8 @@ app.use('/api/uploads', uploadRoutes);
 app.use('/api/shops', shopRoutes);
 app.use("/api/orders", orderRoutes);
 app.use('/api/payments', mpesaRoutes);
+app.use('/api/crops', cropRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check endpoint for smoke tests
 app.get('/api/health', (req, res) => {

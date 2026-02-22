@@ -4,11 +4,13 @@ import { Outlet } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import Navigation from './pages/Auth/Navigation'
+import InstallPrompt from './components/InstallPrompt.jsx';
 
 const App = () => {
   return (
     <>
         <ToastContainer />
+        <InstallPrompt />
         <Navigation  />
         < main className='bg-gray-100 py-3' >
         <Outlet />

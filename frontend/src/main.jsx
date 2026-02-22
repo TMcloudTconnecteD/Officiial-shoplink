@@ -111,3 +111,12 @@ createRoot(document.getElementById('root')).render(
     </ClerkProvider>
   </Provider>
 );
+
+// register service worker for PWA
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/service-worker.js").catch((err) => {
+      console.error("Service worker registration failed:", err);
+    });
+  });
+}

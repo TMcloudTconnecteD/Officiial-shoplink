@@ -6,7 +6,7 @@ import {
   AiOutlineShoppingCart,
   AiOutlineSearch,
 } from "react-icons/ai";
-import { FaHeart, FaStore } from "react-icons/fa";
+import { FaHeart, FaStore, FaDownload } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useLogoutMutation } from "../../redux/Api/usersApiSlice.js";
@@ -138,6 +138,15 @@ const Navigation = () => {
                 </span>
               )}
             </Link>
+
+            <button
+              onClick={handleDownloadApp}
+              className="hidden sm:flex items-center gap-2 bg-emerald-500 text-white px-3 py-2 rounded-lg hover:bg-emerald-600 transition-all text-sm font-semibold shadow-md"
+              title="Download ShopLink App"
+            >
+              <FaDownload size={16} />
+              <span>App</span>
+            </button>
 
             {userInfo ? (
               <div className="relative">

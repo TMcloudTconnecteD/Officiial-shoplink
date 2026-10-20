@@ -35,13 +35,19 @@ const colorMap = {
   'Alcohol': '#8B5CF6',
 };
 
+const normalizeCategoryName = (category) => {
+  if (!category) return 'General';
+  if (typeof category === 'string') return category;
+  if (typeof category?.name === 'string') return category.name;
+  return 'General';
+};
+
 const CategoryStrip = () => {
   const { data: categoriesData, isLoading } = useFetchCategoriesQuery();
   const navigate = useNavigate();
   const categories = categoriesData?.categories || categoriesData || [];
 
   const handleCategoryClick = (categoryName) => {
-    // Navigate to shop page with category filter
     navigate(`/shop?category=${encodeURIComponent(categoryName)}`);
   };
 
@@ -69,15 +75,15 @@ const CategoryStrip = () => {
         <h2 className="category-title">Browse by Category</h2>
         <div className="category-scroll">
           {categories.map((category) => {
-            const categoryName = category.name || category;
+            const categoryName = normalizeCategoryName(category);
             const Icon = iconMap[categoryName] || FaBox;
             const color = colorMap[categoryName] || '#6B7280';
-            
+
             return (
-              <button 
-                key={category._id || categoryName} 
+              <button
+                key={String(category?._id || categoryName)}
                 onClick={() => handleCategoryClick(categoryName)}
-                className="category-card" 
+                className="category-card"
                 title={categoryName}
               >
                 <div className="category-icon" style={{ backgroundColor: color }}>

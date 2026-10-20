@@ -267,6 +267,7 @@
 
   .metrics-grid {
     gap: var(--space-3);
+    grid-template-columns: 1fr;
   }
 
   .metric-card {
@@ -288,5 +289,145 @@
   .activity-table th,
   .activity-table td {
     padding: var(--space-2);
+  }
+
+  .charts-section {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .chart-container {
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+
+  .chart-title {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--space-3);
+  }
+
+  .activity-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .activity-table {
+    min-width: 100%;
+    border-collapse: collapse;
+  }
+
+  .recent-activity-section {
+    padding: var(--space-4) 0;
+  }
+
+  .activity-title {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--space-3);
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-dashboard {
+    padding: var(--space-3) var(--space-2);
+  }
+
+  .dashboard-header {
+    margin-bottom: var(--space-4);
+  }
+
+  .dashboard-title {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--space-1);
+  }
+
+  .dashboard-subtitle {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-4);
+  }
+
+  .metrics-grid {
+    gap: var(--space-2);
+    grid-template-columns: 1fr;
+  }
+
+  .metric-card {
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+  }
+
+  .metric-icon {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    margin-bottom: var(--space-2);
+  }
+
+  .metric-label {
+    font-size: var(--font-size-xs);
+    margin-bottom: var(--space-1);
+  }
+
+  .metric-value {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-1);
+  }
+
+  .metric-growth {
+    font-size: var(--font-size-xs);
+  }
+
+  .chart-container {
+    padding: var(--space-3);
+    margin-bottom: var(--space-3);
+    border-radius: var(--radius-md);
+  }
+
+  .chart-title {
+    font-size: var(--font-size-base);
+    margin-bottom: var(--space-2);
+  }
+
+  .chart-placeholder {
+    padding: var(--space-3);
+  }
+
+  .chart-placeholder p {
+    font-size: var(--font-size-xs);
+    word-break: break-word;
+  }
+
+  .activity-table th {
+    font-size: var(--font-size-xs);
+    padding: var(--space-1) var(--space-1.5);
+  }
+
+  .activity-table td {
+    font-size: var(--font-size-xs);
+    padding: var(--space-1.5) var(--space-1);
+    word-break: break-word;
+  }
+
+  .order-id {
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .status-badge {
+    padding: 2px 6px;
+    font-size: 10px;
+  }
+
+  .recent-activity-section {
+    padding: 0;
+  }
+
+  .activity-title {
+    font-size: var(--font-size-base);
+    margin-bottom: var(--space-2);
+  }
+
+  .activity-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--radius-md);
   }
 }

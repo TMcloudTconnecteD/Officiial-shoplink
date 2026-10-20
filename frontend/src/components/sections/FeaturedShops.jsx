@@ -4,16 +4,37 @@ import { Link } from 'react-router-dom';
 import { useFetchShopsQuery } from '../../redux/Api/shopApiSlice';
 import { useMemo } from 'react';
 
+const normalizeCategoryName = (category) => {
+  if (!category) return 'General';
+  if (typeof category === 'string') return category.trim() || 'General';
+  if (typeof category?.name === 'string') return category.name.trim() || 'General';
+  return 'General';
+};
+
+const normalizeCategoryId = (category) => {
+  if (!category) return '';
+  if (typeof category === 'string') return category;
+  if (category?._id) return String(category._id);
+  return '';
+};
+
+const normalizeShopImage = (shop) => {
+  const image = shop?.image || shop?.logo || shop?.shopImage;
+  if (typeof image === 'string' && image.trim()) return image;
+  return 'https://res.cloudinary.com/tmcloud/image/upload/w_500,q_auto,f_auto/v1/shop-placeholder';
+};
+
 const ShopCard = ({ shop }) => {
   const shopId = shop._id || shop.id;
-  const shopName = shop.name || shop.shopName || 'Shop';
-  const shopImage = shop.image || shop.logo || 'https://res.cloudinary.com/tmcloud/image/upload/w_500,q_auto,f_auto/v1/shop-placeholder';
-  const category = shop.category || 'General';
-  const rating = shop.rating || 4.5;
-  const reviews = shop.reviews || 0;
+  const shopName = typeof shop.name === 'string' && shop.name.trim() ? shop.name : 'Shop';
+  const shopImage = normalizeShopImage(shop);
+  const category = normalizeCategoryName(shop.category);
+  const categoryId = normalizeCategoryId(shop.category);
+  const rating = Number(shop.rating) || 4.5;
+  const reviews = Number(shop.reviews) || 0;
 
   return (
-    <Link to={`/shops/${shopId}`} className="shop-card-link">
+    <Link to={`/shops/${shopId}`} state={{ fromShop: categoryId || shopId }} className="shop-card-link">
       <div className="featured-shop-card">
         <div className="shop-image-container">
           <img
@@ -48,7 +69,6 @@ const FeaturedShops = () => {
   const { data: shopsData, isLoading } = useFetchShopsQuery();
   const shops = shopsData?.data || shopsData || [];
 
-  // Get random featured shops (max 3)
   const featuredShops = useMemo(() => {
     if (shops.length === 0) return [];
     const shuffled = [...shops].sort(() => Math.random() - 0.5);
@@ -90,7 +110,7 @@ const FeaturedShops = () => {
         
         <div className="shops-grid">
           {featuredShops.map((shop) => (
-            <ShopCard key={shop._id || shop.id} shop={shop} />
+            <ShopCard key={shop._id || shop.id || Math.random()} shop={shop} />
           ))}
         </div>
       </div>

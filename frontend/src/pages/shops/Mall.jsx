@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import ShopCard from '../../pages/shops/ShopCard.jsx';
 import { useFetchShopsQuery } from '../../redux/Api/shopApiSlice';
 import { useFetchCategoriesQuery } from '../../redux/Api/categoryApiSlice';
@@ -11,6 +12,7 @@ const Mall = () => {
 
   const { data: shops = [], isLoading, isError } = useFetchShopsQuery();
   const { data: categories = [] } = useFetchCategoriesQuery();
+  const { userInfo } = useSelector((state) => state.auth);
 
   const [locationFilter, setLocationFilter] = useState('');
   const [locationSearch, setLocationSearch] = useState('');
@@ -39,13 +41,28 @@ const Mall = () => {
     );
   };
 
+  const normalizeCategoryName = (category) => {
+    if (!category) return 'General';
+    if (typeof category === 'string') return category.trim() || 'General';
+    if (typeof category?.name === 'string') return category.name.trim() || 'General';
+    return 'General';
+  };
+
+  const normalizeCategoryId = (category) => {
+    if (!category) return '';
+    if (typeof category === 'string') return category;
+    if (category?._id) return String(category._id);
+    return '';
+  };
+
   const filteredShops = useMemo(() => {
     let filtered = shops;
 
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter(shop =>
-        selectedCategories.includes(shop.category?._id)
-      );
+      filtered = filtered.filter(shop => {
+        const shopCategoryId = normalizeCategoryId(shop.category);
+        return shopCategoryId && selectedCategories.includes(shopCategoryId);
+      });
     }
 
     if (locationFilter) {
@@ -67,13 +84,15 @@ const Mall = () => {
             All Shops
           </h2>
 
-          <button
-            onClick={() => navigate('/admin/shop/add')}
-            className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow-md"
-          >
-            <FaPlus />
-            Add Shop
-          </button>
+          {userInfo?.isAdmin && (
+            <button
+              onClick={() => navigate('/admin/shop/add')}
+              className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow-md"
+            >
+              <FaPlus />
+              Add Shop
+            </button>
+          )}
         </div>
 
         {/* Location Filter */}
@@ -132,22 +151,27 @@ const Mall = () => {
           </p>
 
           <div className="flex flex-wrap gap-4">
-            {categories.map(category => (
-              <label
-                key={category._id}
-                className="inline-flex items-center gap-2 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedCategories.includes(category._id)}
-                  onChange={() => handleCategoryChange(category._id)}
-                  className="w-4 h-4 text-pink-600 border-gray-300"
-                />
-                <span className="text-gray-700">
-                  {category.name}
-                </span>
-              </label>
-            ))}
+            {categories.map(category => {
+              const categoryName = normalizeCategoryName(category);
+              const categoryId = normalizeCategoryId(category);
+
+              return (
+                <label
+                  key={categoryId || categoryName}
+                  className="inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={categoryId ? selectedCategories.includes(categoryId) : false}
+                    onChange={() => handleCategoryChange(categoryId)}
+                    className="w-4 h-4 text-pink-600 border-gray-300"
+                  />
+                  <span className="text-gray-700">
+                    {categoryName}
+                  </span>
+                </label>
+              );
+            })}
           </div>
         </div>
 

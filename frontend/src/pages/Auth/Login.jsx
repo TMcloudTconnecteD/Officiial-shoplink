@@ -41,15 +41,15 @@ const Login = () => {
     'mt-1 p-2 border border-gray-300 rounded w-full bg-white !text-black caret-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500'
 
   return (
-    <div className="bg-black min-h-screen">
-      <section className="pl-[10rem] pr-[2rem] flex flex-nowrap items-center justify-between w-full">
-        <div className="mr-[4rem] mt-[5rem]">
-          <h2 className="text-2xl font-semibold mb-4 text-white">
+    <div className="bg-black min-h-screen flex items-center justify-center">
+      <section className="w-full max-w-5xl mx-auto px-4 py-12 flex flex-col md:flex-row items-center justify-center gap-8">
+        <div className="w-full md:w-1/2">
+          <h2 className="text-2xl font-semibold mb-4 text-white text-center md:text-left">
             Sign In
           </h2>
 
-          <form onSubmit={handleSubmit} className="w-[40rem]">
-            <div className="my-[2rem]">
+          <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto md:mx-0">
+            <div className="my-4">
               <label
                 htmlFor="email"
                 className="block text-sm font-medium text-white"
@@ -67,7 +67,7 @@ const Login = () => {
               />
             </div>
 
-            <div className="my-[2rem]">
+            <div className="my-4">
               <label
                 htmlFor="password"
                 className="block text-sm font-medium text-white"
@@ -85,18 +85,20 @@ const Login = () => {
               />
             </div>
 
-            <button
-              disabled={isLoading}
-              type="submit"
-              className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded cursor-pointer my-[1rem] disabled:opacity-50"
-            >
-              {isLoading ? 'Signing in...' : 'Sign In'}
-            </button>
+            <div className="flex flex-col items-center md:items-start">
+              <button
+                disabled={isLoading}
+                type="submit"
+                className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded cursor-pointer my-4 disabled:opacity-50"
+              >
+                {isLoading ? 'Signing in...' : 'Sign In'}
+              </button>
 
-            {isLoading && <Loader />}
+              {isLoading && <Loader />}
+            </div>
           </form>
 
-          <div className="mt-4">
+          <div className="mt-4 text-center md:text-left">
             <p className="text-white">
               <i>New Customer? </i>
               <Link
@@ -117,11 +119,13 @@ const Login = () => {
           </div>
         </div>
 
-        <img
-          src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1170&q=80"
-          alt="TMcod"
-          className="h-auto w-[30%] md:w-[25%] sm:w-[20%] xl:block ml-[3rem] object-cover rounded-lg"
-        />
+        <div className="hidden md:block md:w-1/2">
+          <img
+            src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1170&q=80"
+            alt="TMcod"
+            className="w-full h-64 md:h-80 lg:h-96 object-cover rounded-lg shadow-lg"
+          />
+        </div>
       </section>
     </div>
   )

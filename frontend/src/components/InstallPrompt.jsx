@@ -7,28 +7,24 @@ const InstallPrompt = () => {
   const [showIOSGuide, setShowIOSGuide] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
-  // Detect if device is iOS
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
   useEffect(() => {
-    // Check localStorage for dismissed state
-    const isDismissed = localStorage.getItem('shimmer-app-dismissed');
+    const isDismissed = localStorage.getItem('shoplink-app-dismissed');
     if (isDismissed) {
       setDismissed(true);
     }
 
     const handler = (e) => {
-      // prevent automatic prompt
       e.preventDefault();
       setDeferredPrompt(e);
       setShowButton(true);
-      localStorage.removeItem('shimmer-app-dismissed'); // Re-enable if event fires
+      localStorage.removeItem('shoplink-app-dismissed');
       setDismissed(false);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
 
-    // Show iOS guide on iOS devices
     if (isIOS && !isDismissed) {
       setShowIOSGuide(true);
     }
@@ -45,7 +41,7 @@ const InstallPrompt = () => {
     setShowButton(false);
     setDeferredPrompt(null);
     if (outcome === 'accepted') {
-      localStorage.setItem('shimmer-app-installed', 'true');
+      localStorage.setItem('shoplink-app-installed', 'true');
     }
   };
 
@@ -53,74 +49,92 @@ const InstallPrompt = () => {
     setShowButton(false);
     setShowIOSGuide(false);
     setDismissed(true);
-    localStorage.setItem('shimmer-app-dismissed', 'true');
+    localStorage.setItem('shoplink-app-dismissed', 'true');
   };
 
-  // Android/Chrome PWA Install Button
   if (showButton && !dismissed) {
     return (
-      <div className="fixed bottom-20 md:bottom-4 right-4 z-50 animate-bounce">
-        <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl shadow-2xl border-2 border-emerald-400 overflow-hidden">
-          <div className="p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <FaDownload size={20} />
-              <div>
-                <h3 className="font-bold text-base">Install ShopLink</h3>
-                <p className="text-xs text-emerald-100">Quick access from home screen</p>
-              </div>
-              <button
-                onClick={handleDismiss}
-                className="ml-auto text-emerald-200 hover:text-white text-lg"
-              >
-                ✕
-              </button>
+      <div style={{ position: 'fixed', right: '20px', bottom: '92px', zIndex: 60 }}>
+        <div style={{
+          width: '320px',
+          maxWidth: 'calc(100vw - 24px)',
+          background: 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)',
+          borderRadius: '22px',
+          padding: '18px 18px 16px',
+          color: 'white',
+          boxShadow: '0 22px 52px rgba(15,118,110,0.28)',
+          border: '1px solid rgba(255,255,255,0.2)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+            <div style={{ width: '42px', height: '42px', borderRadius: '12px', display: 'grid', placeItems: 'center', background: 'rgba(255,255,255,0.12)' }}>
+              <FaDownload size={18} />
             </div>
-            <button
-              onClick={handleInstallClick}
-              className="w-full bg-white text-emerald-600 font-bold py-2 rounded-lg hover:bg-emerald-50 transition-all shadow-md"
-            >
-              Download App
-            </button>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 800, fontSize: '1rem' }}>Install ShopLink</div>
+              <div style={{ fontSize: '0.72rem', opacity: 0.85 }}>Speed, savings, and campus deals on your home screen</div>
+            </div>
+            <button onClick={handleDismiss} style={{ border: 'none', background: 'transparent', color: 'white', cursor: 'pointer', fontSize: '1.2rem' }}>✕</button>
           </div>
+
+          <button
+            onClick={handleInstallClick}
+            style={{
+              width: '100%',
+              border: 'none',
+              borderRadius: '14px',
+              padding: '12px 14px',
+              background: 'rgba(255,255,255,0.95)',
+              color: '#0f766e',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '0 10px 24px rgba(0,0,0,0.08)'
+            }}
+          >
+            Download app
+          </button>
         </div>
       </div>
     );
   }
 
-  // iOS Guide (Share → Add to Home Screen)
   if (showIOSGuide && !dismissed) {
     return (
-      <div className="fixed bottom-20 md:bottom-4 right-4 z-50 animate-bounce">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-2xl border-2 border-blue-400 overflow-hidden max-w-xs">
-          <div className="p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <FaApple size={20} />
-              <div>
-                <h3 className="font-bold text-base">Add to Home Screen</h3>
-                <p className="text-xs text-blue-100">Available on iOS</p>
-              </div>
-              <button
-                onClick={handleDismiss}
-                className="ml-auto text-blue-200 hover:text-white text-lg"
-              >
-                ✕
-              </button>
+      <div style={{ position: 'fixed', right: '20px', bottom: '92px', zIndex: 60 }}>
+        <div style={{
+          width: '320px',
+          maxWidth: 'calc(100vw - 24px)',
+          background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+          borderRadius: '22px',
+          padding: '18px 18px 16px',
+          color: 'white',
+          boxShadow: '0 22px 52px rgba(37,99,235,0.26)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+            <div style={{ width: '42px', height: '42px', borderRadius: '12px', display: 'grid', placeItems: 'center', background: 'rgba(255,255,255,0.12)' }}>
+              <FaApple size={18} />
             </div>
-            <div className="text-sm bg-blue-700 rounded-lg p-3 mb-3">
-              <p className="font-semibold mb-2">📱 Easy Steps:</p>
-              <ol className="text-xs list-decimal list-inside space-y-1">
-                <li>Tap <strong>Share</strong> (bottom icon)</li>
-                <li>Select <strong>"Add to Home Screen"</strong></li>
-                <li>Tap <strong>Add</strong></li>
-              </ol>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 800, fontSize: '1rem' }}>Add to Home Screen</div>
+              <div style={{ fontSize: '0.72rem', opacity: 0.85 }}>For iPhone / iPad</div>
             </div>
-            <button
-              onClick={handleDismiss}
-              className="w-full bg-white text-blue-600 font-bold py-2 rounded-lg hover:bg-blue-50 transition-all"
-            >
-              Got It
-            </button>
+            <button onClick={handleDismiss} style={{ border: 'none', background: 'transparent', color: 'white', cursor: 'pointer', fontSize: '1.2rem' }}>✕</button>
           </div>
+
+          <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '16px', padding: '12px 12px 10px', fontSize: '0.82rem', lineHeight: 1.6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontWeight: 700 }}>
+              <FaAndroid />
+              <span>Quick steps</span>
+            </div>
+            <ol style={{ margin: '0', paddingLeft: '18px' }}>
+              <li>Tap the Share button.</li>
+              <li>Select <strong>Add to Home Screen</strong>.</li>
+              <li>Tap Add in the top-right corner.</li>
+            </ol>
+          </div>
+
+          <button onClick={handleDismiss} style={{ width: '100%', marginTop: '12px', border: 'none', borderRadius: '14px', padding: '12px 14px', background: 'rgba(255,255,255,0.95)', color: '#1d4ed8', fontWeight: 800, cursor: 'pointer' }}>
+            Got it
+          </button>
         </div>
       </div>
     );

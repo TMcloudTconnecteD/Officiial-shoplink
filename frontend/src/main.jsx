@@ -4,6 +4,9 @@ import App from './App.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import Footer from './components/Footer.jsx';
 import 'virtual:windi.css';
+import './styles/tokens.css';
+import './styles/base.css';
+import './styles/utilities.css';
 import './styles/theme.css';
 import { createRoutesFromElements, Route, RouterProvider } from 'react-router-dom';
 import { createBrowserRouter } from 'react-router-dom';
@@ -34,21 +37,21 @@ import AddShop from './pages/shops/AddShop.jsx';
 // Frontend pages
 import HomeUpdated1 from './pages/HomeUpdated1.jsx';
 import ClerkAuth from './pages/Auth/ClerkAuth.jsx';
-import Favorites from "./pages/products/Favorites.jsx";
-import ProductDetails from "./pages/products/ProductDetails.jsx";
-import Cart from "./pages/Cart.jsx";
+import Favorites from './pages/products/Favorites.jsx';
+import ProductDetails from './pages/products/ProductDetails.jsx';
+import Cart from './pages/Cart.jsx';
 import ShopUpdated from './pages/ShopUpdated.jsx';
 import ShopDetail from './pages/shops/ShopDetail.jsx';
 import Mall from './pages/shops/Mall.jsx';
-import Shipping from "./pages/Orders/Shipping.jsx";
-import PlaceOrder from "./pages/Orders/PlaceOrder.jsx";
-import Order from "./pages/Orders/Order.jsx";
+import Shipping from './pages/Orders/Shipping.jsx';
+import PlaceOrder from './pages/Orders/PlaceOrder.jsx';
+import Order from './pages/Orders/Order.jsx';
 
-import { PayPalScriptProvider } from "@paypal/react-paypal-js";
+import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path="/" element={<App />}>
+    <Route path="/" element={<App />} errorElement={<ErrorBoundary />}>
       {/* Public routes */}
       <Route index element={<HomeUpdated1 />} />
       <Route path="clerk-auth" element={<ClerkAuth />} />
@@ -82,9 +85,9 @@ const router = createBrowserRouter(
         <Route path="product/update/:_id" element={<ProductUpdate />} />
 
         {/* Shop management */}
-        <Route path="shops" element={<ShopList />} /> {/* See all shops */}
-        <Route path="shop/update/:id" element={<UpdateShop />} /> {/* Update shop */}
-        <Route path="shop/add" element={<AddShop />} /> {/* Add new shop */}
+        <Route path="shops" element={<ShopList />} />
+        <Route path="shop/update/:id" element={<UpdateShop />} />
+        <Route path="shop/add" element={<AddShop />} />
 
         <Route path="orderlist" element={<OrderList />} />
       </Route>
@@ -95,28 +98,24 @@ const router = createBrowserRouter(
 createRoot(document.getElementById('root')).render(
   <Provider store={store}>
     <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
-    <PayPalScriptProvider
-      options={{
-        "client-id": "AVAGZFhfvoeAp1LJlvNDtAALlmeY5tdtTxmQJ-cFCX8TiJeSW7oEeQ_VYA32UVLlOIkz9fxV-H5XRMt8",
-        "currency": "USD",
-      }}
-    >
-      <>
+      <PayPalScriptProvider
+        options={{
+          'client-id': 'AVAGZFhfvoeAp1LJlvNDtAALlmeY5tdtTxmQJ-cFCX8TiJeSW7oEeQ_VYA32UVLlOIkz9fxV-H5XRMt8',
+          currency: 'USD',
+        }}
+      >
         <ErrorBoundary>
           <RouterProvider router={router} />
-          <Footer />
         </ErrorBoundary>
-      </>
-    </PayPalScriptProvider>
+      </PayPalScriptProvider>
     </ClerkProvider>
   </Provider>
 );
 
-// register service worker for PWA
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/service-worker.js").catch((err) => {
-      console.error("Service worker registration failed:", err);
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js').catch((err) => {
+      console.error('Service worker registration failed:', err);
     });
   });
 }

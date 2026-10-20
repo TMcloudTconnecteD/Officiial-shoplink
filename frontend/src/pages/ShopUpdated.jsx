@@ -130,8 +130,9 @@ const ShopUpdated = () => {
 
   const grouped = {};
   products?.forEach((p) => {
-    const catId = p.category?._id || "uncategorized";
-    if (!grouped[catId]) grouped[catId] = { meta: p.category, items: [] };
+    const catId = normalizeCategoryId(p.category);
+    const meta = p.category && typeof p.category === 'object' ? p.category : { name: normalizeCategoryName(p.category) };
+    if (!grouped[catId]) grouped[catId] = { meta, items: [] };
     grouped[catId].items.push(p);
   });
 
@@ -283,3 +284,17 @@ const ShopUpdated = () => {
 };
 
 export default ShopUpdated;
+
+const normalizeCategoryName = (category) => {
+  if (!category) return "General";
+  if (typeof category === "string") return category.trim() || "General";
+  if (typeof category?.name === "string") return category.name.trim() || "General";
+  return "General";
+};
+
+const normalizeCategoryId = (category) => {
+  if (!category) return "uncategorized";
+  if (typeof category === "string") return category;
+  if (category?._id) return String(category._id);
+  return "uncategorized";
+};

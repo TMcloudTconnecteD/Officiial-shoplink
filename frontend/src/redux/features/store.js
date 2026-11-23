@@ -3,13 +3,9 @@ import { setupListeners } from "@reduxjs/toolkit/query";
 import { apiSlice } from "../Api/apiSlice";
 import authReducer from "../features/auth/authSlice";
 import favoritesReducer from "./favorites/favoriteSlice";
-import { getFavoritesFromLocalStorage } from "../../Utils/localStorage";
 import cartSliceReducer from "./cart/cartSlice";
 import shopReducer from "./shop/shopSlice";
 import { mpesaApi } from "../Api/mpesaApiSlice"; // Import the mpesaApi slice
-
-// Initialize the favorites state from localStorage
-const initialFavorites = getFavoritesFromLocalStorage() || [];
 
 const store = configureStore({
   reducer: {
@@ -19,9 +15,6 @@ const store = configureStore({
     favorites: favoritesReducer,
     cart: cartSliceReducer,
     shop: shopReducer,
-  },
-  preloadedState: {
-    favorites: initialFavorites,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(apiSlice.middleware, mpesaApi.middleware), // Add mpesaApi middleware here

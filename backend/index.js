@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import path from 'path';
 import cors from 'cors';
+import mongoose from 'mongoose';
 import connectDB from './config/db.js';
 
 import userRoutes from './routes/userRoutes.js';
@@ -15,11 +16,10 @@ import orderRoutes from './routes/orderRoutes.js';
 import mpesaRoutes from './routes/mpesaRoutes.js';
 import cropRoutes from './routes/cropRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import riderRoutes from './routes/riderRoutes.js';
 
 dotenv.config();
 const port = process.env.PORT || 8000;
-
-connectDB();
 
 // Configure Cloudinary centrally so routes do not need to re-configure
 import { v2 as cloudinary } from 'cloudinary';
@@ -82,16 +82,6 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
-// Startup env validation for critical services
-const requiredEnvs = [
-  'MONGO_URI',
-  // cloudinary keys optional but warned above
-];
-const missing = requiredEnvs.filter((k) => !process.env[k]);
-if (missing.length) {
-  console.warn('⚠️  Missing required environment variables:', missing.join(', '));
-}
-
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} -> ${req.method} ${req.originalUrl}`);
   next();
@@ -110,6 +100,7 @@ app.use("/api/orders", orderRoutes);
 app.use('/api/payments', mpesaRoutes);
 app.use('/api/crops', cropRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/riders', riderRoutes);
 
 // Health check endpoint for smoke tests
 app.get('/api/health', (req, res) => {
@@ -119,6 +110,7 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     cloudinaryConfigured,
     mongoConfigured,
+    mongoConnected: mongoose.connection.readyState === 1,
     env: process.env.NODE_ENV || 'development',
   });
 });
@@ -152,4 +144,18 @@ app.get("/api/config/paypal", (req, res) => {
 const __dirname = path.resolve();
 app.use('/uploads', express.static(path.join(__dirname + '/uploads')));
 
-app.listen(port, '0.0.0.0', () => console.log(`server is running on port: ${port}`));
+const startServer = async () => {
+  const requiredEnvs = ['MONGO_URI', 'JWT_SECRET'];
+  const missing = requiredEnvs.filter((key) => !process.env[key]);
+  if (missing.length) {
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+
+  await connectDB();
+  app.listen(port, '0.0.0.0', () => console.log(`server is running on port: ${port}`));
+};
+
+startServer().catch((error) => {
+  console.error('Server startup failed:', error.message);
+  process.exitCode = 1;
+});

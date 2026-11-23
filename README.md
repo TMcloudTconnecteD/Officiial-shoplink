@@ -17,7 +17,8 @@ Add screenshots here after product capture and design sign-off.
 - Real-time deal discovery and discount cards
 - M-Pesa STK push checkout flow
 - Order timeline and status tracking
-- Rider application and assignment workflow
+- Approved rider directory, rider applications, and admin review notifications
+- In-app notifications for rider decisions, orders, and payment confirmations
 - Community feed with posts, likes, and comments
 - AI budget planner for product planning
 - Responsive mobile-first shopping experience
@@ -152,7 +153,12 @@ This project uses the campus-marketplace BSNO workflow and should preserve the b
 | M-Pesa | `/api/mpesa/stk-push` | Initiate STK push |
 | M-Pesa | `/api/mpesa/status/:checkoutRequestId` | Poll payment status |
 | Community | `/api/community` | Community posts |
-| Riders | `/api/riders/apply` | Rider application |
+| Riders | `GET /api/riders/approved` | List riders approved by an admin |
+| Riders | `POST /api/riders/apply` | Submit a rider application |
+| Riders | `GET /api/riders/applications` | Admin: review rider applications |
+| Riders | `PATCH /api/riders/applications/:id` | Admin: approve or reject an application |
+| Notifications | `GET /api/notifications/notifications` | List unread notifications for the signed-in user |
+| Notifications | `PUT /api/notifications/badge/reset` | Mark all notifications as read |
 | Budget | `/api/budget/plan` | AI budget planner |
 
 ## Run commands

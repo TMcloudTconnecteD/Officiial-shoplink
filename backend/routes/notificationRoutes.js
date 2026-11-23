@@ -6,7 +6,7 @@ import {
   sendNotificationToUser,
   getAnyUserBadge,
 } from "../controllers/notificationController.js";
-import { authenticate } from "../middlewares/authMiddlewares.js";
+import { authenticate, authorizeAdmin } from "../middlewares/authMiddlewares.js";
 
 const router = express.Router();
 
@@ -16,7 +16,7 @@ router.get("/notifications", authenticate, getUserNotifications);
 router.put("/badge/reset", authenticate, resetUserBadge);
 
 // Admin routes
-router.post("/send", authenticate, sendNotificationToUser);
-router.get("/badge/:userId", authenticate, getAnyUserBadge);
+router.post("/send", authenticate, authorizeAdmin, sendNotificationToUser);
+router.get("/badge/:userId", authenticate, authorizeAdmin, getAnyUserBadge);
 
 export default router;

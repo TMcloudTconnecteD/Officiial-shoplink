@@ -29,7 +29,7 @@
 .location-dropdown-wrapper {
   position: relative;
   max-width: 400px;
-  margin: 0 auto 40px;
+  margin: 0 auto;
 }
 
 .location-dropdown-button {
@@ -223,23 +223,6 @@
   font-size: 1.1rem;
 }
 
-/* Location Placeholder */
-.location-placeholder {
-  text-align: center;
-  padding: 60px 20px;
-  background: white;
-  border-radius: 16px;
-  border: 2px dashed #10b981;
-  color: #6b7280;
-  font-size: 1.1rem;
-  margin: 40px 0;
-}
-
-.placeholder-text {
-  margin: 0;
-  font-weight: 500;
-}
-
 /* Locations Summary */
 .locations-summary {
   text-align: center;
@@ -254,6 +237,24 @@
   color: #6b7280;
   font-size: 0.95rem;
   margin: 0;
+}
+
+.all-shops-link {
+  display: inline-flex;
+  margin-top: 12px;
+  padding: 10px 18px;
+  color: white;
+  font-weight: 700;
+  text-decoration: none;
+  background: linear-gradient(135deg, #0f766e, #0d9488);
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(15, 118, 110, 0.2);
+  transition: background 180ms ease, box-shadow 180ms ease;
+}
+
+.all-shops-link:hover {
+  background: #115e59;
+  box-shadow: 0 10px 22px rgba(15, 118, 110, 0.28);
 }
 
 /* Skeleton Loading */

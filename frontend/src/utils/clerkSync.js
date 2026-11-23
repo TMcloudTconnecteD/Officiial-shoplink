@@ -1,13 +1,11 @@
-const apiUrl = import.meta.env.VITE_API_URL || '';
-
-console.log('clerkSync apiUrl=', apiUrl);
+import { BASE_URL } from '../redux/features/constants.js';
 
 export default async function syncClerkUser(userPayload = {}, clerkToken = null) {
   try {
     const headers = { 'Content-Type': 'application/json' };
     if (clerkToken) headers['Authorization'] = `Bearer ${clerkToken}`;
 
-    const res = await fetch(`${apiUrl}/api/users/clerk`, {
+    const res = await fetch(`${BASE_URL}/api/users/clerk`, {
       method: 'POST',
       headers,
       body: JSON.stringify(userPayload),

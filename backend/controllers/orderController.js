@@ -4,6 +4,13 @@ import Product from "../models/productModel.js";
 import Shop from "../models/shopModel.js";
 import PDFDocument from "pdfkit"; // npm i pdfkit
 import { sendWatiMessage } from "../utils/wati.js";
+import { notifyAdmins, notifyUser } from "../services/notificationBadgeService.js";
+
+const sendOrderNotifications = async (notifications) => {
+  const results = await Promise.allSettled(notifications);
+  results.filter((result) => result.status === "rejected")
+    .forEach((result) => console.error("Order notification failed:", result.reason));
+};
 
 // Utility Function - returns numbers (not strings)
 function calcPrices(orderItems) {
@@ -104,6 +111,22 @@ const createOrder = async (req, res) => {
     });
 
     const createdOrder = await order.save();
+
+    const orderNotice = {
+      type: "order",
+      title: "New order received",
+      message: `Order ${createdOrder._id} has been placed${shopDoc?.name ? ` at ${shopDoc.name}` : ""}.`,
+    };
+    const notices = [notifyAdmins(orderNotice)];
+    if (createdOrder.user) {
+      notices.push(notifyUser(createdOrder.user, {
+        type: "order",
+        title: "Order placed",
+        message: `Your order ${createdOrder._id} has been received.`,
+      }));
+    }
+    if (shopDoc?.owner) notices.push(notifyUser(shopDoc.owner, orderNotice));
+    await sendOrderNotifications(notices);
 
     // Notify shop owner via WATI (if configured)
     try {
@@ -219,6 +242,7 @@ const markOrderAsPaid = async (req, res) => {
     const order = await Order.findById(req.params.id);
 
     if (order) {
+      const shouldNotify = !order.isPaid;
       order.isPaid = true;
       order.paidAt = Date.now();
       order.paymentResult = {
@@ -233,6 +257,16 @@ const markOrderAsPaid = async (req, res) => {
       };
 
       const updatedOrder = await order.save();
+      if (shouldNotify) {
+        const notice = {
+          type: "payment",
+          title: "Payment confirmed",
+          message: `Payment for order ${order._id} has been confirmed.`,
+        };
+        const notices = [notifyAdmins(notice)];
+        if (order.user) notices.push(notifyUser(order.user, notice));
+        await sendOrderNotifications(notices);
+      }
       res.status(200).json(updatedOrder);
     } else {
       res.status(404).json({ message: "Order not found" });
@@ -251,6 +285,13 @@ const markOrderAsDelivered = async (req, res) => {
       order.deliveredAt = Date.now();
 
       const updatedOrder = await order.save();
+      if (order.user) {
+        await sendOrderNotifications([notifyUser(order.user, {
+          type: "order",
+          title: "Order delivered",
+          message: `Your order ${order._id} has been marked as delivered.`,
+        })]);
+      }
       res.json(updatedOrder);
     } else {
       res.status(404).json({ message: "Order not found" });

@@ -5,7 +5,8 @@ import createToken from "../utils/createToken.js";
 
 
 const createUser = asyncHandler(async (req, res) => {
-const {username, email, password} = req.body;
+const {username, password} = req.body;
+const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
 
 
 if(!username || !email || !password){
@@ -40,33 +41,29 @@ const hashedPassword = await bcrypt.hash(password, salt);
     }
 
 
-console.log( '[', username, ']' , ':', '[', email, ']', ':', '[', password ,']' )
 })
 
 const logUser = asyncHandler(async (req, res) => {
-const {email, password} = req.body;
-const existingUser = await User.findOne({email})
+const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+const {password} = req.body || {};
+if (!email || typeof password !== "string" || !password) {
+    return res.status(400).json({ message: "Email and password are required" });
+}
 
-if (existingUser) {
+const existingUser = await User.findOne({email});
+if (!existingUser || !(await bcrypt.compare(password, existingUser.password))) {
+    return res.status(401).json({ message: "Invalid email or password" });
+}
 
-    const isPasswordValid = await bcrypt.compare(
-        password, existingUser.password
-    );
-
-
-if (isPasswordValid) {
-    const token = createToken(res, existingUser._id)
-    res.status(200).json({
-        _id: existingUser._id,
-        username: existingUser.username,
-        email: existingUser.email,
-        isAdmin: existingUser.isAdmin,
-        token, // return token for mobile/bearer usage
-    })
-           return;
-
-}}
-
+const token = createToken(res, existingUser._id);
+return res.status(200).json({
+    _id: existingUser._id,
+    username: existingUser.username,
+    email: existingUser.email,
+    isAdmin: existingUser.isAdmin,
+    isSuperAdmin: existingUser.isSuperAdmin,
+    token,
+});
 });
 
 const logoutCurrentUser = asyncHandler(async (req, res) => {

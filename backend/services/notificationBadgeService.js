@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import User from "../models/userModel.js";
 
 /**
  * Notification Badge Service
@@ -23,7 +24,7 @@ const notificationBadgeSchema = new mongoose.Schema({
       id: mongoose.Schema.Types.ObjectId,
       type: {
         type: String,
-        enum: ["order", "message", "system", "alert"],
+        enum: ["order", "payment", "rider", "message", "system", "alert"],
       },
       title: String,
       message: String,
@@ -141,6 +142,20 @@ const addNotification = async (userId, notification) => {
   }
 };
 
+const notifyUser = async (userId, notification) => {
+  if (!userId) return null;
+  return addNotification(userId, {
+    ...notification,
+    read: false,
+    createdAt: new Date(),
+  });
+};
+
+const notifyAdmins = async (notification) => {
+  const admins = await User.find({ isAdmin: true }).select("_id").lean();
+  return Promise.all(admins.map(({ _id }) => notifyUser(_id, notification)));
+};
+
 export {
   NotificationBadge,
   incrementBadge,
@@ -149,4 +164,6 @@ export {
   getBadgeCount,
   getUnreadNotifications,
   addNotification,
+  notifyUser,
+  notifyAdmins,
 };

@@ -1,25 +1,34 @@
 import { useState, useMemo } from 'react';
 import { useFetchShopsQuery } from '../../redux/Api/shopApiSlice';
 import { Link } from 'react-router-dom';
-import { FaStar, FaChevronDown } from 'react-icons/fa';
+import { FaChevronDown } from 'react-icons/fa';
 import './LocalShops.css';
+
+const normalizeLocation = (location) => {
+  if (typeof location === 'string') return location.trim();
+  if (typeof location?.name === 'string') return location.name.trim();
+  return '';
+};
 
 const LocalShops = () => {
   const { data: shopsData, isLoading } = useFetchShopsQuery();
-  const shops = shopsData?.data || shopsData || [];
+  const shops = useMemo(
+    () => Array.isArray(shopsData?.data) ? shopsData.data : Array.isArray(shopsData) ? shopsData : [],
+    [shopsData]
+  );
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
 
   // Extract unique locations
   const uniqueLocations = useMemo(() => {
-    const locations = [...new Set(shops.map(shop => shop.location).filter(Boolean))];
+    const locations = [...new Set(shops.map(shop => normalizeLocation(shop.location)).filter(Boolean))];
     return locations.sort();
   }, [shops]);
 
   // Filter shops by selected location
   const localShops = useMemo(() => {
     if (!selectedLocation) return [];
-    return shops.filter(shop => shop.location === selectedLocation);
+    return shops.filter(shop => normalizeLocation(shop.location) === selectedLocation);
   }, [shops, selectedLocation]);
 
   const handleLocationSelect = (location) => {
@@ -94,7 +103,7 @@ const LocalShops = () => {
                       </div>
                       <div className="local-shop-info">
                         <h4 className="local-shop-name">{shop.name}</h4>
-                        <div className="local-shop-location">📍 {shop.location}</div>
+                        <div className="local-shop-location">📍 {normalizeLocation(shop.location)}</div>
                         <div className="local-shop-phone">📞 {shop.telephone}</div>
                         <button className="visit-shop-btn">Visit Shop</button>
                       </div>
@@ -110,21 +119,15 @@ const LocalShops = () => {
           </div>
         )}
 
-        {/* Empty State */}
-        {!selectedLocation && (
-          <div className="location-placeholder">
-            <p className="placeholder-text">👇 Select a location to browse shops</p>
-          </div>
-        )}
-
         {/* All Locations Summary */}
-        {uniqueLocations.length > 0 && (
-          <div className="locations-summary">
+        <div className="locations-summary">
+          {uniqueLocations.length > 0 && (
             <p className="summary-text">
               {uniqueLocations.length} locations available • {shops.length} total shops
             </p>
-          </div>
-        )}
+          )}
+          <Link to="/shops/all" className="all-shops-link">Browse all shops</Link>
+        </div>
       </div>
     </section>
   );

@@ -1,5 +1,6 @@
 import './TrustSection.css';
 import { FaMapMarkerAlt, FaTruck, FaTag } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 const trustPoints = [
   {
@@ -7,12 +8,14 @@ const trustPoints = [
     icon: FaMapMarkerAlt,
     title: 'Local Shops',
     description: 'Shop from verified local businesses near you',
+    to: '/shops/all',
   },
   {
     id: 2,
     icon: FaTruck,
     title: 'Fast Delivery',
     description: 'Quick and reliable delivery right to your door',
+    to: '/ride-boda',
   },
   {
     id: 3,
@@ -31,14 +34,21 @@ const TrustSection = () => {
         <div className="trust-grid">
           {trustPoints.map((point) => {
             const Icon = point.icon;
-            return (
-              <div key={point.id} className="trust-card">
+            const content = (
+              <>
                 <div className="trust-icon">
                   <Icon size={40} />
                 </div>
                 <h3 className="trust-card-title">{point.title}</h3>
                 <p className="trust-card-text">{point.description}</p>
-              </div>
+              </>
+            );
+            return point.to ? (
+              <Link key={point.id} to={point.to} className="trust-card trust-card-link">
+                {content}
+              </Link>
+            ) : (
+              <div key={point.id} className="trust-card">{content}</div>
             );
           })}
         </div>

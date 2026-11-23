@@ -14,8 +14,16 @@ const ClerkAuth = () => {
 
   const qp = new URLSearchParams(location.search);
   const mode = qp.get('mode') || 'signin';
+  const pathname = location.pathname || '';
+  const isSsoCallback = pathname === '/clerk-auth/sso-callback' || pathname.endsWith('/sso-callback') || pathname.includes('sso-callback');
 
   useEffect(() => {
+    if (isSsoCallback) {
+      const redirectTarget = mode === 'signup' ? '/register' : '/login';
+      navigate(redirectTarget, { replace: true });
+      return;
+    }
+
     const doSync = async () => {
       if (isSignedIn && user) {
         try {
@@ -29,7 +37,6 @@ const ClerkAuth = () => {
 
           const res = await syncClerkUser(payload, token);
           if (res) {
-            // dispatch to redux so existing app flows continue to work
             dispatch(setCredentials(res));
             navigate('/');
           }
@@ -39,7 +46,11 @@ const ClerkAuth = () => {
       }
     };
     doSync();
-  }, [isSignedIn, user, getToken, dispatch, navigate]);
+  }, [isSignedIn, user, getToken, dispatch, navigate, isSsoCallback, mode]);
+
+  if (isSsoCallback) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-slate-600">Redirecting...</div>;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">

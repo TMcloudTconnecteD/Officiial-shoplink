@@ -6,27 +6,30 @@ import {
   AiOutlineShoppingCart,
   AiOutlineSearch,
 } from "react-icons/ai";
-import { FaHeart, FaStore, FaDownload } from "react-icons/fa";
+import { FaBell, FaHeart, FaStore, FaDownload } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useLogoutMutation } from "../../redux/Api/usersApiSlice.js";
 import { logout } from "../../redux/features/auth/authSlice.js";
-import FavoritesCount from "../products/FavoritesCount.jsx";
 
 import {
   clearCartItems,
   loadCartForUser,
 } from "../../redux/features/cart/cartSlice.js";
-
 import {
-  loadFavoritesForUser,
   clearFavorites,
+  loadFavoritesForUser,
 } from "../../redux/features/favorites/favoriteSlice.js";
+import {
+  useGetNotificationsQuery,
+  useMarkNotificationsReadMutation,
+} from "../../redux/Api/notificationApiSlice.js";
+import { apiSlice } from "../../redux/Api/apiSlice.js";
 
 const Navigation = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.cart);
-  const { favoriteItems } = useSelector((state) => state.favorites);
+  const favorites = useSelector((state) => Array.isArray(state.favorites) ? state.favorites : []);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -35,18 +38,30 @@ const Navigation = () => {
   const [search, setSearch] = useState("");
   const searchRef = useRef();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const { data: notificationData, isError: notificationsError } = useGetNotificationsQuery(userInfo?._id || userInfo?.id, {
+    skip: !userInfo,
+    pollingInterval: userInfo ? 30000 : 0,
+  });
+  const [markNotificationsRead, { isLoading: isMarkingRead }] = useMarkNotificationsReadMutation();
+  const notifications = notificationData?.notifications || [];
+  const notificationCount = Number(notificationData?.count || 0);
 
+  const favoriteCount = favorites.filter((product) => (
+    product && typeof product === "object" && typeof product._id === "string" && product._id.trim()
+  )).length;
   const cartCount = cartItems?.reduce((a, c) => a + (c.qty || 1), 0) || 0;
 
   const logoutHandler = async () => {
     try {
       await logoutApiCall().unwrap();
-    } catch (e) {
+    } catch {
       // ignore errors; still clear local session
     } finally {
       dispatch(clearCartItems());
       dispatch(clearFavorites());
       dispatch(logout());
+      dispatch(apiSlice.util.resetApiState());
       navigate("/login");
     }
   };
@@ -57,6 +72,14 @@ const Navigation = () => {
 
   const toggleDropdown = () => setDropdownOpen((prev) => !prev);
   const handleOptionClick = () => setDropdownOpen(false);
+  const toggleNotifications = () => setNotificationsOpen((open) => !open);
+  const handleMarkNotificationsRead = async () => {
+    try {
+      await markNotificationsRead().unwrap();
+    } catch (error) {
+      console.error("Could not mark notifications as read:", error);
+    }
+  };
 
   useEffect(() => {
     const handler = (e) => {
@@ -128,16 +151,71 @@ const Navigation = () => {
             <Link to="/shops/all" className="shoplink-header__icon" aria-label="Browse malls">
               <FaStore />
             </Link>
-            <Link to="/favorite" className="shoplink-header__icon shoplink-header__icon--fav" aria-label="Favorites">
-              <FaHeart />
-              <span className="shoplink-header__badge">
-                <FavoritesCount />
-              </span>
+            <Link
+              to="/favorite"
+              className={`shoplink-header__icon${favoriteCount > 0 ? " shoplink-header__icon--fav" : " shoplink-header__icon--fav-empty"}`}
+              aria-label={favoriteCount > 0 ? `Favorites, ${favoriteCount} selected` : "Favorites"}
+            >
+              {favoriteCount > 0 ? <FaHeart /> : <FaHeart className="shoplink-header__fav-empty" />}
+              {favoriteCount > 0 && (
+                <span className="shoplink-header__badge">
+                  {favoriteCount > 99 ? "99+" : favoriteCount}
+                </span>
+              )}
             </Link>
             <Link to="/cart" className="shoplink-header__icon" aria-label="Cart">
               <AiOutlineShoppingCart />
               {cartCount > 0 && <span className="shoplink-header__badge shoplink-header__badge--cart">{cartCount}</span>}
             </Link>
+            {userInfo && (
+              <div className="shoplink-header__notifications">
+                <button
+                  type="button"
+                  className="shoplink-header__icon"
+                  aria-label={`Notifications${notificationCount ? `, ${notificationCount} unread` : ""}`}
+                  aria-expanded={notificationsOpen}
+                  onClick={toggleNotifications}
+                >
+                  <FaBell />
+                  {notificationCount > 0 && (
+                    <span className="shoplink-header__badge">{notificationCount > 99 ? "99+" : notificationCount}</span>
+                  )}
+                </button>
+                {notificationsOpen && (
+                  <section className="shoplink-notification-panel" aria-label="Notifications">
+                    <div className="shoplink-notification-panel__header">
+                      <strong>Notifications</strong>
+                      {notificationCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleMarkNotificationsRead}
+                          disabled={isMarkingRead}
+                        >
+                          Mark all read
+                        </button>
+                      )}
+                    </div>
+                    {notificationsError ? (
+                      <p role="alert" className="shoplink-notification-empty">Notifications are unavailable right now.</p>
+                    ) : notifications.length > 0 ? (
+                      <ul className="shoplink-notification-list">
+                        {notifications.slice(0, 8).map((notification) => (
+                          <li key={notification._id || notification.id}>
+                            <strong>{notification.title}</strong>
+                            <p>{notification.message}</p>
+                            <time dateTime={notification.createdAt}>
+                              {new Date(notification.createdAt).toLocaleString()}
+                            </time>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="shoplink-notification-empty">You’re all caught up.</p>
+                    )}
+                  </section>
+                )}
+              </div>
+            )}
 
             <button
               type="button"
@@ -170,6 +248,7 @@ const Navigation = () => {
                       <>
                         <li><Link to="/admin/productlist" onClick={handleOptionClick}>Products</Link></li>
                         <li><Link to="/admin/orderlist" onClick={handleOptionClick}>Orders</Link></li>
+                        <li><Link to="/admin/riders" onClick={handleOptionClick}>Rider applications</Link></li>
                       </>
                     )}
                     {userInfo.isSuperAdmin && (
@@ -194,7 +273,7 @@ const Navigation = () => {
         {bottomNavItems.map((item) => {
           const isActive = location.pathname === item.path;
           let badge = 0;
-          if (item.name === 'Favorites') badge = favoriteItems?.length || 0;
+          if (item.name === 'Favorites') badge = favoriteCount;
           if (item.name === 'Cart') badge = cartCount;
 
           return (

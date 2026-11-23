@@ -8,6 +8,7 @@ services:
     environment:
       - PORT=8000
       - MONGO_URI=${MONGO_URI}
+      - JWT_SECRET=${JWT_SECRET}
       - PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID}
     volumes:
       - ./backend/uploads:/app/uploads

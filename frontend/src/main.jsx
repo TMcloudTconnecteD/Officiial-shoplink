@@ -46,6 +46,9 @@ import Mall from './pages/shops/Mall.jsx';
 import Shipping from './pages/Orders/Shipping.jsx';
 import PlaceOrder from './pages/Orders/PlaceOrder.jsx';
 import Order from './pages/Orders/Order.jsx';
+import CommunityPage from './pages/CommunityPage.jsx';
+import RideBodaPage from './pages/RideBodaPage.jsx';
+import RiderApplications from './pages/Admin/RiderApplications.jsx';
 
 import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 
@@ -54,10 +57,15 @@ const router = createBrowserRouter(
     <Route path="/" element={<App />} errorElement={<ErrorBoundary />}>
       {/* Public routes */}
       <Route index element={<HomeUpdated1 />} />
+      <Route path="clerk-auth/sso-callback" element={<ClerkAuth />} />
+      <Route path="clerk-auth/*" element={<ClerkAuth />} />
       <Route path="clerk-auth" element={<ClerkAuth />} />
       <Route path="login" element={<Login />} />
       <Route path="register" element={<Register />} />
       <Route path="favorite" element={<Favorites />} />
+      <Route path="community" element={<CommunityPage />} />
+      <Route path="ride-boda" element={<RideBodaPage />} />
+      <Route path="riders" element={<RideBodaPage />} />
       <Route path="product/:id" element={<ProductDetails />} />
       <Route path="cart" element={<Cart />} />
       <Route path="shop" element={<ShopUpdated />} />
@@ -90,6 +98,7 @@ const router = createBrowserRouter(
         <Route path="shop/add" element={<AddShop />} />
 
         <Route path="orderlist" element={<OrderList />} />
+        <Route path="riders" element={<RiderApplications />} />
       </Route>
     </Route>
   )

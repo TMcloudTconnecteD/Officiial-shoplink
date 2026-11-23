@@ -635,6 +635,15 @@ body {
   font-size: 1.1rem;
 }
 
+.shoplink-header__icon--fav-empty {
+  background: rgba(255, 255, 255, 0.52);
+  border-color: rgba(15, 23, 42, 0.04);
+}
+
+.shoplink-header__fav-empty {
+  color: #94a3b8;
+}
+
 .shoplink-header__cta {
   display: inline-flex;
   align-items: center;
@@ -649,6 +658,79 @@ body {
 
 .shoplink-header__profile-wrap {
   position: relative;
+}
+
+.shoplink-header__notifications {
+  position: relative;
+}
+
+.shoplink-notification-panel {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 1000;
+  width: min(360px, calc(100vw - 24px));
+  overflow: hidden;
+  color: #172033;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+  backdrop-filter: blur(18px);
+}
+
+.shoplink-notification-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e8edf2;
+}
+
+.shoplink-notification-panel__header button {
+  color: #0f766e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.shoplink-notification-list {
+  max-height: 360px;
+  overflow: auto;
+  list-style: none;
+}
+
+.shoplink-notification-list li {
+  padding: 13px 16px;
+  border-bottom: 1px solid #edf1f5;
+}
+
+.shoplink-notification-list li:last-child {
+  border-bottom: 0;
+}
+
+.shoplink-notification-list strong {
+  display: block;
+  font-size: 13px;
+}
+
+.shoplink-notification-list p {
+  margin: 4px 0;
+  color: #526071;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.shoplink-notification-list time {
+  color: #8792a2;
+  font-size: 10px;
+}
+
+.shoplink-notification-empty {
+  padding: 22px 16px;
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
 }
 
 .shoplink-header__profile {

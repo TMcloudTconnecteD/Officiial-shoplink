@@ -1,5 +1,6 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { notifyAdmins, notifyUser } from '../services/notificationBadgeService.js';
 dotenv.config();
 
 const { 
@@ -21,7 +22,7 @@ const MPESA_CALLBACK_URL = process.env.MPESA_CALLBACK_URL
     ? process.env.MPESA_CALLBACK_URL_PROD
     : process.env.MPESA_CALLBACK_URL_DEV)
   || (MPESA_ENV === 'production'
-    ? 'hhttps://shoplink-b.onrender.com/api/payments/callback'
+    ? 'https://shoplink-b.onrender.com/api/payments/callback'
     : 'https://shoplink-b.onrender.com/api/payments/callback');
 
 // Optional: full C2B / query URL may be provided (includes path). Fallback to base + query path.
@@ -171,6 +172,16 @@ const handleCallback = async (callbackData) => {
             email_address: '',
           };
           await order.save();
+          const notice = {
+            type: 'payment',
+            title: 'Payment confirmed',
+            message: `M-Pesa payment for order ${order._id} has been confirmed.`,
+          };
+          const notifications = [notifyAdmins(notice)];
+          if (order.user) notifications.push(notifyUser(order.user, notice));
+          const results = await Promise.allSettled(notifications);
+          results.filter((result) => result.status === 'rejected')
+            .forEach((result) => console.error('M-Pesa payment notification failed:', result.reason));
         }
       } catch (e) {
         console.warn('Failed to update order from callback:', e.message);

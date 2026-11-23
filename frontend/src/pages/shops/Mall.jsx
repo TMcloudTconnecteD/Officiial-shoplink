@@ -7,12 +7,25 @@ import { useFetchCategoriesQuery } from '../../redux/Api/categoryApiSlice';
 import Loader from '../../components/Loader.jsx';
 import { FaPlus, FaArrowLeft } from 'react-icons/fa';
 
+const normalizeLocation = (location) => {
+  if (typeof location === "string") return location.trim();
+  if (typeof location?.name === "string") return location.name.trim();
+  return "";
+};
+
 const Mall = () => {
   const navigate = useNavigate();
 
-  const { data: shops = [], isLoading, isError } = useFetchShopsQuery();
-  const { data: categories = [] } = useFetchCategoriesQuery();
+  const { data: shopsData, isLoading, isError } = useFetchShopsQuery();
+  const { data: categoriesData } = useFetchCategoriesQuery();
   const { userInfo } = useSelector((state) => state.auth);
+  const shops = useMemo(
+    () => Array.isArray(shopsData?.data) ? shopsData.data : Array.isArray(shopsData) ? shopsData : [],
+    [shopsData]
+  );
+  const categories = Array.isArray(categoriesData?.categories)
+    ? categoriesData.categories
+    : Array.isArray(categoriesData) ? categoriesData : [];
 
   const [locationFilter, setLocationFilter] = useState('');
   const [locationSearch, setLocationSearch] = useState('');
@@ -22,8 +35,7 @@ const Mall = () => {
   const locations = useMemo(() => {
     const unique = [
       ...new Set(
-        shops
-          .map(shop => shop.location)
+        shops.map((shop) => normalizeLocation(shop.location))
           .filter(Boolean)
       ),
     ];
@@ -66,9 +78,7 @@ const Mall = () => {
     }
 
     if (locationFilter) {
-      filtered = filtered.filter(
-        shop => shop.location === locationFilter
-      );
+      filtered = filtered.filter((shop) => normalizeLocation(shop.location) === locationFilter);
     }
 
     return filtered;

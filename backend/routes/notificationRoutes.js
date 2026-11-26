@@ -3,6 +3,7 @@ import {
   getUserBadgeCount,
   getUserNotifications,
   resetUserBadge,
+  markUserNotificationRead,
   sendNotificationToUser,
   getAnyUserBadge,
 } from "../controllers/notificationController.js";
@@ -13,6 +14,7 @@ const router = express.Router();
 // Public routes (authenticated users)
 router.get("/badge/count", authenticate, getUserBadgeCount);
 router.get("/notifications", authenticate, getUserNotifications);
+router.patch("/notifications/:notificationId/read", authenticate, markUserNotificationRead);
 router.put("/badge/reset", authenticate, resetUserBadge);
 
 // Admin routes

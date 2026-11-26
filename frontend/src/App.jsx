@@ -6,10 +6,19 @@ import 'react-toastify/dist/ReactToastify.css';
 import Navigation from './pages/Auth/Navigation';
 import InstallPrompt from './components/InstallPrompt.jsx';
 import Footer from './components/Footer.jsx';
+import AppOpener from './components/AppOpener.jsx';
+import PageBackButton from './components/PageBackButton.jsx';
+import WelcomeToast from './components/marketing/WelcomeToast.jsx';
+import ReferralRibbon from './components/marketing/ReferralRibbon.jsx';
+import CartActivitySync from './components/marketing/CartActivitySync.jsx';
+import './components/marketing/marketing.css';
 
 const App = () => {
   return (
     <>
+      <AppOpener />
+      <WelcomeToast />
+      <CartActivitySync />
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -23,8 +32,10 @@ const App = () => {
       <InstallPrompt />
       <Navigation />
       <main className="shoplink-shell" style={{ paddingTop: 'calc(var(--shoplink-header-height) + 18px)', paddingBottom: 'calc(var(--shoplink-bottom-nav-height) + 20px)' }}>
+        <PageBackButton />
         <Outlet />
       </main>
+      <ReferralRibbon />
       <Footer />
     </>
   );

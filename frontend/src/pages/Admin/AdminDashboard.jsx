@@ -10,11 +10,16 @@ import {
   useGetTotalSalesByDateQuery,
   useGetTotalSalesQuery,
 } from "../../redux/Api/orderApiSlice";
+import PromoAdminPanel from "../../components/marketing/PromoAdminPanel";
+import SellerDashboard from "./SellerDashboard";
+import { useSelector } from "react-redux";
 
 const AdminDashboard = () => {
+  const { userInfo } = useSelector((state) => state.auth);
+  const isSuperAdmin = Boolean(userInfo?.isSuperAdmin);
   // Queries
   const { data: sales, isLoading: loadingSales } = useGetTotalSalesQuery();
-  const { data: customers, isLoading: loadingCustomers } = useGetUsersQuery();
+  const { data: customers, isLoading: loadingCustomers } = useGetUsersQuery(undefined, { skip: !isSuperAdmin });
   const { data: orders, isLoading: loadingOrders } = useGetTotalOrdersQuery();
   const { data: salesDetail, isLoading: loadingSalesDetail } = useGetTotalSalesByDateQuery();
 
@@ -61,9 +66,16 @@ const AdminDashboard = () => {
     }
   }, [salesDetail]);
 
+  if (!isSuperAdmin) return <SellerDashboard />;
+
   // Show loader if any critical data is still loading
   if (loadingSales || loadingCustomers || loadingOrders || loadingSalesDetail) {
-    return <Loader />;
+    return (
+      <>
+        <AdminMenu />
+        <Loader />
+      </>
+    );
   }
 
   return (
@@ -114,8 +126,9 @@ const AdminDashboard = () => {
 
         {/* Recent Orders */}
         <div className="mt-10">
-          <OrderList />
+          <OrderList showMenu={false} />
         </div>
+        <PromoAdminPanel />
       </section>
     </>
   );

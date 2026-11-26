@@ -2,11 +2,16 @@ import asyncHandler from "../middlewares/asyncHandler.js";
 import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import createToken from "../utils/createToken.js";
+import { notifyAdmins, notifyUser } from "../services/notificationBadgeService.js";
+import Referral from "../models/referralModel.js";
 
 
 const createUser = asyncHandler(async (req, res) => {
 const {username, password} = req.body;
 const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+const referralCode = typeof req.body?.referralCode === "string"
+    ? req.body.referralCode.trim().toUpperCase()
+    : "";
 
 
 if(!username || !email || !password){
@@ -16,28 +21,46 @@ if(!username || !email || !password){
 const userExists = await User.findOne({email});
 if (userExists) return res.status(400).send( "User already exists!💜")
 
+const referrer = referralCode ? await User.findOne({ referralCode }).select("_id") : null;
+if (referralCode && !referrer) {
+    return res.status(400).json({ message: "That referral code is not valid." });
+}
+
 const salt = await bcrypt.genSalt(10);
 const hashedPassword = await bcrypt.hash(password, salt);
 
     const newUser = new User({username, email, password: hashedPassword});
-
-        try {
-            await newUser.save()
-            createToken(res, newUser._id)
-            res.status(201).json({
-                _id: newUser._id,
-                 username: newUser.username, 
-                 email: newUser.email,
-                  isAdmin: newUser.isAdmin, 
-                  
-                  })
-
-
-
-        } catch (error) {
-            res.status(400)
-             throw new Error("User not created!💔")
-            
+    let userSaved = false;
+    try {
+        await newUser.save();
+        userSaved = true;
+        if (referrer && referrer._id.toString() !== newUser._id.toString()) {
+            try {
+                await Referral.create({
+                    referrer: referrer._id,
+                    referredUser: newUser._id,
+                    code: referralCode,
+                });
+            } catch (error) {
+                await User.deleteOne({ _id: newUser._id });
+                userSaved = false;
+                throw error;
+            }
+        }
+        createToken(res, newUser._id);
+        res.status(201).json({
+            _id: newUser._id,
+            username: newUser.username,
+            email: newUser.email,
+            isAdmin: newUser.isAdmin,
+            isSuperAdmin: newUser.isSuperAdmin,
+            referralCode: newUser.referralCode,
+            pointsBalance: newUser.pointsBalance,
+        });
+    } catch (error) {
+        if (userSaved) await User.deleteOne({ _id: newUser._id });
+        console.error("User registration failed:", error);
+        res.status(500).json({ message: error.message || "User registration failed." });
     }
 
 
@@ -50,7 +73,18 @@ if (!email || typeof password !== "string" || !password) {
     return res.status(400).json({ message: "Email and password are required" });
 }
 
-const existingUser = await User.findOne({email});
+if (User.db.readyState !== 1) {
+    return res.status(503).json({ message: "Login is temporarily unavailable while the database reconnects. Please retry shortly." });
+}
+
+let existingUser;
+try {
+    existingUser = await User.findOne({email}).maxTimeMS(8000);
+} catch (error) {
+    console.error("Login user lookup failed:", error.message);
+    return res.status(503).json({ message: "Login could not reach the account database. Please retry shortly." });
+}
+
 if (!existingUser || !(await bcrypt.compare(password, existingUser.password))) {
     return res.status(401).json({ message: "Invalid email or password" });
 }
@@ -62,6 +96,11 @@ return res.status(200).json({
     email: existingUser.email,
     isAdmin: existingUser.isAdmin,
     isSuperAdmin: existingUser.isSuperAdmin,
+    isSeller: existingUser.isSeller,
+    sellerStatus: existingUser.sellerStatus,
+    sellerShop: existingUser.sellerShop,
+    referralCode: existingUser.referralCode,
+    pointsBalance: existingUser.pointsBalance,
     token,
 });
 });
@@ -93,6 +132,12 @@ const getCurrentUserProfile = asyncHandler(async (req, res) => {
             username: user.username,
             email: user.email,
             isAdmin: user.isAdmin,
+            isSuperAdmin: user.isSuperAdmin,
+            isSeller: user.isSeller,
+            sellerStatus: user.sellerStatus,
+            sellerShop: user.sellerShop,
+            referralCode: user.referralCode,
+            pointsBalance: user.pointsBalance,
          })
         } else {
             res.status(404)
@@ -119,6 +164,12 @@ res.json({
     username: updatedUser.username,
     email: updatedUser.email,
     isAdmin: updatedUser.isAdmin,
+    isSuperAdmin: updatedUser.isSuperAdmin,
+    isSeller: updatedUser.isSeller,
+    sellerStatus: updatedUser.sellerStatus,
+    sellerShop: updatedUser.sellerShop,
+    referralCode: updatedUser.referralCode,
+    pointsBalance: updatedUser.pointsBalance,
 
 })
 
@@ -170,10 +221,27 @@ if (user) {
 const updateUserById = asyncHandler(async (req, res) => {
 const user = await User.findById(req.params.id)
 if (user) {
+    const wasAdmin = user.isAdmin;
     user.username = req.body.username || user.username
     user.email = req.body.email || user.email
-    user.isAdmin = Boolean(req.body.isAdmin)
+    if (typeof req.body.isAdmin === "boolean") {
+        user.isAdmin = req.body.isAdmin;
+    }
     const updatedUser = await user.save()
+
+    if (!wasAdmin && updatedUser.isAdmin) {
+        const notice = {
+            type: "system",
+            title: "ShopLink admin access approved",
+            message: "Your account has been granted ShopLink admin access.",
+        };
+        const results = await Promise.allSettled([
+            notifyUser(updatedUser._id, { ...notice, link: "/admin/dashboard" }),
+            notifyAdmins({ ...notice, link: "/admin/users" }, updatedUser._id),
+        ]);
+        results.filter((result) => result.status === "rejected")
+            .forEach((result) => console.error("Seller approval notification failed:", result.reason));
+    }
 
     res.json({
         _id: updatedUser._id,

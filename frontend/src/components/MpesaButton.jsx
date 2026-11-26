@@ -16,12 +16,14 @@ const formatPhone = (value) => {
 
 const isValidSafaricom = (number) => /^07[01249]\d{7}$/.test(number);
 
-const MpesaButton = ({ totalPrice, orderId, initialPhone = "", onPhoneChange, onSuccess }) => {
+const MpesaButton = ({ totalPrice, orderId, initialPhone = "", onPhoneChange, onSuccess, onFailure, disabled = false }) => {
   const [phoneNumber, setPhoneNumber] = useState(initialPhone);
   const [loading, setLoading] = useState(false);
   const [checkoutRequestId, setCheckoutRequestId] = useState(null);
   const { data: paymentStatus } = useCheckMpesaPaymentStatusQuery(checkoutRequestId, {
     skip: !checkoutRequestId,
+    pollingInterval: checkoutRequestId ? 4000 : 0,
+    skipPollingIfUnfocused: true,
   });
   const [initiatePayment] = useInitiateMpesaPaymentMutation();
 
@@ -29,18 +31,19 @@ const MpesaButton = ({ totalPrice, orderId, initialPhone = "", onPhoneChange, on
     if (!checkoutRequestId) return;
 
     if (paymentStatus) {
-      if (paymentStatus.success && paymentStatus.data.ResultCode === '0') {
+      if (paymentStatus.success && String(paymentStatus.data?.ResultCode) === '0') {
         setLoading(false);
         toast.success('Payment completed successfully!');
         onSuccess?.();
         setCheckoutRequestId(null);
-      } else if (paymentStatus.data.ResultCode !== '1032') {
+      } else if (paymentStatus.data?.ResultCode !== undefined) {
         setLoading(false);
-        toast.error(paymentStatus.data.ResultDesc || 'Payment failed');
+        toast.error(paymentStatus.data?.ResultDesc || 'M-Pesa payment was not completed');
         setCheckoutRequestId(null);
+        onFailure?.();
       }
     }
-  }, [paymentStatus, onSuccess]);
+  }, [checkoutRequestId, paymentStatus, onFailure, onSuccess]);
 
   const handleChange = (e) => {
     const raw = e.target.value;
@@ -121,12 +124,12 @@ const MpesaButton = ({ totalPrice, orderId, initialPhone = "", onPhoneChange, on
 
       <button
         className={`w-full py-3 px-4 rounded-lg font-medium text-white flex items-center justify-center space-x-2 transition-all ${
-          loading || !phoneNumber 
-            ? 'bg-gray-400 cursor-not-allowed' 
+          loading || disabled || !phoneNumber
+            ? 'bg-gray-400 cursor-not-allowed'
             : 'bg-green-600 hover:bg-green-700 shadow-md'
         }`}
         onClick={handleMpesaPayment}
-        disabled={loading || !phoneNumber}
+        disabled={loading || disabled || !phoneNumber}
       >
         {loading ? (
           <>

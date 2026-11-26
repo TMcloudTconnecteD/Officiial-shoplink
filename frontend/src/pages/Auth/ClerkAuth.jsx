@@ -14,6 +14,7 @@ const ClerkAuth = () => {
 
   const qp = new URLSearchParams(location.search);
   const mode = qp.get('mode') || 'signin';
+  const referralCode = qp.get('ref') || '';
   const pathname = location.pathname || '';
   const isSsoCallback = pathname === '/clerk-auth/sso-callback' || pathname.endsWith('/sso-callback') || pathname.includes('sso-callback');
 
@@ -33,6 +34,7 @@ const ClerkAuth = () => {
             email: user.primaryEmailAddress?.emailAddress || user.emailAddresses?.[0]?.emailAddress || user.email || '',
             username: user.firstName || user.fullName || user.username || user.email || 'clerk-user',
             clerkId: user.id || null,
+            referralCode,
           };
 
           const res = await syncClerkUser(payload, token);
@@ -46,7 +48,7 @@ const ClerkAuth = () => {
       }
     };
     doSync();
-  }, [isSignedIn, user, getToken, dispatch, navigate, isSsoCallback, mode]);
+  }, [isSignedIn, user, getToken, dispatch, navigate, isSsoCallback, mode, referralCode]);
 
   if (isSsoCallback) {
     return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-slate-600">Redirecting...</div>;

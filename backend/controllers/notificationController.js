@@ -3,6 +3,7 @@ import {
   getBadgeCount,
   getUnreadNotifications,
   resetBadge,
+  markNotificationRead,
   addNotification,
   NotificationBadge,
 } from "../services/notificationBadgeService.js";
@@ -27,7 +28,7 @@ const getUserBadgeCount = asyncHandler(async (req, res) => {
 });
 
 /**
- * GET all unread notifications for the user
+ * GET notification history and unread count for the authenticated user
  */
 const getUserNotifications = asyncHandler(async (req, res) => {
   try {
@@ -36,7 +37,7 @@ const getUserNotifications = asyncHandler(async (req, res) => {
 
     res.json({
       notifications,
-      count: notifications.length,
+      count: await getBadgeCount(userId),
     });
   } catch (error) {
     console.error("Error getting notifications:", error);
@@ -45,7 +46,7 @@ const getUserNotifications = asyncHandler(async (req, res) => {
 });
 
 /**
- * RESET badge count (user opened the app or read all notifications)
+ * Mark all notifications read without deleting notification history
  */
 const resetUserBadge = asyncHandler(async (req, res) => {
   try {
@@ -62,24 +63,44 @@ const resetUserBadge = asyncHandler(async (req, res) => {
   }
 });
 
+const markUserNotificationRead = asyncHandler(async (req, res) => {
+  try {
+    const badge = await markNotificationRead(req.user._id, req.params.notificationId);
+    if (!badge) {
+      return res.status(404).json({ message: "Unread notification not found" });
+    }
+    return res.json({
+      message: "Notification marked as read",
+      badgeCount: badge.badgeCount,
+    });
+  } catch (error) {
+    console.error("Error marking notification as read:", error);
+    return res.status(500).json({ error: "Failed to mark notification as read" });
+  }
+});
+
 /**
  * ADMIN: Add a notification for a specific user
  * Used by backend services to push notifications
  */
 const sendNotificationToUser = asyncHandler(async (req, res) => {
   try {
-    const { userId, type, title, message } = req.body;
+    const { userId, type, title, message, link } = req.body;
 
     if (!userId || !type || !title || !message) {
       return res.status(400).json({
         error: "userId, type, title, and message are required",
       });
     }
+    if (link !== undefined && (typeof link !== "string" || !link.startsWith("/") || link.startsWith("//"))) {
+      return res.status(400).json({ error: "link must be a local application path" });
+    }
 
     const notification = {
       type,
       title,
       message,
+      link,
       read: false,
       createdAt: new Date(),
     };
@@ -129,6 +150,7 @@ export {
   getUserBadgeCount,
   getUserNotifications,
   resetUserBadge,
+  markUserNotificationRead,
   sendNotificationToUser,
   getAnyUserBadge,
 };

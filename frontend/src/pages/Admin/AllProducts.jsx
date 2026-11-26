@@ -1,95 +1,115 @@
-import { Link } from "react-router-dom";
-import moment from "moment";
+import { useMemo, useState } from "react";
+import { FaBoxOpen, FaSearch } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import { Link, useSearchParams } from "react-router-dom";
+import Loader from "../../components/Loader";
+import Message from "../../components/Message";
 import { useAllProductsQuery } from "../../redux/Api/productApiSlice";
+import { useFetchShopsQuery } from "../../redux/Api/shopApiSlice";
 import AdminMenu from "./AdminMenu";
+import "./AdminWorkspace.css";
 
 const AllProducts = () => {
-  const { data: products, isLoading, isError } = useAllProductsQuery();
+  const { userInfo } = useSelector((state) => state.auth);
+  const [searchParams] = useSearchParams();
+  const { data, isLoading, isError, error } = useAllProductsQuery();
+  const { data: shopsData = [], isLoading: shopsLoading, isError: shopsError } = useFetchShopsQuery();
+  const [search, setSearch] = useState("");
+  const allProducts = useMemo(() => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.products)) return data.products;
+    if (Array.isArray(data?.data)) return data.data;
+    return [];
+  }, [data]);
 
-  if (isLoading) {
-    return <div className="text-center text-lg text-gray-500">Loading...</div>;
-  }
+  const manageableShopIds = useMemo(() => {
+    const shops = Array.isArray(shopsData) ? shopsData : shopsData?.data || [];
+    return shops
+      .filter((shop) => {
+        if (userInfo?.isSuperAdmin) return true;
+        const ownerId = typeof shop.owner === "object" ? shop.owner?._id : shop.owner;
+        return ownerId && String(ownerId) === String(userInfo?._id || userInfo?.id);
+      })
+      .map((shop) => String(shop._id));
+  }, [shopsData, userInfo]);
+  const selectedShopId = searchParams.get("shop");
+  const products = useMemo(() => allProducts.filter((product) => {
+    const productShopId = String(product.shop?._id || product.shop || "");
+    return manageableShopIds.includes(productShopId)
+      && (!selectedShopId || productShopId === selectedShopId);
+  }), [allProducts, manageableShopIds, selectedShopId]);
 
-  if (isError) {
-    return <div className="text-center text-lg text-red-500">Error loading products</div>;
-  }
+  const filteredProducts = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return products;
+    return products.filter((product) => [
+      product.name,
+      product.brand,
+      product.category?.name || product.category,
+      product.shop?.name || product.shop,
+      product._id,
+    ].filter(Boolean).join(" ").toLowerCase().includes(query));
+  }, [products, search]);
 
   return (
-    <>
-      <div className="bg-gray-50 min-h-screen py-10">
-        <div className="container mx-auto px-8">
-          <div className="flex flex-col md:flex-row">
-            <div className="md:w-3/4 md:ml-[6rem]">
-              <div className="mb-8 text-3xl font-bold text-gray-800">
-                All Products ({products.length})
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {products.map((product) => (
-                  <Link
-                    key={product._id}
-                    to={`/admin/product/update/${product._id}`}
-                    className="transform transition duration-300 hover:scale-105"
-                  >
-                    <div className="bg-white rounded-xl shadow-md hover:shadow-xl overflow-hidden">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-64 object-cover"
-                      />
-                      <div className="p-5">
-                        <div className="flex justify-between items-center">
-                          <h5 className="text-xl font-semibold text-gray-900">
-                            {product?.name}
-                          </h5>
-                          <p className="text-sm text-gray-500">
-                            {moment(product.createdAt).format("MMM Do, YYYY")}
-                          </p>
-                        </div>
-
-                        <p className="text-gray-500 text-sm mt-2">
-                          {product?.description?.substring(0, 160)}...
-                        </p>
-
-                        <div className="flex justify-between items-center mt-4">
-                          <Link
-                            to={`/admin/product/update/${product._id}`}
-                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-pink-600 rounded-lg hover:bg-pink-700"
-                          >
-                            Update
-                            <svg
-                              className="w-4 h-4 ml-2"
-                              fill="none"
-                              viewBox="0 0 14 10"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                stroke="currentColor"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M1 5h12m0 0L9 1m4 4L9 9"
-                              />
-                            </svg>
-                          </Link>
-                          <p className="text-lg font-semibold text-gray-800">
-                            KES {product?.price}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div className="md:w-1/4 mt-10 md:mt-0">
-              <AdminMenu />
-            </div>
-          </div>
+    <div className="admin-products-page">
+      <AdminMenu />
+      <header className="admin-workspace__header">
+        <div>
+          <p className="admin-workspace__eyebrow">Catalogue management</p>
+          <h1>Products</h1>
+          <p className="admin-workspace__description">Add, edit, and remove products in your shop.</p>
         </div>
-      </div>
-    </>
+        <div className="admin-workspace__summary">
+          <div className="admin-workspace__stat"><span>Total products</span><strong>{products.length}</strong></div>
+          <Link className="admin-workspace__action" to={selectedShopId ? `/admin/productlist?shop=${selectedShopId}` : "/admin/productlist"}>Add product</Link>
+        </div>
+      </header>
+
+      <label className="admin-workspace__search">
+        <FaSearch aria-hidden="true" />
+        <input
+          type="search"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search products, brands, categories or shop"
+          aria-label="Search products"
+        />
+      </label>
+
+      {isLoading || shopsLoading ? <div className="admin-workspace__loading"><Loader /></div>
+        : isError ? (
+          <Message variant="danger">{error?.data?.message || error?.error || "Could not load products."}</Message>
+        ) : shopsError ? (
+          <Message variant="danger">We couldn’t load your shops, so product ownership can’t be verified.</Message>
+        ) : filteredProducts.length === 0 ? (
+          <div className="admin-workspace__empty">
+            <FaBoxOpen aria-hidden="true" />
+            <h2>{search ? "No matching products" : "No products yet"}</h2>
+            <p>{search ? "Try a different product name, brand, category, or shop." : "Create a product to start building your catalogue."}</p>
+          </div>
+        ) : (
+          <div className="admin-products-grid">
+            {filteredProducts.map((product) => (
+              <Link
+                key={product._id}
+                to={`/admin/product/update/${product._id}`}
+                className="admin-product-card"
+              >
+                <img src={product.image} alt={product.name || "Product"} loading="lazy" />
+                <div className="admin-product-card__body">
+                  <h2>{product.name}</h2>
+                  <p>{product.description || "No description provided."}</p>
+                  <div className="admin-product-card__footer">
+                    <strong>KES {Number(product.price || 0).toLocaleString()}</strong>
+                    <span>{product.shop?.name || "Update details"}</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+    </div>
   );
 };
 

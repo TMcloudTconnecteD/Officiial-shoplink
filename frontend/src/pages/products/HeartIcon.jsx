@@ -4,17 +4,30 @@ import {
   addToFavorites,
   removeFromFavorites,
 } from "../../redux/features/favorites/favoriteSlice";
+import { toast } from "react-toastify";
+import { useToggleProductFavoriteMutation } from "../../redux/Api/productApiSlice";
 
 const HeartIcon = ({ product }) => {
   const dispatch = useDispatch();
   const favorites = useSelector((state) => state.favorites) || [];
+  const { userInfo } = useSelector((state) => state.auth);
+  const [toggleFavorite] = useToggleProductFavoriteMutation();
   const isFavorite = favorites.some((p) => p._id === product._id);
 
-  const toggleFavorites = () => {
+  const toggleFavorites = async () => {
     if (isFavorite) {
       dispatch(removeFromFavorites(product));
     } else {
       dispatch(addToFavorites(product));
+    }
+    if (userInfo) {
+      try {
+        await toggleFavorite({ productId: product._id, favorited: !isFavorite }).unwrap();
+      } catch (error) {
+        if (isFavorite) dispatch(addToFavorites(product));
+        else dispatch(removeFromFavorites(product));
+        toast.error(error?.data?.message || "Could not update your favorites");
+      }
     }
   };
 

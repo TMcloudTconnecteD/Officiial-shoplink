@@ -8,12 +8,22 @@ import Loader from "../../components/Loader";
 import { useCreateOrderMutation } from "../../redux/Api/orderApiSlice";
 import { clearCartItems } from "../../redux/features/cart/cartSlice";
 import { FaMoneyCheckAlt } from "react-icons/fa";
+import { useGetPromoSettingsQuery, useGetRewardsQuery } from "../../redux/Api/marketingApiSlice";
 
 const PlaceOrder = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const cart = useSelector((state) => state.cart);
+  const { userInfo } = useSelector((state) => state.auth);
+  const isCustomer = Boolean(userInfo && !userInfo.isAdmin && !userInfo.isSuperAdmin);
+  const { data: promoSettings } = useGetPromoSettingsQuery();
+  const { data: rewards } = useGetRewardsQuery(undefined, { skip: !isCustomer });
+  const hasAvailableReward = Boolean(
+    promoSettings?.rewardProgramEnabled !== false
+    && rewards?.rewardProgramEnabled !== false
+    && rewards?.rewardCredits?.some((credit) => credit.status === "available")
+  );
   const [createOrder, { isLoading, error }] = useCreateOrderMutation();
 
   useEffect(() => {
@@ -124,6 +134,22 @@ const PlaceOrder = () => {
               <h2 className="text-2xl font-semibold mb-4">Payment Method</h2>
               <strong>Method:</strong> {cart.paymentMethod}
             </div>
+          </div>
+
+          <div className={`mt-4 rounded-2xl border p-4 ${hasAvailableReward ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-slate-50"}`}>
+            <p className="font-semibold text-emerald-950">
+              {hasAvailableReward ? "Your KES 100 reward will apply automatically" : "ShopLink Rewards"}
+            </p>
+            <p className="mt-1 text-sm text-emerald-900">
+              {hasAvailableReward
+                ? `A reward linked to ${rewards.user.email} will be applied to this order. If it covers the total, you'll owe KES 0.`
+                : promoSettings?.rewardProgramEnabled === false
+                  ? "Rewards are temporarily paused. Your existing points and vouchers are kept safe."
+                  : isCustomer
+                    ? `${rewards?.user?.email || userInfo.email} earns 10 points per paid order. At 1,000 points, KES 100 is automatically saved for the next order.`
+                    : "Sign in to earn 10 points per paid order. Every 1,000 points unlocks KES 100 off a future order."}
+            </p>
+            {!userInfo && <Link to="/login?redirect=%2Fstudent-friendly" className="mt-2 inline-flex font-semibold text-emerald-800 underline">Sign in to track rewards</Link>}
           </div>
 
           {error && (

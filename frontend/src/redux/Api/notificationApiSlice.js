@@ -13,10 +13,18 @@ export const notificationApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Notification"],
     }),
+    markNotificationRead: builder.mutation({
+      query: (notificationId) => ({
+        url: `/api/notifications/notifications/${notificationId}/read`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Notification"],
+    }),
   }),
 });
 
 export const {
   useGetNotificationsQuery,
   useMarkNotificationsReadMutation,
+  useMarkNotificationReadMutation,
 } = notificationApiSlice;

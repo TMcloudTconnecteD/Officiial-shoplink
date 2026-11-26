@@ -1,6 +1,8 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
 import { notifyAdmins, notifyUser } from '../services/notificationBadgeService.js';
+import { generateOrderReceiptNumber } from '../utils/orderReceipt.js';
+import awardPaidOrderPoints from '../services/rewardService.js';
 dotenv.config();
 
 const { 
@@ -131,10 +133,14 @@ const initiatePayment = async (phoneNumber, amount, orderId) => {
 // Handle M-Pesa callback
 const handleCallback = async (callbackData) => {
   try {
-    const { Body: { stkCallback: { ResultCode, ResultDesc, CallbackMetadata } } } = callbackData;
+    const stkCallback = callbackData?.Body?.stkCallback;
+    if (!stkCallback) {
+      return { success: false, error: 'Invalid M-Pesa callback payload', message: 'Invalid callback payload' };
+    }
+    const { ResultCode, ResultDesc, CallbackMetadata } = stkCallback;
     
-    if (ResultCode === 0) {
-      const metadata = CallbackMetadata.Item.reduce((acc, item) => {
+    if (Number(ResultCode) === 0) {
+      const metadata = (Array.isArray(CallbackMetadata?.Item) ? CallbackMetadata.Item : []).reduce((acc, item) => {
         acc[item.Name] = item.Value;
         return acc;
       }, {});
@@ -142,16 +148,11 @@ const handleCallback = async (callbackData) => {
       // Attempt to update order in DB by matching checkoutRequestId (preferred), then AccountReference
       try {
         const Order = (await import('../models/orderModel.js')).default;
-        const checkoutId = metadata['CheckoutRequestID'] || null;
-        const accountRef = metadata['AccountReference'] || null;
+        const checkoutId = stkCallback.CheckoutRequestID || null;
 
         let order = null;
         if (checkoutId) {
           order = await Order.findOne({ checkoutRequestId: checkoutId });
-        }
-        if (!order && accountRef) {
-          // accountRef may be the order ID
-          order = await Order.findById(accountRef);
         }
 
         if (!order) {
@@ -163,25 +164,62 @@ const handleCallback = async (callbackData) => {
         }
 
         if (order && !order.isPaid) {
-          order.isPaid = true;
-          order.paidAt = new Date();
-          order.paymentResult = {
+          const paidAt = new Date();
+          const receiptNumber = generateOrderReceiptNumber(order._id, paidAt);
+          const paymentConfirmation = {
+            method: 'M-Pesa',
+            gatewayVerified: true,
+            gatewayStatus: 'COMPLETED',
+            gatewayCheckoutRequestId: checkoutId,
+            customerConfirmedAt: paidAt,
+            customerConfirmedBy: order.user || null,
+            shopConfirmedAt: null,
+            shopConfirmedBy: null,
+            receiptNumber,
+          };
+          const paymentResult = {
             id: metadata['MpesaReceiptNumber'] || '',
             status: 'COMPLETED',
-            update_time: new Date().toISOString(),
+            update_time: paidAt.toISOString(),
             email_address: '',
+            method: 'M-Pesa',
           };
-          await order.save();
-          const notice = {
-            type: 'payment',
-            title: 'Payment confirmed',
-            message: `M-Pesa payment for order ${order._id} has been confirmed.`,
-          };
-          const notifications = [notifyAdmins(notice)];
-          if (order.user) notifications.push(notifyUser(order.user, notice));
-          const results = await Promise.allSettled(notifications);
-          results.filter((result) => result.status === 'rejected')
-            .forEach((result) => console.error('M-Pesa payment notification failed:', result.reason));
+          const settledOrder = await Order.findOneAndUpdate(
+            { _id: order._id, isPaid: false },
+            {
+              $set: {
+                isPaid: true,
+                paidAt,
+                paymentMethod: 'M-Pesa',
+                finalPaymentMethod: 'M-Pesa',
+                paymentConfirmation,
+                paymentResult,
+              },
+            },
+            { new: true }
+          );
+          if (!settledOrder) {
+            const latestOrder = await Order.findById(order._id);
+            if (latestOrder?.isPaid) await awardPaidOrderPoints(latestOrder);
+          } else {
+            await awardPaidOrderPoints(settledOrder);
+            const notice = {
+              type: 'payment',
+              title: 'M-Pesa payment confirmed',
+              message: `M-Pesa payment for order ${settledOrder._id} has been confirmed. Receipt ${receiptNumber}.`,
+              link: `/order/${settledOrder._id}`,
+            };
+            const notifications = [notifyAdmins(notice, settledOrder.user)];
+            if (settledOrder.user) notifications.push(notifyUser(settledOrder.user, {
+              ...notice,
+              link: `/order/${settledOrder._id}`,
+            }));
+            const results = await Promise.allSettled(notifications);
+            results.filter((result) => result.status === 'rejected')
+              .forEach((result) => console.error('M-Pesa payment notification failed:', result.reason));
+          }
+        } else if (!order) {
+          console.error('M-Pesa payment succeeded but no order matched the callback', { checkoutId });
         }
       } catch (e) {
         console.warn('Failed to update order from callback:', e.message);
@@ -192,6 +230,23 @@ const handleCallback = async (callbackData) => {
         data: metadata,
         message: 'Payment completed successfully'
       };
+    }
+
+    const checkoutId = stkCallback.CheckoutRequestID || null;
+    if (checkoutId) {
+      try {
+        const Order = (await import('../models/orderModel.js')).default;
+        await Order.updateOne(
+          {
+            checkoutRequestId: checkoutId,
+            isPaid: false,
+            'paymentConfirmation.gatewayStatus': 'PENDING',
+          },
+          { $set: { 'paymentConfirmation.gatewayStatus': 'FAILED' } }
+        );
+      } catch (updateError) {
+        console.error('Failed to record M-Pesa failure against order:', updateError.message);
+      }
     }
 
     return {

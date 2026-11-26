@@ -6,11 +6,12 @@ import {
   AiOutlineShoppingCart,
   AiOutlineSearch,
 } from "react-icons/ai";
-import { FaBell, FaHeart, FaStore, FaDownload } from "react-icons/fa";
+import { FaBell, FaHeart, FaRegHeart, FaStore, FaDownload, FaGraduationCap } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useLogoutMutation } from "../../redux/Api/usersApiSlice.js";
-import { logout } from "../../redux/features/auth/authSlice.js";
+import { useGetCurrentUserProfileQuery, useLogoutMutation } from "../../redux/Api/usersApiSlice.js";
+import { logout, setCredentials } from "../../redux/features/auth/authSlice.js";
+import ShopLinkMark from "../../components/ShopLinkMark.jsx";
 
 import {
   clearCartItems,
@@ -22,9 +23,13 @@ import {
 } from "../../redux/features/favorites/favoriteSlice.js";
 import {
   useGetNotificationsQuery,
+  useMarkNotificationReadMutation,
   useMarkNotificationsReadMutation,
 } from "../../redux/Api/notificationApiSlice.js";
 import { apiSlice } from "../../redux/Api/apiSlice.js";
+import { toast } from "react-toastify";
+import { useGetCartNudgeStatusQuery, useLogPromoEventMutation } from "../../redux/Api/marketingApiSlice.js";
+import { reportPromoEvent } from "../../components/marketing/marketingUtils.js";
 
 const Navigation = () => {
   const { userInfo } = useSelector((state) => state.auth);
@@ -34,23 +39,64 @@ const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [logoutApiCall] = useLogoutMutation();
+  const { data: currentProfile } = useGetCurrentUserProfileQuery(undefined, {
+    skip: !userInfo,
+    refetchOnMountOrArgChange: true,
+  });
 
   const [search, setSearch] = useState("");
   const searchRef = useRef();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const { data: notificationData, isError: notificationsError } = useGetNotificationsQuery(userInfo?._id || userInfo?.id, {
+  const { data: notificationData, isError: notificationsError, refetch: refetchNotifications } = useGetNotificationsQuery(userInfo?._id || userInfo?.id, {
     skip: !userInfo,
-    pollingInterval: userInfo ? 30000 : 0,
+    pollingInterval: userInfo ? 10000 : 0,
+    skipPollingIfUnfocused: true,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
   });
   const [markNotificationsRead, { isLoading: isMarkingRead }] = useMarkNotificationsReadMutation();
+  const [markNotificationRead] = useMarkNotificationReadMutation();
   const notifications = notificationData?.notifications || [];
   const notificationCount = Number(notificationData?.count || 0);
+  const isAdmin = Boolean(userInfo?.isAdmin || userInfo?.isSuperAdmin);
+  const isSuperAdmin = Boolean(userInfo?.isSuperAdmin);
+
+  useEffect(() => {
+    const roleChanged = currentProfile && userInfo && (
+      Boolean(currentProfile.isAdmin) !== Boolean(userInfo.isAdmin)
+      || Boolean(currentProfile.isSuperAdmin) !== Boolean(userInfo.isSuperAdmin)
+      || Boolean(currentProfile.isSeller) !== Boolean(userInfo.isSeller)
+      || currentProfile.sellerStatus !== userInfo.sellerStatus
+    );
+    if (roleChanged) {
+      dispatch(setCredentials({
+        ...userInfo,
+        ...currentProfile,
+        token: userInfo.token,
+      }));
+    }
+  }, [currentProfile, dispatch, userInfo]);
 
   const favoriteCount = favorites.filter((product) => (
     product && typeof product === "object" && typeof product._id === "string" && product._id.trim()
   )).length;
   const cartCount = cartItems?.reduce((a, c) => a + (c.qty || 1), 0) || 0;
+  const { data: cartNudge } = useGetCartNudgeStatusQuery(undefined, {
+    skip: !userInfo || userInfo.isAdmin || userInfo.isSuperAdmin,
+    pollingInterval: userInfo && !userInfo.isAdmin && !userInfo.isSuperAdmin ? 60000 : 0,
+    skipPollingIfUnfocused: true,
+  });
+  const [logPromoEvent] = useLogPromoEventMutation();
+  const cartNudgeSeen = useRef(false);
+  useEffect(() => {
+    if (cartNudge?.show && !cartNudgeSeen.current) {
+      reportPromoEvent(logPromoEvent, "cartNudge", "impression");
+      cartNudgeSeen.current = true;
+    } else if (!cartNudge?.show) {
+      cartNudgeSeen.current = false;
+    }
+  }, [cartNudge?.show, logPromoEvent]);
 
   const logoutHandler = async () => {
     try {
@@ -65,6 +111,33 @@ const Navigation = () => {
       navigate("/login");
     }
   };
+  const openNotification = async (notification) => {
+    const notificationId = notification._id || notification.id;
+    if (notificationId && !notification.read) {
+      try {
+        await markNotificationRead(notificationId).unwrap();
+      } catch (error) {
+        toast.error(error?.data?.message || "Could not update notification status");
+      }
+    }
+
+    const orderId = notification.message?.match(/order\s+([a-f\d]{24})/i)?.[1];
+    const fallbackLink = notification.type === "order" || notification.type === "payment"
+      ? (orderId ? `/order/${orderId}` : userInfo?.isAdmin ? "/admin/orderlist" : "/profile")
+      : notification.type === "rider"
+        ? (userInfo?.isAdmin ? "/admin/riders" : "/ride-boda")
+        : notification.type === "seller"
+        ? (userInfo?.isSuperAdmin ? "/admin/shops" : userInfo?.isAdmin ? "/admin/my-shop" : "/shops/all")
+          : userInfo?.isAdmin ? "/admin/dashboard" : "/profile";
+    const link = typeof notification.link === "string"
+      && notification.link.startsWith("/")
+      && !notification.link.startsWith("//")
+      ? notification.link
+      : fallbackLink;
+
+    setNotificationsOpen(false);
+    navigate(link);
+  };
 
   const handleDownloadApp = () => {
     navigate("/");
@@ -72,12 +145,17 @@ const Navigation = () => {
 
   const toggleDropdown = () => setDropdownOpen((prev) => !prev);
   const handleOptionClick = () => setDropdownOpen(false);
-  const toggleNotifications = () => setNotificationsOpen((open) => !open);
+  const toggleNotifications = () => {
+    const willOpen = !notificationsOpen;
+    setNotificationsOpen(willOpen);
+    if (willOpen) refetchNotifications();
+  };
   const handleMarkNotificationsRead = async () => {
     try {
       await markNotificationsRead().unwrap();
     } catch (error) {
       console.error("Could not mark notifications as read:", error);
+      toast.error(error?.data?.message || "Could not mark notifications as read");
     }
   };
 
@@ -114,7 +192,7 @@ const Navigation = () => {
     { name: "Home", icon: <AiOutlineHome size={24} />, path: "/" },
     { name: "Shop", icon: <AiOutlineShop size={24} />, path: "/shop" },
     { name: "Malls", icon: <FaStore size={22} />, path: "/shops/all" },
-    { name: "Favorites", icon: <FaHeart size={22} />, path: "/favorite" },
+    { name: "Favorites", icon: favoriteCount > 0 ? <FaHeart size={22} /> : <FaRegHeart size={22} />, path: "/favorite" },
     { name: "Cart", icon: <AiOutlineShoppingCart size={24} />, path: "/cart" },
   ];
 
@@ -123,7 +201,7 @@ const Navigation = () => {
       <nav className="shoplink-header" aria-label="Main navigation">
         <div className="shoplink-shell shoplink-header__inner">
           <Link to="/" className="shoplink-brand" aria-label="ShopLink home">
-            <span className="shoplink-brand__mark">S</span>
+            <ShopLinkMark />
             <span className="shoplink-brand__text-wrap">
               <span className="shoplink-brand__name">ShopLink</span>
               <span className="shoplink-brand__tag">Campus shopping</span>
@@ -156,16 +234,22 @@ const Navigation = () => {
               className={`shoplink-header__icon${favoriteCount > 0 ? " shoplink-header__icon--fav" : " shoplink-header__icon--fav-empty"}`}
               aria-label={favoriteCount > 0 ? `Favorites, ${favoriteCount} selected` : "Favorites"}
             >
-              {favoriteCount > 0 ? <FaHeart /> : <FaHeart className="shoplink-header__fav-empty" />}
+              {favoriteCount > 0 ? <FaHeart /> : <FaRegHeart className="shoplink-header__fav-empty" />}
               {favoriteCount > 0 && (
                 <span className="shoplink-header__badge">
                   {favoriteCount > 99 ? "99+" : favoriteCount}
                 </span>
               )}
             </Link>
-            <Link to="/cart" className="shoplink-header__icon" aria-label="Cart">
+            <Link
+              to="/cart"
+              className="shoplink-header__icon"
+              aria-label={cartNudge?.show ? `Cart, ${cartNudge.itemCount} items waiting` : "Cart"}
+              onClick={() => cartNudge?.show && reportPromoEvent(logPromoEvent, "cartNudge", "click")}
+            >
               <AiOutlineShoppingCart />
               {cartCount > 0 && <span className="shoplink-header__badge shoplink-header__badge--cart">{cartCount}</span>}
+              {cartNudge?.show && <span className="shoplink-cart-nudge">{cartNudge.itemCount} waiting</span>}
             </Link>
             {userInfo && (
               <div className="shoplink-header__notifications">
@@ -201,11 +285,20 @@ const Navigation = () => {
                       <ul className="shoplink-notification-list">
                         {notifications.slice(0, 8).map((notification) => (
                           <li key={notification._id || notification.id}>
-                            <strong>{notification.title}</strong>
-                            <p>{notification.message}</p>
-                            <time dateTime={notification.createdAt}>
-                              {new Date(notification.createdAt).toLocaleString()}
-                            </time>
+                            <button
+                              type="button"
+                              className={`shoplink-notification-item${notification.read ? " is-read" : ""}`}
+                              onClick={() => openNotification(notification)}
+                            >
+                              <span className="shoplink-notification-item__title">
+                                <strong>{notification.title}</strong>
+                                {!notification.read && <span className="shoplink-notification-item__unread" aria-label="Unread" />}
+                              </span>
+                              <span className="shoplink-notification-item__message">{notification.message}</span>
+                              <time dateTime={notification.createdAt}>
+                                {new Date(notification.createdAt).toLocaleString()}
+                              </time>
+                            </button>
                           </li>
                         ))}
                       </ul>
@@ -244,20 +337,25 @@ const Navigation = () => {
 
                 {dropdownOpen && (
                   <ul className="shoplink-header__dropdown">
-                    {userInfo.isAdmin && (
+                    {isAdmin && (
                       <>
-                        <li><Link to="/admin/productlist" onClick={handleOptionClick}>Products</Link></li>
+                        <li><Link to="/admin/dashboard" onClick={handleOptionClick}>Admin dashboard</Link></li>
+                        <li><Link to={isSuperAdmin ? "/admin/shops" : "/admin/my-shop"} onClick={handleOptionClick}>{isSuperAdmin ? "All shops" : "My shop"}</Link></li>
+                        <li><Link to="/admin/productlist" onClick={handleOptionClick}>Create product</Link></li>
+                        <li><Link to="/admin/allproductslist" onClick={handleOptionClick}>Manage products</Link></li>
                         <li><Link to="/admin/orderlist" onClick={handleOptionClick}>Orders</Link></li>
+                      </>
+                    )}
+                    {isSuperAdmin && (
+                      <>
+                        <li><Link to="/admin/shop/add" onClick={handleOptionClick}>Add shop</Link></li>
+                        <li><Link to="/admin/users" onClick={handleOptionClick}>Users</Link></li>
+                        <li><Link to="/admin/categories" onClick={handleOptionClick}>Categories</Link></li>
+                        <li><Link to="/admin/sellers" onClick={handleOptionClick}>Seller applications</Link></li>
                         <li><Link to="/admin/riders" onClick={handleOptionClick}>Rider applications</Link></li>
                       </>
                     )}
-                    {userInfo.isSuperAdmin && (
-                      <>
-                        <li><Link to="/admin/shops" onClick={handleOptionClick}>Shops</Link></li>
-                        <li><Link to="/admin/users" onClick={handleOptionClick}>Users</Link></li>
-                        <li><Link to="/admin/categories" onClick={handleOptionClick}>Categories</Link></li>
-                      </>
-                    )}
+                    {!isAdmin && <li><Link to="/student-friendly" onClick={handleOptionClick}><FaGraduationCap aria-hidden="true" /> Student Friendly</Link></li>}
                     <li><button type="button" onClick={logoutHandler}>Logout</button></li>
                   </ul>
                 )}
@@ -280,10 +378,12 @@ const Navigation = () => {
             <Link
               key={item.name}
               to={item.path}
+              onClick={() => item.name === "Cart" && cartNudge?.show && reportPromoEvent(logPromoEvent, "cartNudge", "click")}
               className={`shoplink-bottom-nav__item ${isActive ? 'is-active' : ''}`}
             >
               {item.icon}
               {badge > 0 && <span className="shoplink-bottom-nav__badge">{badge}</span>}
+              {item.name === "Cart" && cartNudge?.show && <span className="shoplink-bottom-nav__badge shoplink-cart-nudge-dot">{cartNudge.itemCount}</span>}
               <span>{item.name}</span>
             </Link>
           );

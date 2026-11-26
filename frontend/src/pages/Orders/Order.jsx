@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 import { useSelector } from "react-redux";
@@ -6,52 +6,40 @@ import { toast } from "react-toastify";
 import { FaPaypal, FaMobileAlt } from "react-icons/fa";
 import Message from "../../components/Message";
 import Loader from "../../components/Loader";
+import PageBackButton from "../../components/PageBackButton";
 import {
   useDeliverOrderMutation,
+  useConfirmCashPaymentMutation,
   useGetOrderDetailsQuery,
   useGetPaypalClientIdQuery,
   usePayOrderMutation,
 } from "../../redux/Api/orderApiSlice";
 import MpesaButton from "../../components/MpesaButton";
+import "./Order.css";
+import PostOrderDelight from "../../components/marketing/PostOrderDelight";
 
 const Order = () => {
   const { id: orderId } = useParams();
   const { data: order, refetch, isLoading, error } = useGetOrderDetailsQuery(orderId);
   const [payOrder, { isLoading: loadingPay }] = usePayOrderMutation();
+  const [confirmCashPayment, { isLoading: confirmingCash }] = useConfirmCashPaymentMutation();
   const [deliverOrder, { isLoading: loadingDeliver }] = useDeliverOrderMutation();
-  const { userInfo, token } = useSelector((state) => state.auth);
+  const { userInfo } = useSelector((state) => state.auth);
   const [{ isPending }, paypalDispatch] = usePayPalScriptReducer();
   const { data: paypal, isLoading: loadingPayPal, error: errorPayPal } = useGetPaypalClientIdQuery();
 
-  const [exchangeRate, setExchangeRate] = useState(null);
   const [usdAmount, setUsdAmount] = useState("0.00");
 
-  // Fetch conversion rate
   useEffect(() => {
-    const fetchRate = async () => {
-      try {
-        const resp = await fetch(`https://api.exchangerate.host/convert?from=KES&to=USD`);
-        const json = await resp.json();
-        if (json.success) setExchangeRate(json.info.rate);
-        else throw new Error("Rate fetch failed");
-      } catch (err) {
-        console.error("Exchange rate fetch error:", err);
-        setExchangeRate(0.0077);
-      }
-    };
-    fetchRate();
-  }, []);
-
-  // Compute USD
-  useEffect(() => {
-    if (order && exchangeRate) {
-      setUsdAmount((order.totalPrice * exchangeRate).toFixed(2));
+    const kesToUsdRate = Number(paypal?.kesToUsdRate);
+    if (order && Number.isFinite(kesToUsdRate) && kesToUsdRate > 0) {
+      setUsdAmount((order.totalPrice * kesToUsdRate).toFixed(2));
     }
-  }, [order, exchangeRate]);
+  }, [order, paypal?.kesToUsdRate]);
 
   // Load PayPal
   useEffect(() => {
-    if (!errorPayPal && !loadingPayPal && paypal?.clientId) {
+    if (!errorPayPal && !loadingPayPal && paypal?.clientId && paypal?.serverVerificationReady) {
       paypalDispatch({
         type: "resetOptions",
         value: { "client-id": paypal.clientId, currency: "USD" },
@@ -64,6 +52,8 @@ const Order = () => {
     actions.order.create({
       purchase_units: [
         {
+          reference_id: order._id,
+          custom_id: order._id,
           amount: { value: usdAmount },
           description: `Order ${order._id} (KES ${order.totalPrice})`,
         },
@@ -73,7 +63,7 @@ const Order = () => {
   const onApprove = (data, actions) =>
     actions.order.capture().then(async (details) => {
       try {
-        await payOrder({ orderId, details });
+        await payOrder({ orderId, details }).unwrap();
         refetch();
         toast.success("Order is paid");
       } catch (err) {
@@ -83,26 +73,26 @@ const Order = () => {
 
   const onError = (err) => toast.error(err.message);
 
-  // ----------------------------
-  // CASH PAYMENT HANDLER ADDED
-  // ----------------------------
-  const cashPayHandler = async () => {
+  const confirmCashHandler = async () => {
     try {
-      const cashDetails = {
-        id: "CASH-" + Date.now(),
-        status: "COMPLETED",
-        update_time: new Date().toISOString(),
-        payer: { email_address: "cash@local" },
-        method: "cash",
-      };
-
-      await payOrder({ orderId, details: cashDetails });
-      refetch();
-      toast.success("Order marked as PAID (Cash)");
+      const updatedOrder = await confirmCashPayment({ orderId, method: "Cash" }).unwrap();
+      await refetch();
+      toast.success(updatedOrder.isPaid
+        ? `Cash payment confirmed. Receipt ${updatedOrder.paymentConfirmation?.receiptNumber}.`
+        : "Your confirmation was recorded. Waiting for the other party.");
     } catch (err) {
-      toast.error(err?.data?.message || err?.message);
+      toast.error(err?.data?.message || err?.message || "Cash confirmation failed");
     }
   };
+
+  const handleMpesaSuccess = useCallback(() => {
+    toast.success("Payment confirmed by M-Pesa. Refreshing order status…");
+    refetch();
+    window.setTimeout(() => refetch(), 1500);
+  }, [refetch]);
+  const handleMpesaFailure = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
   const apiUrl = import.meta.env.VITE_API_URL;
   const deliverHandler = async () => {
@@ -167,7 +157,9 @@ const Order = () => {
           window.open(debugUrl, "_blank");
           // try copying to clipboard for convenience
           navigator.clipboard && navigator.clipboard.writeText(debugUrl);
-        } catch (e) {}
+        } catch (receiptDebugError) {
+          console.warn("Could not open receipt debug URL:", receiptDebugError);
+        }
         throw new Error(`Unexpected response content-type: ${contentType || 'unknown'} - ${preview}`);
       }
 
@@ -179,7 +171,7 @@ const Order = () => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `receipt-${order._id}.pdf`;
+      a.download = `receipt-${order.paymentConfirmation?.receiptNumber || order.paymentResult?.id || order._id}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -192,11 +184,37 @@ const Order = () => {
   if (isLoading) return <Loader />;
   if (error) return <Message variant="danger">{error.data?.message || "Error loading order"}</Message>;
 
+  const currentUserId = userInfo?._id?.toString();
+  const orderUserId = order.user?._id?.toString() || order.user?.toString();
+  const shopOwnerId = order.shop?.owner?._id?.toString() || order.shop?.owner?.toString();
+  const isBuyer = Boolean(currentUserId && orderUserId && currentUserId === orderUserId);
+  const isShopAdminForOrder = Boolean(userInfo?.isSuperAdmin || (
+    userInfo?.isAdmin && currentUserId && shopOwnerId === currentUserId
+  ));
+  const canManageShopPayment = isShopAdminForOrder && !isBuyer;
+  const customerCashConfirmed = Boolean(order.paymentConfirmation?.customerConfirmedAt);
+  const shopCashConfirmed = Boolean(order.paymentConfirmation?.shopConfirmedAt);
+
   return (
-    <div className="container mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6">
+    <div className="order-detail-page">
+      <PageBackButton />
+      <header className="order-detail-page__header">
+        <div>
+          <p>ORDER DETAILS</p>
+          <h1>Your order</h1>
+        </div>
+        <span className={`order-detail-page__status${order.isDelivered ? " is-delivered" : order.isPaid ? " is-paid" : ""}`}>
+          {order.isDelivered ? "Delivered" : order.isPaid ? "Payment confirmed" : "Payment pending"}
+        </span>
+      </header>
+      {isBuyer && !userInfo?.isAdmin && !userInfo?.isSuperAdmin && <PostOrderDelight order={order} />}
       {/* Order Items */}
-      <div className="w-full lg:w-2/3">
-        <div className="bg-white shadow-lg rounded-xl p-4 mb-6">
+      <section className="order-detail-page__items-panel">
+        <div className="order-detail-page__card">
+          <div className="order-detail-page__section-heading">
+            <h2>Items in this order</h2>
+            <span>{order.orderItems.length} {order.orderItems.length === 1 ? "item" : "items"}</span>
+          </div>
           {order.orderItems.length === 0 ? (
             <Message>Order is empty</Message>
           ) : (
@@ -232,20 +250,14 @@ const Order = () => {
             </div>
           )}
         </div>
-      </div>
+      </section>
 
       {/* Order Summary + Payment */}
-      <div className="w-full lg:w-1/3 relative">
-        {!order.isPaid && (
-          <div className="absolute top-0 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded-bl-md z-10">
-            Not Paid
-          </div>
-        )}
-
+      <aside className="order-detail-page__sidebar">
         {/* Shipping Info */}
-        <div className="bg-white shadow-md rounded-lg p-4 mb-6">
-          <h2 className="text-xl font-bold mb-4">Shipping</h2>
-          <div className="text-sm">
+        <section className="order-detail-page__card order-detail-page__shipping">
+          <h2>Shipping details</h2>
+          <div className="order-detail-page__shipping-details">
             <p><strong>Order:</strong> {order._id}</p>
             <p><strong>Name:</strong> {order.user ? order.user.username : 'Guest'}</p>
             <p><strong>Email:</strong> {order.user ? order.user.email : 'N/A'}</p>
@@ -254,7 +266,16 @@ const Order = () => {
               <strong>Address:</strong> {order.shippingAddress.phone}, {order.shippingAddress.city},{" "}
               {order.shippingAddress.postalCode}, {order.shippingAddress.country}, {order.shippingAddress.apartment}
             </p>
-            <p><strong>Method:</strong> {order.paymentMethod}</p>
+            {!order.isPaid && <p><strong>Checkout preference:</strong> {order.paymentMethod}</p>}
+            {order.isPaid && (
+              <>
+                <p><strong>Final payment method:</strong> {order.finalPaymentMethod || order.paymentMethod}</p>
+                <p><strong>Receipt number:</strong> {order.paymentConfirmation?.receiptNumber || order.paymentResult?.id || "Not recorded"}</p>
+                {order.paymentResult?.id && order.paymentResult.id !== order.paymentConfirmation?.receiptNumber && (
+                  <p><strong>Payment reference:</strong> {order.paymentResult.id}</p>
+                )}
+              </>
+            )}
           </div>
 
           {order.isPaid ? (
@@ -262,25 +283,36 @@ const Order = () => {
           ) : (
             <Message variant="danger">Not paid</Message>
           )}
-        </div>
+        </section>
 
         {/* Order Summary */}
-        <div className="bg-white shadow-md rounded-lg p-4">
-          <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+        <section className="order-detail-page__card order-detail-page__summary">
+          <h2>Order summary</h2>
 
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between"><span>Items:</span><span>KES {order.itemsPrice}</span></div>
-            <div className="flex justify-between"><span>Shipping:</span><span>KES {order.shippingPrice}</span></div>
-            <div className="flex justify-between"><span>Tax:</span><span>KES {order.taxPrice}</span></div>
-            <div className="flex justify-between font-bold"><span>Total:</span><span>KES {order.totalPrice}</span></div>
+          <div className="order-detail-page__totals">
+            <div><span>Items</span><span>KES {order.itemsPrice}</span></div>
+            <div><span>Shipping</span><span>KES {order.shippingPrice}</span></div>
+            <div><span>Tax</span><span>KES {order.taxPrice}</span></div>
+            {Number(order.referralVoucher?.discountAmount) > 0 && (
+              <div><span>Reward voucher</span><span>− KES {Number(order.referralVoucher.discountAmount).toFixed(2)}</span></div>
+            )}
+            <div className="order-detail-page__grand-total"><span>Total</span><strong>KES {order.totalPrice}</strong></div>
           </div>
 
           {/* Payment Section */}
           {!order.isPaid && (
-            <div className="mt-6 space-y-4">
+            <div className="order-detail-page__payment">
+              {isBuyer && order.paymentConfirmation?.method !== "Cash" ? (
+                <>
 
               {/* PayPal */}
-              {isPending ? (
+              {loadingPayPal ? (
+                <Loader />
+              ) : errorPayPal ? (
+                <p className="order-detail-page__payment-note">PayPal configuration could not be loaded. Please use M-Pesa or try again later.</p>
+              ) : !paypal?.serverVerificationReady ? (
+                <p className="order-detail-page__payment-note">PayPal is temporarily unavailable because server-side payment verification is not configured.</p>
+              ) : isPending ? (
                 <Loader />
               ) : (
                 <div>
@@ -291,7 +323,12 @@ const Order = () => {
                   <div className="text-sm text-gray-600 mb-2">
                     Total: KES {order.totalPrice} (~USD {usdAmount})
                   </div>
-                  <PayPalButtons createOrder={createOrder} onApprove={onApprove} onError={onError} />
+                  <PayPalButtons
+                    createOrder={createOrder}
+                    onApprove={onApprove}
+                    onError={onError}
+                    disabled={!Number(usdAmount)}
+                  />
                 </div>
               )}
 
@@ -305,31 +342,62 @@ const Order = () => {
                 orderId={order._id}
                 initialPhone=""
                 onPhoneChange={() => {}}
-                onSuccess={() => {
-                  toast.success("Payment initiated successfully!");
-                  toast.info("Verifying M-Pesa payment...");
-                  refetch();
-                }}
+                onSuccess={handleMpesaSuccess}
+                onFailure={handleMpesaFailure}
                 disabled={loadingPay || order.isPaid}
               />
-
-              {/* ⭐ CASH PAYMENT ADDED HERE */}
-              {userInfo?.isAdmin && (
-              <button
-                onClick={cashPayHandler}
-                disabled={loadingPay}
-                className="w-full py-2 border border-gray-300 rounded-lg hover:bg-green-200 transition-all text-sm font-semibold text-green-800"
-              >
-                Mark as Paid (Cash)
-              </button>
+                </>
+              ) : (
+                <p className="order-detail-page__payment-note">
+                  {order.paymentConfirmation?.method === "Cash"
+                    ? "Cash confirmation has started. Complete it with the other party before choosing another payment method."
+                    : "Online payment can only be initiated by the customer who placed this order."}
+                </p>
               )}
             </div>
+          )}
+
+          {!order.isPaid && (
+            <section className="order-detail-page__cash-confirmation">
+              <h3>Cash payment confirmation</h3>
+              <p>Cash is recorded only after both the customer and this shop confirm the handover. If an M-Pesa request is pending, wait for its cancellation or failure before confirming cash.</p>
+              <div className="order-detail-page__confirmation-status">
+                <span className={customerCashConfirmed ? "is-confirmed" : ""}>
+                  Customer: {customerCashConfirmed ? "Confirmed" : "Waiting"}
+                </span>
+                <span className={shopCashConfirmed ? "is-confirmed" : ""}>
+                  Shop: {shopCashConfirmed ? "Confirmed" : "Waiting"}
+                </span>
+              </div>
+              {(isBuyer && !customerCashConfirmed) || (canManageShopPayment && !shopCashConfirmed) ? (
+                <button
+                  type="button"
+                  className="order-detail-page__action order-detail-page__action--cash"
+                  disabled={confirmingCash}
+                  onClick={confirmCashHandler}
+                >
+                  {confirmingCash
+                    ? "Recording confirmation…"
+                    : isBuyer && !customerCashConfirmed
+                      ? "Confirm cash paid"
+                      : "Confirm cash received"}
+                </button>
+              ) : null}
+              {isBuyer && isShopAdminForOrder && (
+                <p className="order-detail-page__payment-note">
+                  A second person with shop-admin access must confirm the shop side of this cash payment.
+                </p>
+              )}
+              {!order.user && canManageShopPayment && (
+                <p className="order-detail-page__payment-note">This guest order has no signed-in customer account, so customer confirmation is unavailable.</p>
+              )}
+            </section>
           )}
 
                 {order.isPaid && (
                         <button
                           onClick={downloadReceipt}
-                          className="w-full mt-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                          className="order-detail-page__action order-detail-page__action--receipt"
                         >
                           Download Receipt (PDF)
                         </button>
@@ -340,15 +408,15 @@ const Order = () => {
           {userInfo?.isAdmin && order.isPaid && !order.isDelivered && (
             <button
               type="button"
-              className="w-full mt-6 py-2 bg-pink-500 text-white rounded hover:bg-blue-600"
+              className="order-detail-page__action order-detail-page__action--deliver"
               onClick={deliverHandler}
             >
               Mark As Delivered
             </button>
             
           )}
-        </div>
-      </div>
+          </section>
+      </aside>
     </div>
   );
 };

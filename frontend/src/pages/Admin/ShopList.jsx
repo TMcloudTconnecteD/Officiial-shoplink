@@ -1,10 +1,12 @@
 import React from "react";
+import { useSelector } from "react-redux";
 import { useFetchShopsQuery, useDeleteShopMutation } from "../../redux/Api/shopApiSlice";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import AdminMenu from "./AdminMenu";
 
 const ShopList = () => {
+  const { userInfo } = useSelector((state) => state.auth);
   const { data: shops, isLoading, error } = useFetchShopsQuery();
   const [deleteShop] = useDeleteShopMutation();
 
@@ -21,6 +23,11 @@ const ShopList = () => {
 
   if (isLoading) return <div className="text-center mt-20">Loading shops...</div>;
   if (error) return <div className="text-center mt-20 text-red-500">Error fetching shops</div>;
+  const visibleShops = (Array.isArray(shops) ? shops : []).filter((shop) => {
+    if (userInfo?.isSuperAdmin) return true;
+    const ownerId = typeof shop.owner === "object" ? shop.owner?._id : shop.owner;
+    return ownerId && String(ownerId) === String(userInfo?._id || userInfo?.id);
+  });
 
   return (
     <div className="max-w-6xl mx-auto mt-20 px-4">
@@ -37,25 +44,17 @@ const ShopList = () => {
             </tr>
           </thead>
           <tbody>
-            {shops?.map((shop) => (
+            {visibleShops.map((shop) => (
               <tr key={shop._id} className="hover:bg-gray-50">
                 <td className="border px-4 py-2">{shop.name}</td>
                 <td className="border px-4 py-2">{shop.location}</td>
                 <td className="border px-4 py-2 flex gap-2">
                  <Link
-                        to={`/admin/shops/update/${shop._id}`}
+                        to={`/admin/shop/update/${shop._id}`}
                         className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
                         >
                         Update
                         </Link>
-
-                        <Link
-                        to="/admin/shops/add"
-                        className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded mb-4 inline-block"
-                        >
-                        Add Shop
-                        </Link>
-
 
                   <button
                     onClick={() => handleDelete(shop._id)}

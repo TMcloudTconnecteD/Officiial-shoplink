@@ -13,6 +13,9 @@ router.post('/clerk', async (req, res) => {
 	// If CLERK_SECRET_KEY is set and a Clerk token is provided in Authorization, attempt verification.
 	try {
 		const { email, username } = req.body;
+		const referralCode = typeof req.body?.referralCode === 'string'
+			? req.body.referralCode.trim().toUpperCase()
+			: '';
 		if (!email) return res.status(400).json({ message: 'Email required' });
 
 		// optional verification
@@ -35,20 +38,44 @@ router.post('/clerk', async (req, res) => {
 
 		// lazy import to avoid circular issues
 		const User = (await import('../models/userModel.js')).default;
+		const Referral = (await import('../models/referralModel.js')).default;
 		const createToken = (await import('../utils/createToken.js')).default;
 
 		let user = await User.findOne({ email });
 		if (!user) {
+			const referrer = referralCode ? await User.findOne({ referralCode }).select('_id') : null;
+			if (referralCode && !referrer) return res.status(400).json({ message: 'That referral code is not valid.' });
 			// create a random password (user will log in via Clerk)
 			const bcrypt = await import('bcryptjs');
 			const salt = await bcrypt.genSalt(10);
 			const hashedPassword = await bcrypt.hash(Math.random().toString(36).slice(-8), salt);
 			user = new User({ username: username || email.split('@')[0], email, password: hashedPassword });
 			await user.save();
+			if (referrer && referrer._id.toString() !== user._id.toString()) {
+				try {
+					await Referral.create({ referrer: referrer._id, referredUser: user._id, code: referralCode });
+				} catch (error) {
+					await User.deleteOne({ _id: user._id });
+					throw error;
+				}
+			}
+		}
+		if (!user.referralCode) {
+			user.referralCode = (await import('crypto')).randomBytes(5).toString('hex').toUpperCase();
+			await user.save();
 		}
 
 		const token = createToken(res, user._id);
-		return res.status(200).json({ _id: user._id, username: user.username, email: user.email, isAdmin: user.isAdmin, token });
+		return res.status(200).json({
+			_id: user._id,
+			username: user.username,
+			email: user.email,
+			isAdmin: user.isAdmin,
+			isSuperAdmin: user.isSuperAdmin,
+			referralCode: user.referralCode,
+			pointsBalance: user.pointsBalance,
+			token,
+		});
 	} catch (err) {
 		console.error('clerk sync error', err);
 		return res.status(500).json({ message: 'Clerk sync failed' });
@@ -69,6 +96,3 @@ router.route('/:id')
 .put(authenticate, authorizeAdmin, authorizeSuperAdmin,updateUserById)
 
 export default router;
-
-
-

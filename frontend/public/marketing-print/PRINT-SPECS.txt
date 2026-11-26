@@ -1,0 +1,8 @@
+ShopLink print artwork
+QR codes target https://shop-link.onrender.com
+
+Business card: 3.5 x 2 inch trim, 0.125 inch bleed on every side (3.75 x 2.25 inch / 1125 x 675 px at 300 DPI).
+Business card PDF: 2 pages; page 1 front, page 2 back.
+Posters: A3 portrait trim with 3 mm bleed on every side (303 x 426 mm full canvas, 3579 x 5024 px at 300 DPI).
+The dashed poster frames are reserved for your own product photography.
+SVG files are vector artwork. PNG files are 300 DPI raster exports.

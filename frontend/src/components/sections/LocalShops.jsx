@@ -11,7 +11,7 @@ const normalizeLocation = (location) => {
 };
 
 const LocalShops = () => {
-  const { data: shopsData, isLoading } = useFetchShopsQuery();
+  const { data: shopsData, isLoading, isError } = useFetchShopsQuery();
   const shops = useMemo(
     () => Array.isArray(shopsData?.data) ? shopsData.data : Array.isArray(shopsData) ? shopsData : [],
     [shopsData]
@@ -44,13 +44,15 @@ const LocalShops = () => {
     <section className="local-shops-section">
       <div className="local-shops-container">
         <h2 className="local-shops-title">🏪 Shop Locally</h2>
-        <p className="local-shops-subtitle">Select your location to see nearby shops</p>
 
         {/* Location Selector Dropdown */}
         <div className="location-dropdown-wrapper">
           <button
+            type="button"
             className="location-dropdown-button"
             onClick={() => setShowDropdown(!showDropdown)}
+            aria-expanded={showDropdown}
+            aria-controls="local-shop-locations"
           >
             <span className="location-icon">📍</span>
             {selectedLocation || 'Select your location'}
@@ -64,9 +66,10 @@ const LocalShops = () => {
           </button>
 
           {showDropdown && (
-            <div className="location-dropdown-menu">
+            <div className="location-dropdown-menu" id="local-shop-locations">
               {uniqueLocations.map((location) => (
                 <button
+                  type="button"
                   key={location}
                   className={`location-option ${selectedLocation === location ? 'active' : ''}`}
                   onClick={() => handleLocationSelect(location)}
@@ -79,7 +82,9 @@ const LocalShops = () => {
         </div>
 
         {/* Shops Grid for Selected Location */}
-        {selectedLocation && (
+        {isError ? (
+          <p role="alert" className="no-shops-message">Local shops could not be loaded. Please try again shortly.</p>
+        ) : selectedLocation && (
           <div className="local-shops-content">
             <h3 className="location-heading">Shops in {selectedLocation}</h3>
             
@@ -105,7 +110,7 @@ const LocalShops = () => {
                         <h4 className="local-shop-name">{shop.name}</h4>
                         <div className="local-shop-location">📍 {normalizeLocation(shop.location)}</div>
                         <div className="local-shop-phone">📞 {shop.telephone}</div>
-                        <button className="visit-shop-btn">Visit Shop</button>
+                        <span className="visit-shop-btn">Visit Shop</span>
                       </div>
                     </div>
                   </Link>

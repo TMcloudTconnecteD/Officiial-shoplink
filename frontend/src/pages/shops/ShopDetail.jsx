@@ -22,10 +22,8 @@ const ShopDetail = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto mt-20 px-4">
-      <div className="bg-white rounded-2xl shadow-xl p-6 md:p-10">
-        <ShopPortfolio shop={shop} products={products} onClose={() => {}} />
-      </div>
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <ShopPortfolio shop={shop} products={products} />
     </div>
   );
 };

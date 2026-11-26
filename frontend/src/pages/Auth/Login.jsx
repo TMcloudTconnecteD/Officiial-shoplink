@@ -5,6 +5,7 @@ import { useLoginMutation } from '../../redux/Api/usersApiSlice'
 import { setCredentials } from '../../redux/features/auth/authSlice'
 import { toast } from 'react-toastify'
 import Loader from '../../components/Loader'
+import './Login.css'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -33,26 +34,31 @@ const Login = () => {
       dispatch(setCredentials({ ...res }))
       navigate(redirect)
     } catch (error) {
-      toast.error(error?.data?.message || error.error)
+      const message = error?.data?.message
+        || (error?.error === 'Failed to fetch'
+          ? 'ShopLink could not reach the sign-in service. Check your connection and try again.'
+          : error?.error)
+        || 'Unable to sign in. Please try again.';
+      toast.error(message);
     }
   }
 
   const inputBase =
-    'mt-1 p-2 border border-gray-300 rounded w-full bg-white !text-black caret-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500'
+    'login-input'
 
   return (
-    <div className="bg-black min-h-screen flex items-center justify-center">
-      <section className="w-full max-w-5xl mx-auto px-4 py-12 flex flex-col md:flex-row items-center justify-center gap-8">
-        <div className="w-full md:w-1/2">
-          <h2 className="text-2xl font-semibold mb-4 text-white text-center md:text-left">
-            Sign In
-          </h2>
+    <div className="login-page">
+      <section className="login-card">
+        <div className="login-panel">
+          <p className="login-eyebrow">Welcome back</p>
+          <h1 className="login-title">Sign in to ShopLink</h1>
+          <p className="login-description">Shop local, track your orders, and save your favorites.</p>
 
-          <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto md:mx-0">
-            <div className="my-4">
+          <form onSubmit={handleSubmit} className="login-form">
+            <div className="login-field">
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-white"
+                className="login-label"
               >
                 Email Address
               </label>
@@ -64,13 +70,14 @@ const Login = () => {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 autoComplete="email"
+                required
               />
             </div>
 
-            <div className="my-4">
+            <div className="login-field">
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-white"
+                className="login-label"
               >
                 Secret Pass
               </label>
@@ -82,14 +89,15 @@ const Login = () => {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 autoComplete="current-password"
+                required
               />
             </div>
 
-            <div className="flex flex-col items-center md:items-start">
+            <div className="login-actions">
               <button
                 disabled={isLoading}
                 type="submit"
-                className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded cursor-pointer my-4 disabled:opacity-50"
+                className="login-submit"
               >
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </button>
@@ -98,20 +106,20 @@ const Login = () => {
             </div>
           </form>
 
-          <div className="mt-4 text-center md:text-left">
-            <p className="text-white">
-              <i>New Customer? </i>
+          <div className="login-links">
+            <p>
+              New to ShopLink?{' '}
               <Link
                 to={redirect ? `/register?redirect=${redirect}` : '/register'}
-                className="text-pink-500 hover:underline"
+                className="login-link"
               >
                 Register
               </Link>
             </p>
-            <div className="mt-4">
+            <div>
               <a
                 href="/clerk-auth?mode=signin"
-                className="inline-block mt-2 bg-white text-black px-4 py-2 rounded hover:opacity-90"
+                className="login-clerk-link"
               >
                 Sign in with Clerk
               </a>
@@ -119,12 +127,15 @@ const Login = () => {
           </div>
         </div>
 
-        <div className="hidden md:block md:w-1/2">
+        <div className="login-visual">
           <img
             src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1170&q=80"
-            alt="TMcod"
-            className="w-full h-64 md:h-80 lg:h-96 object-cover rounded-lg shadow-lg"
+            alt="Laptop displaying a code editor"
           />
+          <div className="login-visual-caption">
+            <strong>Everything you need, close by.</strong>
+            <span>Discover local shops and products in one place.</span>
+          </div>
         </div>
       </section>
     </div>

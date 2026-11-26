@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { useAllProductsQuery, useGetTopProductsQuery } from "../../redux/Api/productApiSlice";
 import { useFetchShopsQuery } from "../../redux/Api/shopApiSlice";
 import { getOptimizedProductImage } from "../../utils/imageOptimization";
+import ShopLinkMark from "../ShopLinkMark";
 import "./HeroSection.css";
 
 const pickRandom = (items, count) => {
@@ -41,10 +42,10 @@ const HeroSection = () => {
 
   const handleStartSelling = () => {
     if (!userInfo) {
-      navigate("/login");
+      navigate("/login?redirect=%2Fseller%2Fapply");
       return;
     }
-    navigate(userInfo.isSuperAdmin || userInfo.isAdmin ? "/admin/shop/add" : "/shops/all");
+    navigate("/seller/apply");
   };
 
   return (
@@ -119,7 +120,7 @@ const HeroSection = () => {
 
             {featuredProducts.length === 0 && featuredShops.length === 0 && (
               <div className="hero-empty-state">
-                <span className="hero-empty-icon">✦</span>
+                <ShopLinkMark className="hero-empty-icon" />
                 <span>Discover local finds and shops</span>
                 <Link to="/shops/all" className="hero-empty-link">Explore all shops</Link>
                 <Link to="/shop" className="hero-empty-link">Browse products</Link>

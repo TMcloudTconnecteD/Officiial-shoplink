@@ -1,10 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
 import { useGetProductsQuery, useGetTopProductsQuery } from "../redux/Api/productApiSlice";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 
-import UltraLoader from "../components/UltraLoader";
+import Loader from "../components/Loader";
 import Message from "../components/Message";
-import HeaderUpdated from "../components/HeaderUpdated";
 import ProductCarousel from "./products/ProductCarousel";
 import Product from "./products/Product";
 import { ProductGridSkeleton } from "../components/SkeletonLoader";
@@ -16,6 +15,10 @@ import FeaturedShops from "../components/sections/FeaturedShops";
 import LocalShops from "../components/sections/LocalShops";
 import TrustSection from "../components/sections/TrustSection";
 import { getOptimizedProductImage } from "../utils/imageOptimization";
+import FreshDropsCarousel from "../components/marketing/FreshDropsCarousel";
+import TrendingNowStrip from "../components/marketing/TrendingNowStrip";
+import SellerSpotlightCard from "../components/marketing/SellerSpotlightCard";
+import FeaturedProductsStrip from "../components/marketing/FeaturedProductsStrip";
 
 const RankingCard = ({ product, label, accentClass }) => {
   if (!product) return null;
@@ -85,8 +88,6 @@ const HomeUpdated1 = () => {
   );
   const { data: topProductsData } = useGetTopProductsQuery();
 
-  const [showLoader, setShowLoader] = useState(true);
-
   const baseProducts = useMemo(() => {
     const productList = data?.products || topProductsData || [];
     return Array.isArray(productList) ? productList : [];
@@ -118,22 +119,12 @@ const HomeUpdated1 = () => {
       .slice(0, 4);
   }, [baseProducts]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowLoader(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (showLoader || isLoading) {
-    return <UltraLoader />;
+  if (isLoading) {
+    return <div className="home-loading"><Loader label="Finding local products" /></div>;
   }
 
   return (
     <>
-      <HeaderUpdated />
-
       <main className="bg-white">
         {!keyword && <HeroSection />}
 
@@ -142,6 +133,10 @@ const HomeUpdated1 = () => {
         {!keyword && <FeaturedShops />}
 
         {!keyword && <LocalShops />}
+        {!keyword && <SellerSpotlightCard />}
+        {!keyword && <FeaturedProductsStrip />}
+        {!keyword && <FreshDropsCarousel />}
+        {!keyword && <TrendingNowStrip />}
 
         {!keyword && (
           <div className="w-full max-w-6xl mx-auto rounded-xl overflow-hidden shadow-lg mb-12 px-4">

@@ -21,6 +21,11 @@ const shopSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  description: {
+    type: String,
+    trim: true,
+    default: "",
+  },
   telephone: {
     type: Number,
     required: true,

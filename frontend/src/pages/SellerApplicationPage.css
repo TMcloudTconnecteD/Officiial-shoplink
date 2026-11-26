@@ -1,0 +1,354 @@
+.seller-application-page {
+  width: min(1040px, 100%);
+  margin: 0 auto;
+  padding: 38px 20px 72px;
+  color: #172b3a;
+}
+
+.seller-application-card {
+  display: grid;
+  grid-template-columns: minmax(240px, .75fr) minmax(0, 1.5fr);
+  overflow: hidden;
+  border: 1px solid #e2eae8;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 18px 50px rgb(22 49 56 / 8%);
+}
+
+.seller-application-intro {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  padding: 38px 32px;
+  background: #102b33;
+  color: #fff;
+}
+
+.seller-application-intro > svg {
+  width: 30px;
+  height: 30px;
+  color: #7ce0cb;
+}
+
+.seller-application-intro h1 {
+  margin: 26px 0 12px;
+  color: #fff;
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
+  font-weight: 750;
+  letter-spacing: -.035em;
+  line-height: 1.15;
+}
+
+.seller-application-intro p {
+  margin: 0;
+  color: #e2eeed;
+  font-size: .96rem;
+  line-height: 1.75;
+}
+
+.seller-application-intro__note {
+  margin-top: auto;
+  padding-top: 30px;
+  color: #b8d5d1;
+  font-size: .82rem;
+  line-height: 1.55;
+}
+
+.seller-application-content {
+  min-width: 0;
+  padding: 34px clamp(20px, 4vw, 44px) 40px;
+  background: #fff;
+  color: #172b3a;
+}
+
+.seller-application-content__heading {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e8efed;
+}
+
+.seller-application-content__heading p {
+  margin: 0 0 5px;
+  color: #087c71;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.seller-application-content__heading h2 {
+  margin: 0;
+  color: #172b3a;
+  font-size: 1.45rem;
+  font-weight: 750;
+}
+
+.seller-application-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.seller-application-form__title {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #273f49;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.seller-application-label,
+.seller-application-field {
+  display: block;
+  color: #2e444c;
+  font-size: .86rem;
+  font-weight: 700;
+}
+
+.seller-application-field {
+  min-width: 0;
+}
+
+.seller-application-field--wide,
+.seller-application-photo-field,
+.seller-application-submit {
+  grid-column: 1 / -1;
+}
+
+.seller-application-field input,
+.seller-application-field select,
+.seller-application-field textarea {
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 7px;
+  padding: 10px 12px;
+  border: 1px solid #cbd9d6;
+  border-radius: 10px;
+  outline: none;
+  background: #fff;
+  color: #172b3a;
+  font: inherit;
+  font-size: .93rem;
+  line-height: 1.45;
+}
+
+.seller-application-field textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.seller-application-field input:focus,
+.seller-application-field select:focus,
+.seller-application-field textarea:focus {
+  border-color: #168d80;
+  box-shadow: 0 0 0 3px rgb(22 141 128 / 13%);
+}
+
+.seller-application-field select option {
+  background: #fff;
+  color: #172b3a;
+}
+
+.seller-application-help {
+  margin: 5px 0 11px;
+  color: #62727a;
+  font-size: .81rem;
+  line-height: 1.5;
+}
+
+.seller-application-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 112px;
+  border: 1.5px dashed #9bb9b4;
+  border-radius: 13px;
+  background: #f7fbfa;
+  color: #087c71;
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.seller-application-upload input,
+.seller-application-change input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.seller-application-upload:focus-within,
+.seller-application-change:focus-within {
+  outline: 3px solid rgb(8 124 113 / 25%);
+  outline-offset: 3px;
+}
+
+.seller-application-photo {
+  position: relative;
+  width: min(100%, 360px);
+  height: 180px;
+  overflow: hidden;
+  border-radius: 13px;
+  background: #eef4f3;
+}
+
+.seller-application-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.seller-application-photo button {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #9c3d39;
+  cursor: pointer;
+}
+
+.seller-application-change {
+  display: inline-block;
+  margin-top: 10px;
+  color: #087c71;
+  font-size: .84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.seller-application-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 46px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 11px;
+  background: #087c71;
+  color: #fff;
+  font: inherit;
+  font-size: .91rem;
+  font-weight: 750;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.seller-application-primary:hover:not(:disabled) {
+  background: #06665e;
+}
+
+.seller-application-submit {
+  width: 100%;
+  margin-top: 2px;
+}
+
+.seller-application-primary:disabled {
+  background: #9aa9a7;
+  cursor: not-allowed;
+}
+
+.seller-application-state {
+  padding: 22px;
+  border: 1px solid #dfe9e6;
+  border-radius: 14px;
+  background: #f7faf9;
+}
+
+.seller-application-state h3 {
+  margin: 0 0 7px;
+  color: #183a40;
+  font-size: 1.1rem;
+  font-weight: 750;
+}
+
+.seller-application-state p,
+.seller-application-loading {
+  margin: 0;
+  color: #50636a;
+  font-size: .92rem;
+  line-height: 1.6;
+}
+
+.seller-application-state .seller-application-primary {
+  margin-top: 18px;
+}
+
+.seller-application-state--pending {
+  border-color: #efd8a7;
+  background: #fffaf0;
+}
+
+.seller-application-state--approved {
+  border-color: #bce3d3;
+  background: #f1fbf6;
+}
+
+.seller-application-page--signed-out {
+  max-width: 620px;
+  text-align: center;
+}
+
+.seller-application-page--signed-out h1 {
+  margin: 0 0 10px;
+  color: #172b3a;
+}
+
+.seller-application-page--signed-out p {
+  color: #5b6b75;
+}
+
+.seller-application-page--signed-out .seller-application-primary {
+  margin: 12px auto 0;
+}
+
+@media (max-width: 720px) {
+  .seller-application-page {
+    padding: 16px 14px 40px;
+  }
+
+  .seller-application-card {
+    grid-template-columns: 1fr;
+    border-radius: 17px;
+  }
+
+  .seller-application-intro {
+    padding: 24px;
+  }
+
+  .seller-application-intro h1 {
+    margin: 16px 0 9px;
+  }
+
+  .seller-application-intro__note {
+    padding-top: 16px;
+  }
+
+  .seller-application-content {
+    padding: 24px 20px 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .seller-application-form {
+    grid-template-columns: 1fr;
+  }
+
+  .seller-application-field--wide,
+  .seller-application-photo-field,
+  .seller-application-submit {
+    grid-column: auto;
+  }
+}

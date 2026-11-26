@@ -2,14 +2,91 @@
 import Order from "../models/orderModel.js";
 import Product from "../models/productModel.js";
 import Shop from "../models/shopModel.js";
+import axios from "axios";
 import PDFDocument from "pdfkit"; // npm i pdfkit
 import { sendWatiMessage } from "../utils/wati.js";
+import { generateOrderReceiptNumber } from "../utils/orderReceipt.js";
 import { notifyAdmins, notifyUser } from "../services/notificationBadgeService.js";
+import VoucherRedemption from "../models/voucherRedemptionModel.js";
+import RewardCredit from "../models/rewardCreditModel.js";
+import PromoSettings from "../models/promoSettingsModel.js";
+import awardPaidOrderPoints from "../services/rewardService.js";
 
 const sendOrderNotifications = async (notifications) => {
   const results = await Promise.allSettled(notifications);
   results.filter((result) => result.status === "rejected")
     .forEach((result) => console.error("Order notification failed:", result.reason));
+};
+
+const verifyPaypalOrder = async (paypalOrderId, order) => {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+  const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+  const kesToUsdRate = Number(process.env.PAYPAL_KES_TO_USD_RATE || 0.0077);
+  if (!clientId || !clientSecret) {
+    const error = new Error("PayPal server verification is not configured. Set PAYPAL_CLIENT_SECRET on the backend.");
+    error.statusCode = 503;
+    throw error;
+  }
+  if (!Number.isFinite(kesToUsdRate) || kesToUsdRate <= 0) {
+    const error = new Error("PAYPAL_KES_TO_USD_RATE must be a positive number.");
+    error.statusCode = 503;
+    throw error;
+  }
+
+  const paypalApi = process.env.PAYPAL_MODE === "sandbox"
+    ? "https://api-m.sandbox.paypal.com"
+    : "https://api-m.paypal.com";
+  try {
+    const tokenResponse = await axios.post(
+      `${paypalApi}/v1/oauth2/token`,
+      new URLSearchParams({ grant_type: "client_credentials" }).toString(),
+      {
+        auth: { username: clientId, password: clientSecret },
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        timeout: 10000,
+      }
+    );
+    const verifiedResponse = await axios.get(
+      `${paypalApi}/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}`,
+      {
+        headers: { Authorization: `Bearer ${tokenResponse.data.access_token}` },
+        timeout: 10000,
+      }
+    );
+    const paypalOrder = verifiedResponse.data;
+    const purchaseUnit = paypalOrder.purchase_units?.find(
+      (unit) => unit.reference_id === order._id.toString()
+        && unit.custom_id === order._id.toString()
+    );
+    const capture = purchaseUnit?.payments?.captures?.find((item) => item.status === "COMPLETED");
+    const expectedUsd = Number((Number(order.totalPrice) * kesToUsdRate).toFixed(2));
+    const capturedUsd = Number(capture?.amount?.value);
+    const amountMatches = Number.isFinite(capturedUsd)
+      && Math.abs(capturedUsd - expectedUsd) <= 0.01;
+    const merchantMatches = !process.env.PAYPAL_MERCHANT_ID
+      || purchaseUnit?.payee?.merchant_id === process.env.PAYPAL_MERCHANT_ID;
+
+    if (
+      paypalOrder.id !== paypalOrderId
+      || paypalOrder.status !== "COMPLETED"
+      || !capture?.id
+      || capture.amount?.currency_code !== "USD"
+      || !amountMatches
+      || !merchantMatches
+    ) {
+      const error = new Error("PayPal did not verify a completed payment for this order and amount.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    return { paypalOrder, capture };
+  } catch (error) {
+    if (error.statusCode) throw error;
+    console.error("PayPal payment verification failed:", error.response?.data || error.message);
+    const verificationError = new Error("Could not verify the PayPal payment. Please retry or contact support.");
+    verificationError.statusCode = 502;
+    throw verificationError;
+  }
 };
 
 // Utility Function - returns numbers (not strings)
@@ -39,8 +116,10 @@ function calcPrices(orderItems) {
 
 
 const createOrder = async (req, res) => {
+  let reservedRedemptionId = null;
+  let reservedRewardCreditId = null;
   try {
-    const { orderItems, shippingAddress, paymentMethod, shop } = req.body;
+    const { orderItems, shippingAddress, paymentMethod, shop, voucherCode } = req.body;
 
     if (!orderItems || orderItems.length === 0) {
       return res.status(400).json({ message: "No order items" });
@@ -82,7 +161,58 @@ const createOrder = async (req, res) => {
     });
 
     // Calculate prices
-    const { itemsPrice, taxPrice, shippingPrice, totalPrice } = calcPrices(dbOrderItems);
+    const prices = calcPrices(dbOrderItems);
+    let discountAmount = 0;
+    let voucherRedemption = null;
+    let rewardCredit = null;
+    const rewardsEnabled = (await PromoSettings.findOne({ key: "global" }).select("rewardProgramEnabled").lean())
+      ?.rewardProgramEnabled !== false;
+    const isCustomer = req.user && !req.user.isAdmin && !req.user.isSuperAdmin;
+    if (voucherCode) {
+      if (!req.user) {
+        return res.status(401).json({ message: "Sign in to use a reward voucher." });
+      }
+      const code = String(voucherCode).trim().toUpperCase();
+      if (rewardsEnabled && isCustomer) {
+        rewardCredit = await RewardCredit.findOne({
+          user: req.user._id,
+          code,
+          status: "available",
+        });
+      }
+      if (rewardCredit) {
+        discountAmount = Math.min(prices.totalPrice, rewardCredit.discountAmount);
+      } else {
+        voucherRedemption = await VoucherRedemption.findOne({
+        user: req.user._id,
+        code,
+        status: "issued",
+      }).populate("voucher");
+        const voucher = voucherRedemption?.voucher;
+        if (
+          !voucher
+          || !voucher.active
+          || (voucher.expiresAt && voucher.expiresAt <= new Date())
+        ) {
+          return res.status(400).json({ message: "This voucher code is invalid, expired, or already used." });
+        }
+        discountAmount = voucher.discountType === "percent"
+          ? Number((prices.totalPrice * voucher.discountValue / 100).toFixed(2))
+          : Math.min(prices.totalPrice, voucher.discountValue);
+      }
+    } else if (rewardsEnabled && isCustomer) {
+      rewardCredit = await RewardCredit.findOne({
+        user: req.user._id,
+        status: "available",
+      }).sort({ createdAt: 1 });
+      if (rewardCredit) discountAmount = Math.min(prices.totalPrice, rewardCredit.discountAmount);
+    }
+
+    const { itemsPrice, taxPrice, shippingPrice } = prices;
+    const totalPrice = Number((prices.totalPrice - discountAmount).toFixed(2));
+    const settledByVoucher = totalPrice === 0 && Boolean(voucherRedemption || rewardCredit);
+    const paidAt = settledByVoucher ? new Date() : undefined;
+    let receiptNumber = null;
 
     // Fetch shop details
     const shopDoc = await Shop.findById(shop);
@@ -108,24 +238,96 @@ const createOrder = async (req, res) => {
       taxPrice,
       shippingPrice,
       totalPrice,
+      isPaid: settledByVoucher,
+      paidAt,
+      finalPaymentMethod: settledByVoucher ? "ShopLink voucher" : null,
+      paymentConfirmation: settledByVoucher
+        ? {
+          method: "ShopLink voucher",
+          gatewayVerified: false,
+          gatewayStatus: "REDEEMED",
+          customerConfirmedAt: paidAt,
+          customerConfirmedBy: req.user._id,
+          shopConfirmedAt: null,
+          shopConfirmedBy: null,
+          receiptNumber: null,
+        }
+        : undefined,
+      paymentResult: settledByVoucher
+        ? { status: "COMPLETED", method: "ShopLink voucher" }
+        : undefined,
+      referralVoucher: voucherRedemption || rewardCredit
+        ? {
+          redemption: voucherRedemption?._id || null,
+          rewardCredit: rewardCredit?._id || null,
+          discountAmount,
+        }
+        : undefined,
     });
+    if (settledByVoucher) {
+      receiptNumber = generateOrderReceiptNumber(order._id, paidAt);
+      order.paymentConfirmation.receiptNumber = receiptNumber;
+    }
 
     const createdOrder = await order.save();
+    if (voucherRedemption) {
+      const reservedRedemption = await VoucherRedemption.findOneAndUpdate(
+        { _id: voucherRedemption._id, user: req.user._id, status: "issued" },
+        { $set: { status: "reserved", order: createdOrder._id } },
+        { new: true }
+      );
+      if (!reservedRedemption) {
+        await Order.deleteOne({ _id: createdOrder._id });
+        return res.status(409).json({ message: "This voucher has already been used. Refresh your cart and try again." });
+      }
+      reservedRedemptionId = reservedRedemption._id;
+    }
+    if (rewardCredit) {
+      const reservedCredit = await RewardCredit.findOneAndUpdate(
+        { _id: rewardCredit._id, user: req.user._id, status: "available" },
+        { $set: { status: "reserved", order: createdOrder._id } },
+        { new: true }
+      );
+      if (!reservedCredit) {
+        await Order.deleteOne({ _id: createdOrder._id });
+        return res.status(409).json({ message: "This reward has already been used. Refresh your cart and try again." });
+      }
+      reservedRewardCreditId = reservedCredit._id;
+    }
+
+    if (createdOrder.isPaid) await awardPaidOrderPoints(createdOrder);
 
     const orderNotice = {
       type: "order",
       title: "New order received",
       message: `Order ${createdOrder._id} has been placed${shopDoc?.name ? ` at ${shopDoc.name}` : ""}.`,
+      link: "/admin/orderlist",
     };
-    const notices = [notifyAdmins(orderNotice)];
+    const notices = [notifyAdmins(orderNotice, [createdOrder.user, shopDoc?.owner])];
     if (createdOrder.user) {
       notices.push(notifyUser(createdOrder.user, {
         type: "order",
         title: "Order placed",
         message: `Your order ${createdOrder._id} has been received.`,
+        link: `/order/${createdOrder._id}`,
       }));
     }
-    if (shopDoc?.owner) notices.push(notifyUser(shopDoc.owner, orderNotice));
+    if (createdOrder.isPaid) {
+      const paymentNotice = {
+        type: "payment",
+        title: "Reward payment confirmed",
+        message: `Your KES ${discountAmount.toFixed(2)} ShopLink voucher covered this order. Receipt ${receiptNumber}.`,
+        link: `/order/${createdOrder._id}`,
+      };
+      notices.push(notifyAdmins(paymentNotice, [createdOrder.user, shopDoc?.owner]));
+      if (createdOrder.user) notices.push(notifyUser(createdOrder.user, paymentNotice));
+    }
+    if (
+      shopDoc?.owner
+      && shopDoc.owner.toString() !== createdOrder.user?.toString()
+    ) {
+      notices.push(notifyUser(shopDoc.owner, orderNotice));
+    }
     await sendOrderNotifications(notices);
 
     // Notify shop owner via WATI (if configured)
@@ -144,6 +346,18 @@ const createOrder = async (req, res) => {
     res.status(201).json(createdOrder);
   } catch (error) {
     console.error("Error in createOrder:", error);
+    if (reservedRedemptionId) {
+      await VoucherRedemption.updateOne(
+        { _id: reservedRedemptionId, status: "reserved" },
+        { $set: { status: "issued", order: null } }
+      );
+    }
+    if (reservedRewardCreditId) {
+      await RewardCredit.updateOne(
+        { _id: reservedRewardCreditId, status: "reserved" },
+        { $set: { status: "available", order: null } }
+      );
+    }
     res.status(500).json({ error: error.message || "Server error" });
   }
 };
@@ -153,7 +367,12 @@ const createOrder = async (req, res) => {
 
 const getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find({})
+    let filter = {};
+    if (!req.user.isSuperAdmin) {
+      const shops = await Shop.find({ owner: req.user._id }).select("_id").lean();
+      filter.shop = { $in: shops.map((shop) => shop._id) };
+    }
+    const orders = await Order.find(filter)
       .populate("user", "username email")
       .populate("shop", "name location")
       .populate({
@@ -161,6 +380,66 @@ const getAllOrders = async (req, res) => {
         populate: { path: "shop", select: "name location" },
       });
     res.json(orders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getOrderFinancialSummary = async (req, res) => {
+  try {
+    let filter = { isPaid: true };
+    if (!req.user.isSuperAdmin) {
+      const shops = await Shop.find({ owner: req.user._id }).select("_id").lean();
+      filter.shop = { $in: shops.map((shop) => shop._id) };
+    }
+
+    const orders = await Order.find(filter).select(
+      "itemsPrice taxPrice shippingPrice totalPrice finalPaymentMethod paymentMethod paymentResult checkoutRequestId referralVoucher.discountAmount"
+    ).lean();
+    const summary = orders.reduce((totals, order) => {
+      const method = order.finalPaymentMethod
+        || order.paymentResult?.method
+        || (order.checkoutRequestId ? "M-Pesa" : null)
+        || (/^CASH-/i.test(order.paymentResult?.id || "") ? "Cash" : null)
+        || (order.paymentResult?.email_address ? "PayPal" : null)
+        || order.paymentMethod
+        || "Unclassified";
+
+      const grossAmount = Number(order.itemsPrice || 0)
+        + Number(order.taxPrice || 0)
+        + Number(order.shippingPrice || 0);
+      const discountAmount = Math.min(
+        grossAmount,
+        Math.max(0, Number(order.referralVoucher?.discountAmount || 0))
+      );
+      const netRatio = grossAmount > 0 ? (grossAmount - discountAmount) / grossAmount : 0;
+      totals.productSales += Number(order.itemsPrice || 0) * netRatio;
+      totals.taxCollected += Number(order.taxPrice || 0) * netRatio;
+      totals.deliveryFees += Number(order.shippingPrice || 0) * netRatio;
+      totals.discountsGiven += discountAmount;
+      totals.totalReceived += Number(order.totalPrice || 0);
+      totals.paymentMethods[method] = totals.paymentMethods[method] || { orderCount: 0, amount: 0 };
+      totals.paymentMethods[method].orderCount += 1;
+      totals.paymentMethods[method].amount += Number(order.totalPrice || 0);
+      return totals;
+    }, {
+      confirmedOrders: orders.length,
+      productSales: 0,
+      taxCollected: 0,
+      deliveryFees: 0,
+      discountsGiven: 0,
+      totalReceived: 0,
+      paymentMethods: {},
+    });
+
+    for (const field of ["productSales", "taxCollected", "deliveryFees", "discountsGiven", "totalReceived"]) {
+      summary[field] = Number(summary[field].toFixed(2));
+    }
+    summary.grossPlatformIncome = Number((summary.taxCollected + summary.deliveryFees).toFixed(2));
+    for (const method of Object.keys(summary.paymentMethods)) {
+      summary.paymentMethods[method].amount = Number(summary.paymentMethods[method].amount.toFixed(2));
+    }
+    res.json(summary);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -177,7 +456,12 @@ const getUserOrders = async (req, res) => {
 
 const countTotalOrders = async (req, res) => {
   try {
-    const totalOrders = await Order.countDocuments();
+    let filter = {};
+    if (!req.user.isSuperAdmin) {
+      const shops = await Shop.find({ owner: req.user._id }).select("_id").lean();
+      filter.shop = { $in: shops.map((shop) => shop._id) };
+    }
+    const totalOrders = await Order.countDocuments(filter);
     res.json({ totalOrders });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -186,7 +470,13 @@ const countTotalOrders = async (req, res) => {
 
 const calculateTotalSales = async (req, res) => {
   try {
-    const orders = await Order.find();
+    let filter = {};
+    if (!req.user.isSuperAdmin) {
+      const shops = await Shop.find({ owner: req.user._id }).select("_id").lean();
+      filter.shop = { $in: shops.map((shop) => shop._id) };
+    }
+    filter.isPaid = true;
+    const orders = await Order.find(filter).select("totalPrice");
     const totalSales = orders.reduce(
       (sum, order) => sum + Number(order.totalPrice || 0),
       0
@@ -197,11 +487,152 @@ const calculateTotalSales = async (req, res) => {
   }
 };
 
+const confirmCashPayment = async (req, res) => {
+  try {
+    const method = req.body?.method;
+    if (method !== "Cash") {
+      return res.status(400).json({ message: "Only cash payments can be manually confirmed." });
+    }
+
+    const order = await Order.findById(req.params.id).populate("shop", "owner name");
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    const userId = req.user._id.toString();
+    const isBuyer = order.user?.toString() === userId;
+    const isShopAdmin = Boolean(req.user.isAdmin || req.user.isSuperAdmin)
+      && (req.user.isSuperAdmin || order.shop?.owner?.toString() === userId);
+
+    if (!isBuyer && !isShopAdmin) {
+      return res.status(403).json({ message: "Only the customer or this shop's administrator can confirm cash payment." });
+    }
+
+    if (order.isPaid) {
+      if (order.finalPaymentMethod !== "Cash") {
+        return res.status(409).json({ message: `This order is already paid by ${order.finalPaymentMethod || "another method"}.` });
+      }
+      await awardPaidOrderPoints(order);
+      return res.json(order);
+    }
+
+    if (order.paymentConfirmation?.gatewayStatus === "PENDING") {
+      return res.status(409).json({
+        message: "The M-Pesa request is still pending. Wait for its success or cancellation confirmation before recording cash.",
+      });
+    }
+
+    if (order.paymentConfirmation?.method && order.paymentConfirmation.method !== method) {
+      return res.status(409).json({ message: `The other party has already confirmed ${order.paymentConfirmation.method}.` });
+    }
+
+    const confirmedAt = new Date();
+    const confirmationFields = isBuyer
+      ? {
+          "paymentConfirmation.customerConfirmedAt": confirmedAt,
+          "paymentConfirmation.customerConfirmedBy": req.user._id,
+        }
+      : {
+          "paymentConfirmation.shopConfirmedAt": confirmedAt,
+          "paymentConfirmation.shopConfirmedBy": req.user._id,
+        };
+    const updated = await Order.findOneAndUpdate(
+      {
+        _id: order._id,
+        isPaid: false,
+        "paymentConfirmation.method": { $in: [null, method] },
+      },
+      {
+        $set: {
+          "paymentConfirmation.method": method,
+          ...confirmationFields,
+        },
+      },
+      { new: true }
+    ).populate("shop", "owner name");
+
+    if (!updated) {
+      const latestOrder = await Order.findById(order._id).populate("shop", "owner name");
+      if (latestOrder?.isPaid && latestOrder.finalPaymentMethod === "Cash") return res.json(latestOrder);
+      return res.status(409).json({ message: "Payment confirmation changed. Refresh the order and try again." });
+    }
+
+    let settledOrder = updated;
+    const hasBothConfirmations = Boolean(
+      updated.paymentConfirmation?.customerConfirmedAt
+      && updated.paymentConfirmation?.shopConfirmedAt
+    );
+    if (hasBothConfirmations) {
+      const paidAt = new Date();
+      const receiptNumber = generateOrderReceiptNumber(updated._id, paidAt);
+      settledOrder = await Order.findOneAndUpdate(
+        {
+          _id: updated._id,
+          isPaid: false,
+          "paymentConfirmation.method": "Cash",
+          "paymentConfirmation.customerConfirmedAt": { $ne: null },
+          "paymentConfirmation.shopConfirmedAt": { $ne: null },
+        },
+        {
+          $set: {
+            isPaid: true,
+            paidAt,
+            paymentMethod: "Cash",
+            finalPaymentMethod: "Cash",
+            "paymentConfirmation.gatewayVerified": false,
+            "paymentConfirmation.receiptNumber": receiptNumber,
+            "paymentResult.id": receiptNumber,
+            "paymentResult.status": "COMPLETED",
+            "paymentResult.update_time": paidAt.toISOString(),
+            "paymentResult.email_address": "",
+            "paymentResult.method": "Cash",
+          },
+        },
+        { new: true }
+      ).populate("shop", "owner name");
+
+      if (!settledOrder) {
+        settledOrder = await Order.findById(updated._id).populate("shop", "owner name");
+      }
+    }
+    if (!settledOrder) {
+      return res.status(409).json({ message: "Order changed while the payment confirmation was being saved. Refresh and verify its current status." });
+    }
+    if (settledOrder.isPaid) await awardPaidOrderPoints(settledOrder);
+
+    const paymentNotice = settledOrder.isPaid
+      ? {
+          type: "payment",
+          title: "Cash payment confirmed",
+          message: `Cash payment for order ${settledOrder._id} is confirmed by the customer and shop. Receipt ${settledOrder.paymentConfirmation.receiptNumber}.`,
+          link: `/order/${settledOrder._id}`,
+        }
+      : {
+          type: "payment",
+          title: "Cash confirmation received",
+          message: `A ${isBuyer ? "customer" : "shop"} confirmation was recorded for cash payment on order ${settledOrder._id}. The other party must confirm.`,
+          link: `/order/${settledOrder._id}`,
+        };
+    const notifications = [notifyAdmins(paymentNotice, settledOrder.user)];
+    if (settledOrder.user) notifications.push(notifyUser(settledOrder.user, paymentNotice));
+    if (settledOrder.shop?.owner) {
+      notifications.push(notifyUser(settledOrder.shop.owner, paymentNotice));
+    }
+    await sendOrderNotifications(notifications);
+    res.json(settledOrder);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 const calculateTotalSalesByDate = async (req, res) => {
   try {
+    const match = { isPaid: true };
+    if (!req.user.isSuperAdmin) {
+      const shops = await Shop.find({ owner: req.user._id }).select("_id").lean();
+      match.shop = { $in: shops.map((shop) => shop._id) };
+    }
     const salesByDate = await Order.aggregate([
       {
-        $match: { isPaid: true },
+        $match: match,
       },
       {
         $group: {
@@ -222,9 +653,17 @@ const findOrderById = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
       .populate("user", "username email")
-      .populate("shop", "name location");
+      .populate("shop", "name location owner");
 
     if (order) {
+      if (
+        req.user
+        && !req.user.isSuperAdmin
+        && order.shop?.owner?.toString() !== req.user._id.toString()
+        && order.user?._id?.toString() !== req.user._id.toString()
+      ) {
+        return res.status(403).json({ message: "You cannot view another shop's order" });
+      }
       if (!order.shippingAddress.shopName && order.shop && order.shop.name) {
         order.shippingAddress.shopName = order.shop.name;
       }
@@ -239,48 +678,96 @@ const findOrderById = async (req, res) => {
 
 const markOrderAsPaid = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate("shop", "owner");
 
-    if (order) {
-      const shouldNotify = !order.isPaid;
-      order.isPaid = true;
-      order.paidAt = Date.now();
-      order.paymentResult = {
-        id: req.body.id,
-        status: req.body.status,
-        update_time: req.body.update_time,
-        email_address:
-          (req.body.payer && req.body.payer.email_address) ||
-          req.body.email_address ||
-          (req.body.payer && req.body.payer.email) ||
-          "",
-      };
-
-      const updatedOrder = await order.save();
-      if (shouldNotify) {
-        const notice = {
-          type: "payment",
-          title: "Payment confirmed",
-          message: `Payment for order ${order._id} has been confirmed.`,
-        };
-        const notices = [notifyAdmins(notice)];
-        if (order.user) notices.push(notifyUser(order.user, notice));
-        await sendOrderNotifications(notices);
-      }
-      res.status(200).json(updatedOrder);
-    } else {
-      res.status(404).json({ message: "Order not found" });
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    if (order.user?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Only the customer who placed this order can confirm PayPal payment." });
     }
+    if (order.paymentConfirmation?.method === "Cash") {
+      return res.status(409).json({ message: "Cash confirmation has already started. Complete or resolve that confirmation before using PayPal." });
+    }
+
+    if (!req.body?.id) {
+      return res.status(400).json({ message: "A PayPal order reference is required." });
+    }
+    if (order.isPaid) {
+      if (order.finalPaymentMethod === "PayPal") {
+        await awardPaidOrderPoints(order);
+        return res.json(order);
+      }
+      return res.status(409).json({ message: `This order has already been paid by ${order.finalPaymentMethod || "another method"}.` });
+    }
+
+    const { paypalOrder, capture } = await verifyPaypalOrder(req.body.id, order);
+    const paidAt = new Date();
+    const paymentConfirmation = {
+      method: "PayPal",
+      gatewayVerified: true,
+      gatewayStatus: "COMPLETED",
+      customerConfirmedAt: paidAt,
+      customerConfirmedBy: req.user._id,
+      shopConfirmedAt: null,
+      shopConfirmedBy: null,
+      receiptNumber: generateOrderReceiptNumber(order._id, paidAt),
+    };
+    const paymentResult = {
+      id: capture?.id || req.body.id,
+      status: capture.status || paypalOrder.status,
+      update_time: capture.create_time || paidAt.toISOString(),
+      email_address: paypalOrder.payer?.email_address || "",
+      method: "PayPal",
+    };
+
+    const updatedOrder = await Order.findOneAndUpdate(
+      { _id: order._id, isPaid: false, "paymentConfirmation.method": { $ne: "Cash" } },
+      {
+        $set: {
+          isPaid: true,
+          paidAt,
+          paymentMethod: "PayPal",
+          finalPaymentMethod: "PayPal",
+          paymentConfirmation,
+          paymentResult,
+        },
+      },
+      { new: true }
+    );
+    if (!updatedOrder) {
+      const currentOrder = await Order.findById(order._id);
+      if (currentOrder?.isPaid && currentOrder.finalPaymentMethod === "PayPal") {
+        await awardPaidOrderPoints(currentOrder);
+        return res.json(currentOrder);
+      }
+      return res.status(409).json({ message: "This order's payment status changed. Refresh the order and verify its final payment method." });
+    }
+    await awardPaidOrderPoints(updatedOrder);
+    const notice = {
+      type: "payment",
+      title: "PayPal payment confirmed",
+      message: `PayPal payment for order ${updatedOrder._id} has been recorded. Receipt ${updatedOrder.paymentConfirmation.receiptNumber}.`,
+      link: `/order/${updatedOrder._id}`,
+    };
+    const notices = [notifyAdmins(notice, updatedOrder.user)];
+    notices.push(notifyUser(updatedOrder.user, notice));
+    await sendOrderNotifications(notices);
+    res.status(200).json(updatedOrder);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.statusCode || 500).json({ message: error.message || "PayPal payment verification failed." });
   }
 };
 
 const markOrderAsDelivered = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate("shop", "owner");
 
     if (order) {
+      if (
+        !req.user.isSuperAdmin
+        && order.shop?.owner?.toString() !== req.user._id.toString()
+      ) {
+        return res.status(403).json({ message: "You can only manage delivery for your own shop" });
+      }
       order.isDelivered = true;
       order.deliveredAt = Date.now();
 
@@ -290,6 +777,7 @@ const markOrderAsDelivered = async (req, res) => {
           type: "order",
           title: "Order delivered",
           message: `Your order ${order._id} has been marked as delivered.`,
+          link: `/order/${order._id}`,
         })]);
       }
       res.json(updatedOrder);
@@ -391,7 +879,13 @@ const getReceipt = async (req, res) => {
     doc.text(`Email: ${customerEmail}`);
     doc.text(`Shop: ${order.shop?.name || "N/A"}`);
     doc.text(`Phone: ${order.shippingAddress.phone}`);
-    doc.text(`Payment: ${order.paymentMethod}`);
+    const finalPaymentMethod = order.finalPaymentMethod || order.paymentMethod;
+    const receiptNumber = order.paymentConfirmation?.receiptNumber || order.paymentResult?.id || order._id;
+    doc.text(`Payment: ${finalPaymentMethod}`);
+    doc.text(`Receipt number: ${receiptNumber}`);
+    if (order.paymentResult?.id && order.paymentResult.id !== receiptNumber) {
+      doc.text(`Gateway reference: ${order.paymentResult.id}`);
+    }
     doc.moveDown(0.2);
 
 
@@ -406,6 +900,9 @@ const getReceipt = async (req, res) => {
     doc.fontSize(9).text(`Items: KES ${order.itemsPrice.toFixed(2)}`);
     doc.text(`Shipping: KES ${order.shippingPrice.toFixed(2)}`);
     doc.text(`Tax: KES ${order.taxPrice.toFixed(2)}`);
+    if (Number(order.referralVoucher?.discountAmount) > 0) {
+      doc.text(`Reward voucher: -KES ${Number(order.referralVoucher.discountAmount).toFixed(2)}`);
+    }
     doc.moveDown(0.1);
     doc.fontSize(11).text(`Total: KES ${order.totalPrice.toFixed(2)}`, {
       align: "right",
@@ -449,12 +946,14 @@ const getReceipt = async (req, res) => {
 export {
   createOrder,
   getAllOrders,
+  getOrderFinancialSummary,
   getUserOrders,
   countTotalOrders,
   calculateTotalSales,
   calculateTotalSalesByDate,
   findOrderById,
   markOrderAsPaid,
+  confirmCashPayment,
   markOrderAsDelivered,
   getReceipt,
 };

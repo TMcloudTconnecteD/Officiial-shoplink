@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { randomBytes } from "crypto";
 const userSchema = mongoose.Schema({
     
     username:{
@@ -27,11 +28,51 @@ const userSchema = mongoose.Schema({
         type:Boolean,
         required:true,
         default:false
+    },
+    isSeller:{
+        type:Boolean,
+        required:true,
+        default:false
+    },
+    sellerStatus:{
+        type:String,
+        enum:["none","pending","approved","rejected"],
+        default:"none"
+    },
+    sellerShop:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Shop",
+        default:null
+    },
+    referralCode: {
+        type: String,
+        unique: true,
+        sparse: true,
+        uppercase: true,
+        trim: true,
+    },
+    pointsBalance: {
+        type: Number,
+        default: 0,
+        min: 0,
+    },
+    pointsVouchersIssued: {
+        type: Number,
+        default: 0,
+        min: 0,
+    },
+    welcomeToastShownAt: {
+        type: Date,
+        default: null,
     }
 
 }, {
     timestamps: true
 })
+
+userSchema.pre("validate", function assignReferralCode() {
+    if (!this.referralCode) this.referralCode = randomBytes(5).toString("hex").toUpperCase();
+});
 
 const User = mongoose.model('User', userSchema);
 

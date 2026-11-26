@@ -11,8 +11,8 @@ export default ({ mode }) => {
     server: {
       host: '0.0.0.0',
       proxy: {
-        '/api': env.VITE_BASE_URL || 'http://localhost:8000',
-        '/uploads': env.VITE_BASE_URL || 'http://localhost:8000',
+        '/api': env.VITE_BASE_URL || env.VITE_API_URL || 'http://localhost:8000',
+        '/uploads': env.VITE_BASE_URL || env.VITE_API_URL || 'http://localhost:8000',
       },
       allowedHosts: [
         " 84b3-129-222-147-214.ngrok-free.app ", // current ngrok domain

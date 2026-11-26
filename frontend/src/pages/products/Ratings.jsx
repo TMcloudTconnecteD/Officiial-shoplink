@@ -1,33 +1,30 @@
 import { FaRegStar, FaStar, FaStarHalfAlt } from "react-icons/fa";
 
-const Ratings = ({ value, text, color }) => {
-  const fullStars = Math.floor(value);
-  const halfStars = value - fullStars > 0.5 ? 1 : 0;
+const Ratings = ({ value = 0, text, color = "#eab308" }) => {
+  const safeValue = Number.isFinite(Number(value)) ? Math.min(5, Math.max(0, Number(value))) : 0;
+  const fullStars = Math.floor(safeValue);
+  const halfStars = safeValue - fullStars > 0.5 ? 1 : 0;
   const emptyStars = 5 - fullStars - halfStars;
 
   return (
-    <div className="flex items-center">
+    <div className="inline-flex items-center">
       {[...Array(fullStars)].map((_, index) => (
-        <FaStar key={`full-${index}`} className={`ml-1 text-${color}`} />
+        <FaStar key={`full-${index}`} className="ml-1" style={{ color }} />
       ))}
 
       {halfStars === 1 && (
-        <FaStarHalfAlt className={`ml-1 text-${color}`} />
+        <FaStarHalfAlt className="ml-1" style={{ color }} />
       )}
 
       {[...Array(emptyStars)].map((_, index) => (
-        <FaRegStar key={`empty-${index}`} className={`ml-1 text-${color}`} />
+        <FaRegStar key={`empty-${index}`} className="ml-1" style={{ color }} />
       ))}
 
       {text && (
-        <span className={`ml-8 text-${color}`}>{text}</span>
+        <span className="ml-2 text-sm font-semibold text-slate-600">{text}</span>
       )}
     </div>
   );
-};
-
-Ratings.defaultProps = {
-  color: "yellow-500", // WindiCSS accepts this directly
 };
 
 export default Ratings;

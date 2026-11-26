@@ -1,6 +1,7 @@
 // src/pages/ShopUpdated.jsx
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   useGetFilteredProductsQuery,
   useGetProductsQuery,
@@ -11,17 +12,25 @@ import Loader from "../components/Loader";
 import ProductCard from "../pages/products/ProductCard";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useLocation } from "react-router-dom";
 import HeaderUpdated from "../components/HeaderUpdated";
+import { FaArrowRight, FaBolt, FaSearch, FaStore, FaTag } from "react-icons/fa";
+import { getOptimizedProductImage } from "../utils/imageOptimization";
+import { useGetPromoSettingsQuery } from "../redux/Api/marketingApiSlice";
+import "./ShopUpdated.css";
 
 const ShopUpdated = () => {
   const dispatch = useDispatch();
   const { categories, products, checked, radio } = useSelector((state) => state.shop);
+  const { userInfo } = useSelector((state) => state.auth);
 
   const location = useLocation();
+  const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const keyword = queryParams.get("keyword") || "";
   const categoryParam = queryParams.get("category") || "";
+  const [searchText, setSearchText] = useState(keyword);
+  const [sortMode, setSortMode] = useState("featured");
+  const { data: promoSettings } = useGetPromoSettingsQuery();
 
   const categoriesQuery = useFetchCategoriesQuery(undefined, {
     refetchOnMountOrArgChange: false,
@@ -30,6 +39,11 @@ const ShopUpdated = () => {
 
   const [priceFilter, setPriceFilter] = useState("");
   const [collapsedCats, setCollapsedCats] = useState({});
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  useEffect(() => {
+    setSearchText(keyword);
+  }, [keyword]);
 
   const filteredProductsQuery = useGetFilteredProductsQuery(
     { checked, radio },
@@ -63,7 +77,7 @@ const ShopUpdated = () => {
         dispatch(setChecked([...checked, categoryObj._id]));
       }
     }
-  }, [categoryParam, categories, dispatch]);
+  }, [categoryParam, categories, checked, dispatch]);
 
   useEffect(() => {
     if (keyword.length > 0) {
@@ -104,7 +118,7 @@ const ShopUpdated = () => {
     ...new Set(
       (keyword.length > 0 ? searchedProductsQuery.data : filteredProductsQuery.data)
         ?.map((p) => p.brand)
-        .filter((b) => b !== undefined)
+        .filter((b) => typeof b === "string" && b.trim())
     ),
   ];
 
@@ -128,169 +142,256 @@ const ShopUpdated = () => {
     if (sourceData) dispatch(setProducts(sourceData));
   };
 
+  const submitSearch = (event) => {
+    event.preventDefault();
+    const value = searchText.trim();
+    navigate(value ? `/shop?keyword=${encodeURIComponent(value)}` : "/shop");
+  };
+
   const grouped = {};
+  const categoryList = Array.isArray(categories)
+    ? categories
+    : Array.isArray(categories?.categories) ? categories.categories : [];
   products?.forEach((p) => {
     const catId = normalizeCategoryId(p.category);
-    const meta = p.category && typeof p.category === 'object' ? p.category : { name: normalizeCategoryName(p.category) };
+    const storedCategory = categoryList.find((category) => String(category?._id) === catId);
+    const productCategoryName = p.category && typeof p.category === "object"
+      ? p.category.name
+      : "";
+    const categoryName = storedCategory?.name || productCategoryName;
+    const safeCategoryName = (
+      typeof categoryName === "string"
+      && categoryName.trim()
+      && !/^[a-f\d]{24}$/i.test(categoryName.trim())
+    ) ? categoryName.trim() : "Other";
+    const meta = { name: safeCategoryName };
     if (!grouped[catId]) grouped[catId] = { meta, items: [] };
     grouped[catId].items.push(p);
   });
 
+  const productCount = products?.length || 0;
+  const previewProducts = (products || []).slice(0, 3);
+  const hasActiveFilters = checked.length > 0 || Boolean(priceFilter) || Boolean(keyword);
+  const customer = !userInfo?.isAdmin && !userInfo?.isSuperAdmin;
+  const rewardsLink = userInfo ? "/student-friendly" : "/register?redirect=%2Fstudent-friendly";
+
   return (
-    <div className="min-h-screen bg-glass-hero">
+    <div className="shop-catalog-page">
       <div className="fixed top-0 left-0 right-0 z-50">
         <HeaderUpdated />
       </div>
 
-      <div className="pt-28 container mx-auto px-4 pb-28">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Filters */}
-          <aside className="w-full lg:w-80 order-2 lg:order-1">
-            <div className="hidden lg:block sticky top-28">
-              <div className="backdrop-glass rounded-2xl p-5 shadow-xl border border-white/6">
-                <h3 className="text-lg font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Filters</h3>
-
-                <div className="mb-4">
-                  <p className="text-sm mb-2 text-zinc-600 dark:text-zinc-300">Categories</p>
-                  <div className="space-y-3 max-h-64 overflow-auto pr-2">
-                    {categories?.map((c) => (
-                      <label key={c._id} className="flex items-center gap-3 text-zinc-800 dark:text-zinc-100">
-                        <input
-                          type="checkbox"
-                          checked={checked.includes(c._id)}
-                          onChange={(e) => handleCheck(e.target.checked, c._id)}
-                          className="w-4 h-4 rounded accent-emerald-400"
-                        />
-                        <span className="text-sm">{c.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
+      <main className="shop-catalog-page__content">
+        <div className="shop-catalog-page__shell">
+          <section className="shop-catalog-hero">
+            <div className="shop-catalog-hero__copy">
+              <span className="shop-catalog-hero__eyebrow"><FaBolt aria-hidden="true" /> Your next great find starts here</span>
+              <h1>Good finds.<br /><span>Closer than you think.</span></h1>
+              <p>Explore independent local shops, discover something unexpected, and check out in one place.</p>
+              <form className="shop-catalog-hero__search" onSubmit={submitSearch} role="search">
+                <FaSearch aria-hidden="true" />
+                <input
+                  type="search"
+                  placeholder="What are you looking for?"
+                  value={searchText}
+                  onChange={(event) => setSearchText(event.target.value)}
+                  aria-label="Search products and brands"
+                />
+                <button type="submit">Search</button>
+              </form>
+              <div className="shop-catalog-hero__actions">
+                <Link to="/shops/all">Explore local shops <FaArrowRight aria-hidden="true" /></Link>
+                <span><FaStore aria-hidden="true" /> {productCount} finds ready to explore</span>
               </div>
             </div>
+            <div className="shop-catalog-hero__visual" aria-hidden="true">
+              <div className="shop-catalog-hero__orbit shop-catalog-hero__orbit--one" />
+              <div className="shop-catalog-hero__orbit shop-catalog-hero__orbit--two" />
+              {previewProducts.map((product, index) => (
+                <div className={`shop-catalog-hero__product shop-catalog-hero__product--${index + 1}`} key={product._id}>
+                  <img src={getOptimizedProductImage(product.image, 520)} alt="" />
+                  <span>{product.name}</span>
+                  <strong>KES {Number(product.price || 0).toLocaleString()}</strong>
+                </div>
+              ))}
+              {!previewProducts.length && <div className="shop-catalog-hero__fallback">Local finds<br />made easy.</div>}
+              <span className="shop-catalog-hero__stamp">SHOP LOCAL<br />FIND MORE</span>
+            </div>
+          </section>
 
-            {/* mobile chips */}
-            <div className="lg:hidden order-first mb-4">
-              <div className="overflow-x-auto flex gap-3 py-2">
-                {categories?.map((c) => (
-                  <button
-                    key={c._id}
-                    onClick={() => handleCheck(!checked.includes(c._id), c._id)}
-                    className={`min-w-max px-3 py-2 rounded-full text-sm shadow-sm border ${checked.includes(c._id) ? "bg-emerald-500 text-white" : "bg-white/80 text-zinc-800"}`}
-                  >
-                    {c.name}
-                  </button>
+          {customer && promoSettings?.rewardProgramEnabled === true && (
+            <section className="shop-reward-banner">
+              <span className="shop-reward-banner__icon"><FaTag aria-hidden="true" /></span>
+              <div>
+                <span className="shop-reward-banner__eyebrow">Good shopping comes back around</span>
+                <h2>Earn 10 points on every paid order. Get KES 100 off at 1,000.</h2>
+                <p>Rewards are saved to your account email and automatically applied to your next checkout.</p>
+              </div>
+              <Link to={rewardsLink}>See your rewards <FaArrowRight aria-hidden="true" /></Link>
+            </section>
+          )}
+
+          <div className="shop-category-bar">
+            <div>
+              <span className="shop-category-bar__eyebrow">Browse by mood</span>
+              <h2>Find your corner</h2>
+            </div>
+            <div className="shop-category-bar__chips">
+              <button
+                type="button"
+                className={checked.length === 0 ? "is-active" : ""}
+                onClick={() => dispatch(setChecked([]))}
+              >
+                Everything
+              </button>
+              {categoryList.map((category) => (
+                <button
+                  type="button"
+                  key={category._id}
+                  className={checked.includes(category._id) ? "is-active" : ""}
+                  onClick={() => handleCheck(!checked.includes(category._id), category._id)}
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="shop-catalog-layout">
+            <aside
+              id="shop-filters"
+              className={`shop-filter-panel ${filtersOpen ? "is-open" : ""}`}
+              aria-label="Product filters"
+            >
+              <div className="shop-filter-panel__heading">
+                <div><span>Make it yours</span><h2>Refine your find</h2></div>
+                {hasActiveFilters && <button type="button" onClick={resetFilters}>Clear all</button>}
+              </div>
+              <section className="shop-filter-panel__group">
+                <h3>Categories</h3>
+                {categoryList.map((category) => (
+                  <label key={category._id}>
+                    <input
+                      type="checkbox"
+                      checked={checked.includes(category._id)}
+                      onChange={(event) => handleCheck(event.target.checked, category._id)}
+                    />
+                    <span>{category.name}</span>
+                  </label>
                 ))}
-              </div>
-            </div>
-          </aside>
-
-          {/* Main Content */}
-          <main className="flex-1 order-1 lg:order-2">
-
-            {/* Curated and grouped */}
-            <div className="mb-6 backdrop-glass rounded-2xl p-4 shadow-md border border-white/8">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-300">Curated and grouped for easy browsing</p>
+              </section>
+              <section className="shop-filter-panel__group">
+                <h3>Popular brands</h3>
+                <div className="shop-filter-panel__brands">
+                  {uniqueBrands.slice(0, 10).map((brand) => (
+                    <button type="button" key={brand} onClick={() => handleBrandClick(brand)}>{brand}</button>
+                  ))}
+                  {!uniqueBrands.length && <p>Brand filters appear as products are loaded.</p>}
                 </div>
-
-                <div className="flex gap-3">
-                  <div className="text-sm text-zinc-700 dark:text-zinc-300">{products?.length || 0} products</div>
-                </div>
-              </div>
-
-              {/* Filters below curated */}
-              <div className="mt-4 space-y-4">
-                {/* Brands */}
-                <div>
-                  <p className="text-sm mb-2 text-zinc-600 dark:text-zinc-300">Brands</p>
-                  <div className="flex flex-wrap gap-3">
-                    {uniqueBrands?.map((brand) => (
-                      <button
-                        key={brand}
-                        onClick={() => handleBrandClick(brand)}
-                        className="px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-pink-400 to-orange-300 text-white hover:from-pink-500 hover:to-orange-400 shadow-md transition-all hover:scale-105"
-                      >
-                        {brand}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Price */}
-                <div>
-                  <p className="text-sm mb-2 text-zinc-600 dark:text-zinc-300">Price</p>
+              </section>
+              <section className="shop-filter-panel__group">
+                <label className="shop-filter-panel__price" htmlFor="shop-price-filter">
+                  <span>Price contains</span>
                   <input
-                    type="text"
+                    id="shop-price-filter"
+                    type="search"
+                    inputMode="numeric"
                     placeholder="e.g. 1500"
                     value={priceFilter}
                     onChange={handlePriceChange}
-                    className="w-full px-3 py-2 rounded-lg bg-white/30 placeholder:text-zinc-500 text-zinc-900 dark:bg-black/30"
                   />
-                </div>
+                </label>
+              </section>
+              <button type="button" className="shop-filter-panel__apply" onClick={() => { handleMallClick(); setFiltersOpen(false); }}>
+                Show {productCount} products
+              </button>
+            </aside>
 
-                {/* Apply & Reset */}
-                <div className="flex gap-3">
+            <section className="shop-catalog-results" aria-label="Shop products">
+              <div className="shop-catalog-results__heading">
+                <div>
+                  <span>{keyword ? "Your search results" : "The marketplace"}</span>
+                  <h2>{keyword ? `Finds for “${keyword}”` : "A little bit of everything."}</h2>
+                  <p>{productCount} products {hasActiveFilters ? "match your current filters" : "from shops across the marketplace"}</p>
+                </div>
+                <div className="shop-catalog-results__controls">
                   <button
-                    onClick={resetFilters}
-                    className="flex-1 py-2 rounded-lg text-sm bg-zinc-800 text-white hover:opacity-90 transition"
+                    type="button"
+                    className="shop-catalog-results__filter-toggle"
+                    aria-expanded={filtersOpen}
+                    aria-controls="shop-filters"
+                    onClick={() => setFiltersOpen((open) => !open)}
                   >
-                    Reset
+                    Refine {checked.length > 0 && <span>{checked.length}</span>}
                   </button>
-                  <button
-                    onClick={handleMallClick}
-                    className="flex-1 py-2 rounded-lg text-sm bg-emerald-500 text-white hover:bg-emerald-600 transition"
-                  >
-                    Apply
-                  </button>
+                  <label>
+                    <span>Sort by</span>
+                    <select value={sortMode} onChange={(event) => setSortMode(event.target.value)}>
+                      <option value="featured">Featured</option>
+                      <option value="newest">Newest</option>
+                      <option value="price-low">Price: low to high</option>
+                      <option value="price-high">Price: high to low</option>
+                    </select>
+                  </label>
                 </div>
               </div>
-            </div>
 
-            {/* Grouped Products */}
-            {Object.keys(grouped).length === 0 ? (
-              <div className="mt-6">
-                {filteredProductsQuery.isLoading ? <Loader /> : <p className="text-center text-zinc-600 dark:text-zinc-300">No products found</p>}
-              </div>
-            ) : (
-              Object.entries(grouped).map(([catId, block]) => (
-                <section key={catId} className="mb-10">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{block.meta?.name || "Other"}</h2>
-                    <button
-                      onClick={() => setCollapsedCats((s) => ({ ...s, [catId]: !s[catId] }))}
-                      className="text-sm text-emerald-500"
-                    >
-                      {collapsedCats[catId] ? "Show" : "Hide"}
-                    </button>
-                  </div>
-
-                  {!collapsedCats[catId] && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-                      {block.items.map((p) => (
-                        <ProductCard key={p._id} p={p} />
-                      ))}
-                    </div>
+              {Object.keys(grouped).length === 0 ? (
+                <div className="shop-catalog-empty">
+                  {filteredProductsQuery.isLoading || searchedProductsQuery.isLoading ? <Loader /> : (
+                    <>
+                      <span><FaSearch aria-hidden="true" /></span>
+                      <h3>No products found yet</h3>
+                      <p>Try a different search or clear some filters to see more local finds.</p>
+                      <button type="button" onClick={resetFilters}>Clear filters</button>
+                    </>
                   )}
-                </section>
-              ))
-            )}
-          </main>
+                </div>
+              ) : (
+                Object.entries(grouped).map(([catId, block], index) => {
+                  const sortedItems = [...block.items].sort((a, b) => {
+                    if (sortMode === "price-low") return Number(a.price || 0) - Number(b.price || 0);
+                    if (sortMode === "price-high") return Number(b.price || 0) - Number(a.price || 0);
+                    if (sortMode === "newest") return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+                    return 0;
+                  });
+                  return (
+                    <section key={catId} className={`shop-category-section ${index % 2 ? "is-soft" : ""}`}>
+                      <div className="shop-category-section__heading">
+                        <div>
+                          <span>{String(index + 1).padStart(2, "0")} / CATEGORY EDIT</span>
+                          <h3>{block.meta?.name || "Other"}</h3>
+                        </div>
+                        <span>{block.items.length} {block.items.length === 1 ? "find" : "finds"}</span>
+                        <button
+                          type="button"
+                          aria-expanded={!collapsedCats[catId]}
+                          onClick={() => setCollapsedCats((current) => ({
+                            ...current,
+                            [catId]: !current[catId],
+                          }))}
+                        >
+                          {collapsedCats[catId] ? "Show products" : "Hide"}
+                        </button>
+                      </div>
+                      {!collapsedCats[catId] && (
+                        <div className="shop-category-section__products">
+                          {sortedItems.map((product) => <ProductCard key={product._id} p={product} />)}
+                        </div>
+                      )}
+                    </section>
+                  );
+                })
+              )}
+            </section>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
 
 export default ShopUpdated;
-
-const normalizeCategoryName = (category) => {
-  if (!category) return "General";
-  if (typeof category === "string") return category.trim() || "General";
-  if (typeof category?.name === "string") return category.name.trim() || "General";
-  return "General";
-};
 
 const normalizeCategoryId = (category) => {
   if (!category) return "uncategorized";

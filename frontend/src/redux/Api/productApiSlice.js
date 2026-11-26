@@ -85,6 +85,14 @@ export const productApiSlice = apiSlice.injectEndpoints({
       ],
     }),
 
+    toggleProductFavorite: builder.mutation({
+      query: ({ productId, favorited }) => ({
+        url: `${PRODUCT_URL}/${productId}/favorite`,
+        method: "POST",
+        body: { favorited },
+      }),
+    }),
+
     // ✅ Get top products
     getTopProducts: builder.query({
       query: () => ({
@@ -140,6 +148,7 @@ export const {
   useDeleteProductMutation,
   useGetProductDetailsQuery,
   useCreateReviewMutation,
+  useToggleProductFavoriteMutation,
   useGetTopProductsQuery,
   useGetNewProductsQuery,
   useAllProductsQuery,

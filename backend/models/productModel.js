@@ -34,7 +34,16 @@ const productSchema = new mongoose.Schema({
     image: {
         type: String,
         required: true,
-    },brand: {
+    },
+    images: {
+        type: [String],
+        default: [],
+        validate: {
+            validator: (images) => images.length <= 3,
+            message: "A product can have up to three photos",
+        },
+    },
+    brand: {
         type: String,
         required: true,
     },quantity: {
@@ -75,6 +84,11 @@ const productSchema = new mongoose.Schema({
         type: ObjectId,
         ref: "Shop",
         required: true,
+    },
+    isPromoFeatured: {
+        type: Boolean,
+        default: false,
+        index: true,
     },
 
 },{timestamps: true})

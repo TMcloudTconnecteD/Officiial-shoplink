@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-globals */
-const CACHE_NAME = "shoplink-v1";
+const CACHE_NAME = "shoplink-v2";
 const STATIC_ASSETS = [
   "/",
   "/index.html",
@@ -31,42 +31,42 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  // only handle GET requests
   if (request.method !== 'GET') {
     return;
   }
 
   const url = new URL(request.url);
 
-  // don't cache API POST or other non-static endpoints
-  if (url.pathname.startsWith('/api/')) {
-    // let network handle it normally
+  const isDevelopmentAsset = /^\/(?:src|node_modules|@vite|@id|@fs)(?:\/|$)|^\/@react-refresh(?:\/|$)/.test(url.pathname);
+  if (url.origin !== self.location.origin || url.pathname.startsWith('/api/') || isDevelopmentAsset) {
     return;
   }
 
-  // cache-first for static assets
+  const isNavigation = request.mode === 'navigate'
+    || url.pathname === '/index.html'
+    || url.pathname === '/service-worker.js';
+
   event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) {
-        return cached;
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(request);
+
+      if (!isNavigation && cached) return cached;
+
+      try {
+        const response = await fetch(request);
+        if (response.ok && response.type === 'basic') {
+          await cache.put(request, response.clone());
+        }
+        return response;
+      } catch (error) {
+        if (cached) return cached;
+        if (request.mode === 'navigate') {
+          const appShell = await cache.match('/index.html');
+          if (appShell) return appShell;
+        }
+        throw error;
       }
-      return fetch(request)
-        .then((response) => {
-          // only cache same-origin resources
-          if (response && response.status === 200 && response.type === 'basic') {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // fallback to index.html for navigation requests (SPA routing)
-          if (request.mode === 'navigate') {
-            return caches.match('/index.html');
-          }
-        });
-    })
+    })()
   );
 });

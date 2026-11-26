@@ -1,61 +1,103 @@
 import asyncHandler from "../middlewares/asyncHandler.js";
 import Product from "../models/productModel.js";
+import Shop from "../models/shopModel.js";
+import ProductFavorite from "../models/productFavoriteModel.js";
+
+const canManageShop = async (req, shopId) => {
+  if (req.user?.isSuperAdmin) return true;
+  if (!shopId) return false;
+  const shop = await Shop.findById(shopId).select("owner");
+  return Boolean(shop?.owner && shop.owner.toString() === req.user._id.toString());
+};
+
+const normalizeProductImages = (fields) => {
+  let images = fields.images;
+  if (typeof images === "string" && images.trim()) {
+    try {
+      images = JSON.parse(images);
+    } catch {
+      images = [images];
+    }
+  }
+  if (!Array.isArray(images)) images = [];
+  const urls = [...new Set(images.filter((image) => typeof image === "string" && image.trim()).map((image) => image.trim()))];
+  if (!urls.length && typeof fields.image === "string" && fields.image.trim()) urls.push(fields.image.trim());
+  if (urls.length > 3) throw new Error("A product can have up to three photos");
+  if (!urls[0]) throw new Error("Upload at least one product photo");
+  return urls;
+};
 
 const createProduct = asyncHandler(async (req, res) => {
   try {
-    const {name, description, price, category, quantity, brand} = req.fields;
-    switch (true) {
-      case !name:
-        return res.json({error: "Name is required, come on!"});
-      case !description:
-        return res.json({error: "Description is required, come on!"});
-      case !price:
-        return res.json({error: "Price is required, come on!"});
-      case !category:
-        return res.json({error: "Category is required, come on!"});
-      case !quantity:
-        return res.json({error: "Quantity is required, come on!"});
-      case !brand:
-        return res.json({error: "Brand is required, come on!"});
+    const fields = req.fields || {};
+    const {name, description, price, category, quantity, brand, shop} = fields;
+    const requiredFields = { name, description, price, category, quantity, brand, shop };
+    for (const [field, value] of Object.entries(requiredFields)) {
+      if (value === undefined || value === null || String(value).trim() === "") {
+        return res.status(400).json({ message: `${field} is required.` });
+      }
     }
-    const product = new Product({...req.fields});
+    if (!Number.isFinite(Number(price)) || Number(price) < 0) {
+      return res.status(400).json({ message: "Price must be a valid non-negative amount." });
+    }
+    if (!Number.isInteger(Number(quantity)) || Number(quantity) < 0) {
+      return res.status(400).json({ message: "Quantity must be a non-negative whole number." });
+    }
+    if (!(await canManageShop(req, shop))) {
+      return res.status(403).json({ message: "You can only add products to a shop you manage." });
+    }
+    const images = normalizeProductImages(fields);
+    const product = new Product({ ...fields, image: images[0], images });
     await product.save();
     res.json(product);
   } catch (error) {
     console.error(error);
-    res.status(400).json(error.message);
+    res.status(400).json({ message: error.message || "Could not create product." });
   }
 });
 
 const updateProduct = asyncHandler(async (req, res) => {
   try {
-    const {name, description, price, category, quantity, brand} = req.fields;
-    switch (true) {
-      case !name:
-        return res.json({error: "Name is required, come on!"});
-      case !description:
-        return res.json({error: "Description is required, come on!"});
-      case !price:
-        return res.json({error: "Price is required, come on!"});
-      case !category:
-        return res.json({error: "Category is required, come on!"});
-      case !quantity:
-        return res.json({error: "Quantity is required, come on!"});
-      case !brand:
-        return res.json({error: "Brand is required, come on!"});
+    const fields = req.fields || {};
+    const {name, description, price, category, quantity, brand, shop} = fields;
+    const requiredFields = { name, description, price, category, quantity, brand, shop };
+    for (const [field, value] of Object.entries(requiredFields)) {
+      if (value === undefined || value === null || String(value).trim() === "") {
+        return res.status(400).json({ message: `${field} is required.` });
+      }
     }
-    const product = await Product.findByIdAndUpdate(req.params.id, {...req.fields}, {new: true});
+    if (!Number.isFinite(Number(price)) || Number(price) < 0) {
+      return res.status(400).json({ message: "Price must be a valid non-negative amount." });
+    }
+    if (!Number.isInteger(Number(quantity)) || Number(quantity) < 0) {
+      return res.status(400).json({ message: "Quantity must be a non-negative whole number." });
+    }
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ error: "Product not found" });
+    if (!(await canManageShop(req, product.shop))) {
+      return res.status(403).json({ message: "You can only update products in a shop you manage." });
+    }
+    if (!(await canManageShop(req, shop))) {
+      return res.status(403).json({ message: "You can only update products in a shop you manage." });
+    }
+    const images = normalizeProductImages(fields);
+    Object.assign(product, fields, { image: images[0], images });
     await product.save();
     res.json(product);
   } catch (error) {
     console.error(error);
-    res.status(400).json(error.message);
+    res.status(400).json({ message: error.message || "Could not update product." });
   }
 });
 
 const deleteProduct = asyncHandler(async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({error: "Product not found"});
+    if (!(await canManageShop(req, product.shop))) {
+      return res.status(403).json({error: "You can only delete products from your own shop"});
+    }
+    await product.deleteOne();
     res.json(product);
   } catch (error) {
     console.error(error);
@@ -93,12 +135,35 @@ const fetchProductsbyId = asyncHandler(async (req, res) => {
 
 const fetchAllProducts = asyncHandler(async (req, res) => {
   try {
-    const products = await Product.find({}).populate("category").populate("shop", "name location").limit(100).sort({createdAt: -1});
+    const products = await Product.find({}).populate("category").populate("shop", "name location").sort({createdAt: -1});
     res.json(products);
   } catch (error) {
     console.error(error);
     res.status(500).json({error: "Error getting products"});
   }
+});
+
+const toggleProductFavorite = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (typeof req.body?.favorited !== "boolean") {
+    return res.status(400).json({ message: "Favorite state must be a boolean." });
+  }
+  if (!(await Product.exists({ _id: id }))) {
+    return res.status(404).json({ message: "Product not found." });
+  }
+
+  if (req.body.favorited) {
+    try {
+      await ProductFavorite.create({ user: req.user._id, product: id });
+    } catch (error) {
+      if (error.code !== 11000) throw error;
+    }
+  } else {
+    await ProductFavorite.deleteOne({ user: req.user._id, product: id });
+  }
+
+  const favoriteCount = await ProductFavorite.countDocuments({ product: id });
+  res.json({ favorited: req.body.favorited, favoriteCount });
 });
 
 const createProductReviews = asyncHandler(async (req, res) => {
@@ -190,4 +255,5 @@ export {
   fetchProductsbyId,
   fetchAllProducts,
   fetchProductsByShopId,
+  toggleProductFavorite,
 };

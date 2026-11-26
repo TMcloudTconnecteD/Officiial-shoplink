@@ -33,11 +33,30 @@ const orderSchema = mongoose.Schema(
       required: true,
     },
 
+    finalPaymentMethod: {
+      type: String,
+      enum: ["PayPal", "M-Pesa", "Cash", "ShopLink voucher"],
+      default: null,
+    },
+
+    paymentConfirmation: {
+      method: { type: String, enum: ["PayPal", "M-Pesa", "Cash", "ShopLink voucher"], default: null },
+      gatewayVerified: { type: Boolean, default: false },
+      gatewayStatus: { type: String, default: null },
+      gatewayCheckoutRequestId: { type: String, default: null },
+      customerConfirmedAt: { type: Date, default: null },
+      customerConfirmedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+      shopConfirmedAt: { type: Date, default: null },
+      shopConfirmedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+      receiptNumber: { type: String, default: null },
+    },
+
     paymentResult: {
       id: { type: String },
       status: { type: String },
       update_time: { type: String },
       email_address: { type: String },
+      method: { type: String },
     },
 
     itemsPrice: {
@@ -69,6 +88,10 @@ const orderSchema = mongoose.Schema(
       required: true,
       default: false,
     },
+    pointsAwardedAt: {
+      type: Date,
+      default: null,
+    },
 
     // Store checkoutRequestId from M-Pesa STK push for reconciliation
     checkoutRequestId: {
@@ -87,6 +110,12 @@ const orderSchema = mongoose.Schema(
 
     deliveredAt: {
       type: Date,
+    },
+
+    referralVoucher: {
+      redemption: { type: mongoose.Schema.Types.ObjectId, ref: "VoucherRedemption", default: null },
+      rewardCredit: { type: mongoose.Schema.Types.ObjectId, ref: "RewardCredit", default: null },
+      discountAmount: { type: Number, default: 0 },
     },
   },
   {

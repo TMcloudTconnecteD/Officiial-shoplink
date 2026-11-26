@@ -54,13 +54,15 @@ const applyAsRider = async (req, res) => {
       type: "rider",
       title: "New rider application",
       message: `${rider.fullName} applied to ride in ${rider.location}.`,
+      link: "/admin/riders",
     };
     const results = await Promise.allSettled([
-      notifyAdmins(notification),
+      notifyAdmins(notification, req.user._id),
       notifyUser(req.user._id, {
         type: "rider",
         title: "Application received",
         message: "Your rider application is with our admin team for review.",
+        link: "/ride-boda",
       }),
     ]);
     results.filter((result) => result.status === "rejected")
@@ -132,6 +134,7 @@ const reviewRiderApplication = async (req, res) => {
       message: status === "approved"
         ? "Your application is approved. You are now listed among available ShopLink riders."
         : "Your rider application was not approved this time. You can update your details and apply again.",
+      link: "/ride-boda",
     })]);
     notificationResult.filter((result) => result.status === "rejected")
       .forEach((result) => console.error("Rider review notification failed:", result.reason));

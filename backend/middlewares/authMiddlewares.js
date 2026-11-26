@@ -65,7 +65,7 @@ const optionalAuthenticate = asyncHandler(async (req, res, next) => {
 
 //check for admin
 const authorizeAdmin = (req, res, next) => {
-    if (req.user && req.user.isAdmin) {
+    if (req.user && (req.user.isAdmin || req.user.isSuperAdmin)) {
         next()
     } else {
         res.status(401).send('Not Authorized as Shop Admin!😊')

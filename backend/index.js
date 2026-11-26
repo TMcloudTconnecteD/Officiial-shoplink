@@ -17,6 +17,9 @@ import mpesaRoutes from './routes/mpesaRoutes.js';
 import cropRoutes from './routes/cropRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import riderRoutes from './routes/riderRoutes.js';
+import sellerRoutes from './routes/sellerRoutes.js';
+import marketingRoutes from './routes/marketingRoutes.js';
+import { startCartNudgeWorker } from './controllers/marketingController.js';
 
 dotenv.config();
 const port = process.env.PORT || 8000;
@@ -49,7 +52,13 @@ try {
 }
 
 // Add CORS middleware
-const defaultOrigins = ['http://localhost:8000', 'http://localhost:5173'];
+const defaultOrigins = [
+  'http://localhost:8000',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+];
 const envOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim()) : [];
 const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
 
@@ -101,6 +110,8 @@ app.use('/api/payments', mpesaRoutes);
 app.use('/api/crops', cropRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/riders', riderRoutes);
+app.use('/api/sellers', sellerRoutes);
+app.use('/api/marketing', marketingRoutes);
 
 // Health check endpoint for smoke tests
 app.get('/api/health', (req, res) => {
@@ -138,7 +149,15 @@ app.get('/api/debug/receipt-test', (req, res) => {
 });
 
 app.get("/api/config/paypal", (req, res) => {
-  res.send({ clientId: process.env.PAYPAL_CLIENT_ID });
+  const kesToUsdRate = Number(process.env.PAYPAL_KES_TO_USD_RATE || 0.0077);
+  if (!Number.isFinite(kesToUsdRate) || kesToUsdRate <= 0) {
+    return res.status(500).json({ message: "PayPal KES-to-USD conversion rate is misconfigured." });
+  }
+  res.send({
+    clientId: process.env.PAYPAL_CLIENT_ID,
+    kesToUsdRate,
+    serverVerificationReady: Boolean(process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET),
+  });
 });
 
 const __dirname = path.resolve();
@@ -152,7 +171,10 @@ const startServer = async () => {
   }
 
   await connectDB();
-  app.listen(port, '0.0.0.0', () => console.log(`server is running on port: ${port}`));
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`server is running on port: ${port}`);
+    startCartNudgeWorker();
+  });
 };
 
 startServer().catch((error) => {

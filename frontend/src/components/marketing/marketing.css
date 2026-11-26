@@ -1,0 +1,561 @@
+.marketing-section {
+  width: min(100% - 2rem, 76rem);
+  margin: 2rem auto;
+}
+
+.marketing-section__heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.marketing-section__heading h2,
+.marketing-spotlight h2,
+.marketing-delight h2 {
+  margin: 0.25rem 0 0;
+  color: #17231e;
+  font-size: clamp(1.25rem, 3vw, 1.8rem);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+
+.marketing-eyebrow {
+  color: #13745b;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.marketing-section__note {
+  color: #65756e;
+  font-size: 0.82rem;
+  text-align: right;
+}
+
+.marketing-product-rail {
+  display: grid;
+  grid-auto-columns: minmax(9.5rem, 15rem);
+  grid-auto-flow: column;
+  gap: 1rem;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  padding: 0.25rem 0 0.8rem;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+
+.marketing-product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.marketing-product-card {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  text-decoration: none;
+  background: #fff;
+  border: 1px solid #e6ede9;
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgb(22 46 36 / 6%);
+  scroll-snap-align: start;
+  transition: box-shadow 160ms ease, transform 160ms ease;
+}
+
+.marketing-product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgb(22 46 36 / 12%);
+}
+
+.marketing-product-card__media {
+  position: relative;
+  aspect-ratio: 1 / 0.88;
+  overflow: hidden;
+  background: #f0f5f2;
+}
+
+.marketing-product-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.marketing-product-card__badge {
+  position: absolute;
+  inset: 0.55rem auto auto 0.55rem;
+  padding: 0.28rem 0.55rem;
+  color: #fff;
+  background: #17684f;
+  border-radius: 99px;
+  font-size: 0.68rem;
+  font-weight: 750;
+}
+
+.marketing-product-card__body {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.75rem;
+}
+
+.marketing-product-card__body strong {
+  overflow: hidden;
+  color: #1d2b25;
+  font-size: 0.9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marketing-product-card__shop {
+  overflow: hidden;
+  color: #74817b;
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marketing-product-card__price {
+  color: #13745b;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.marketing-spotlight {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 15rem;
+  width: min(100% - 2rem, 76rem);
+  margin: 2rem auto;
+  overflow: hidden;
+  color: #fff;
+  background: #163f32;
+  border-radius: 1.25rem;
+}
+
+.marketing-spotlight > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.42;
+}
+
+.marketing-spotlight::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(90deg, rgb(9 42 31 / 94%), rgb(9 42 31 / 15%));
+}
+
+.marketing-spotlight__content {
+  position: relative;
+  z-index: 1;
+  max-width: 35rem;
+  padding: clamp(1.25rem, 5vw, 3rem);
+}
+
+.marketing-spotlight .marketing-eyebrow {
+  color: #c1e9d8;
+}
+
+.marketing-spotlight h2 {
+  color: #fff;
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+}
+
+.marketing-spotlight p {
+  margin: 0.5rem 0 1.15rem;
+  color: #e0eee8;
+}
+
+.marketing-spotlight a,
+.marketing-delight__message > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.6rem;
+  padding: 0.6rem 1rem;
+  color: #163f32;
+  background: #fff;
+  border-radius: 0.7rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.marketing-referral-ribbon {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  width: min(100% - 2rem, 76rem);
+  margin: 2rem auto 1rem;
+  padding: 0.85rem 1rem;
+  color: #183c30;
+  background: #e9f5ee;
+  border: 1px solid #cfe7d8;
+  border-radius: 0.9rem;
+}
+
+.marketing-referral-ribbon p {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 750;
+}
+
+.marketing-referral-ribbon > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.marketing-referral-ribbon button,
+.marketing-referral-ribbon a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.25rem;
+  padding: 0.45rem 0.7rem;
+  color: #12583f;
+  background: #fff;
+  border: 1px solid #cfe7d8;
+  border-radius: 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 750;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.marketing-delight {
+  width: min(100% - 2rem, 76rem);
+  margin: 0 auto 1.5rem;
+  padding: 1rem;
+  background: #f4faf6;
+  border: 1px solid #d6ebdd;
+  border-radius: 1rem;
+}
+
+.marketing-delight__message {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.marketing-delight__message > div {
+  flex: 1;
+}
+
+.marketing-delight__message p {
+  margin: 0;
+  color: #13745b;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.marketing-delight__message h2 {
+  font-size: clamp(1.1rem, 3vw, 1.45rem);
+}
+
+.marketing-delight__message span:not(.marketing-delight__mark) {
+  color: #65756e;
+  font-size: 0.85rem;
+}
+
+.marketing-delight__mark {
+  display: grid;
+  flex: 0 0 2.7rem;
+  width: 2.7rem;
+  height: 2.7rem;
+  place-items: center;
+  color: #fff;
+  background: #17815d;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.marketing-delight__recommendations {
+  margin-top: 1.3rem;
+}
+
+.marketing-delight__recommendations h3 {
+  margin: 0 0 0.8rem;
+  color: #1d2b25;
+  font-size: 1rem;
+}
+
+.marketing-admin {
+  margin: 2rem 0;
+  padding: 1.25rem;
+  color: #24352e;
+  background: #fff;
+  border: 1px solid #e1e9e4;
+  border-radius: 1rem;
+  box-shadow: 0 8px 26px rgb(22 46 36 / 5%);
+}
+
+.marketing-admin h2,
+.marketing-admin h3 {
+  margin: 0 0 0.8rem;
+  color: #173c2e;
+}
+
+.marketing-admin__switches,
+.marketing-admin__slots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.marketing-admin__switches label,
+.marketing-admin__field {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.6rem;
+  padding: 0.65rem;
+  background: #f7faf8;
+  border: 1px solid #e5eee8;
+  border-radius: 0.65rem;
+  font-size: 0.86rem;
+}
+
+.marketing-admin__field {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.marketing-admin select,
+.marketing-admin input {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.55rem;
+  color: #23332c;
+  background: #fff;
+  border: 1px solid #ccd9d1;
+  border-radius: 0.55rem;
+}
+
+.marketing-admin button {
+  min-height: 2.5rem;
+  padding: 0.55rem 0.9rem;
+  color: #fff;
+  background: #17684f;
+  border: 0;
+  border-radius: 0.55rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.marketing-admin__product-list {
+  display: grid;
+  gap: 0.55rem;
+  max-height: 24rem;
+  overflow: auto;
+}
+
+.marketing-admin__product {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem;
+  border: 1px solid #e5eee8;
+  border-radius: 0.65rem;
+}
+
+.marketing-admin__product span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.marketing-admin__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.marketing-admin__stat {
+  padding: 0.75rem;
+  background: #f7faf8;
+  border-radius: 0.65rem;
+}
+
+.marketing-admin__stat strong,
+.marketing-admin__stat span {
+  display: block;
+}
+
+.marketing-admin__stat span {
+  color: #66776e;
+  font-size: 0.8rem;
+}
+
+.marketing-page {
+  width: min(100% - 2rem, 72rem);
+  margin: 0 auto 3rem;
+  color: #20342a;
+}
+
+.marketing-page__hero {
+  padding: clamp(1.3rem, 5vw, 3rem);
+  background: linear-gradient(135deg, #eaf6ef, #f8f6ec);
+  border: 1px solid #d8e9de;
+  border-radius: 1.2rem;
+}
+
+.marketing-page__hero h1 {
+  margin: 0.3rem 0;
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+}
+
+.marketing-page__balance {
+  display: inline-flex;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+  padding: 0.55rem 0.85rem;
+  background: #fff;
+  border-radius: 99px;
+  font-weight: 800;
+}
+
+.marketing-page__reward-progress {
+  height: 0.55rem;
+  margin-top: 1rem;
+  overflow: hidden;
+  background: #dcebe1;
+  border-radius: 999px;
+}
+
+.marketing-page__reward-progress-fill {
+  height: 100%;
+  background: #17684f;
+  border-radius: inherit;
+  transition: width 180ms ease;
+}
+
+.marketing-page__section {
+  margin-top: 1.5rem;
+  padding: 1.1rem;
+  background: #fff;
+  border: 1px solid #e1e9e4;
+  border-radius: 1rem;
+}
+
+.marketing-page__voucher-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.marketing-page__voucher {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.9rem;
+  border: 1px solid #e3ebe6;
+  border-radius: 0.75rem;
+}
+
+.marketing-page__voucher button,
+.marketing-page__copy {
+  justify-self: start;
+  min-height: 2.4rem;
+  padding: 0.55rem 0.85rem;
+  color: #fff;
+  background: #17684f;
+  border: 0;
+  border-radius: 0.55rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.shoplink-cart-nudge {
+  position: absolute;
+  top: calc(100% + 0.3rem);
+  right: 0;
+  z-index: 20;
+  width: max-content;
+  padding: 0.28rem 0.5rem;
+  color: #fff;
+  background: #17684f;
+  border-radius: 99px;
+  font-size: 0.65rem;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.shoplink-bottom-nav__item {
+  position: relative;
+}
+
+.shoplink-cart-nudge-dot {
+  top: 0.15rem;
+  right: 0.7rem;
+  width: auto;
+  min-width: 1.15rem;
+  padding-inline: 0.3rem;
+}
+
+@media (max-width: 680px) {
+  .marketing-section__heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .marketing-section__note {
+    text-align: left;
+  }
+
+  .marketing-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  .marketing-product-rail {
+    grid-auto-columns: minmax(9.5rem, 42vw);
+    gap: 0.7rem;
+  }
+
+  .marketing-referral-ribbon,
+  .marketing-delight__message {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .marketing-referral-ribbon > div {
+    width: 100%;
+  }
+
+  .marketing-referral-ribbon button,
+  .marketing-referral-ribbon a {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .marketing-admin__switches,
+  .marketing-admin__slots,
+  .marketing-admin__stats,
+  .marketing-page__voucher-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .marketing-admin__product {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marketing-product-card {
+    transition: none;
+  }
+}

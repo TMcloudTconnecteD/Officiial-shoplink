@@ -22,6 +22,7 @@ const trustPoints = [
     icon: FaTag,
     title: 'Student Friendly',
     description: 'Special discounts for students and young professionals',
+    to: '/student-friendly',
   },
 ];
 

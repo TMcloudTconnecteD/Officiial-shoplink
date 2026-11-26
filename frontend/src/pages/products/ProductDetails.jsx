@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -21,6 +21,7 @@ import Ratings from "./Ratings";
 import ProductTabs from "./ProductTabs";
 import { addToCart } from "../../redux/features/cart/cartSlice";
 import { getOptimizedHeroImage } from "../../utils/imageOptimization";
+import "./ProductDetails.css";
 
 const ProductDetails = () => {
   const { id: productId } = useParams();
@@ -30,6 +31,7 @@ const ProductDetails = () => {
   const [qty, setQty] = useState(1);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [activeImage, setActiveImage] = useState(0);
 
   const {
     data: product,
@@ -42,6 +44,14 @@ const ProductDetails = () => {
 
   const [createReview, { isLoading: loadingProductReview }] =
     useCreateReviewMutation();
+
+  const productImages = product?.images?.length
+    ? product.images
+    : product?.image ? [product.image] : [];
+
+  useEffect(() => {
+    setActiveImage(0);
+  }, [productId]);
 
   const submitHandler = async (e) => {
     e.preventDefault();
@@ -65,17 +75,12 @@ const ProductDetails = () => {
   };
 
   return (
-    <>
-      {/* Go Back Link */}
-      <div className="container mx-auto px-4 mt-4">
-        <Link
-          to="/"
-          className="text-pink-600 font-semibold hover:underline"
-        >
-          Go Back 
-        </Link>
+    <div className="product-detail-page">
+      <div className="product-breadcrumb">
+        <Link to="/shop">All products</Link>
+        <span aria-hidden="true">/</span>
+        <span>{product?.name || "Product details"}</span>
       </div>
-
       {isLoading ? (
         <Loader />
       ) : error ? (
@@ -85,75 +90,71 @@ const ProductDetails = () => {
       ) : (
         <>
           {/* Main Details Section */}
-          <div className="container mx-auto px-4 py-10 flex flex-col lg:flex-row gap-8">
-            {/* Left Side - Product Image & Heart Icon */}
-            <div className="relative w-full lg:w-1/2">
+          <div className="product-detail-card">
+            <div className="product-image-panel">
               <img
-                src={getOptimizedHeroImage(product.image)}
+                src={getOptimizedHeroImage(productImages[activeImage] || product.image)}
                 alt={product.name}
                 loading="lazy"
                 decoding="async"
-                className="w-full h-auto max-h-[30rem] object-cover rounded-lg shadow-lg"
+                className="product-main-image"
               />
-              <div className="absolute top-4 right-4">
+              <div className="product-favorite">
                 <HeartIcon product={product} />
               </div>
+              {productImages.length > 1 && (
+                <div className="product-gallery-thumbnails" aria-label="Product photos">
+                  {productImages.map((image, index) => (
+                    <button
+                      type="button"
+                      key={image}
+                      className={index === activeImage ? "is-active" : ""}
+                      aria-label={`View product photo ${index + 1}`}
+                      aria-pressed={index === activeImage}
+                      onClick={() => setActiveImage(index)}
+                    >
+                      <img src={image} alt="" loading="lazy" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Right Side - Product Details */}
-            <div className="w-full lg:w-1/2 flex flex-col justify-between">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                {product.name}
-              </h2>
-              <p className="my-4 text-gray-700 dark:text-gray-400">
+            <div className="product-information">
+              <p className="product-eyebrow">Available from local shops</p>
+              <h1 className="product-title">{product.name}</h1>
+              <p className="product-description">
                 {product.description}
               </p>
-              <p className="text-5xl my-4 font-extrabold text-gray-900 dark:text-white">
-                KES {product.price}
+              <p className="product-price">
+                KES {Number(product.price || 0).toLocaleString()}
               </p>
 
-              <div className="flex flex-wrap justify-between text-gray-800 dark:text-gray-300 mb-6">
-                {/* Left group */}
-                <div>
-                  <h1 className="flex items-center mb-3">
-                    <FaStore className="mr-2 text-pink-600" /> Brand: {product.brand}
-                  </h1>
-                  <h1 className="flex items-center mb-3 w-full">
-                    <FaClock className="mr-2 text-pink-600" /> Added:{" "}
-                    {moment(product.createdAt).fromNow()}
-                  </h1>
-                  <h1 className="flex items-center mb-3">
-                    <FaStar className="mr-2 text-pink-600" /> Reviews:{" "}
-                    {product.numReviews}
-                  </h1>
-                </div>
-                {/* Right group */}
-                <div>
-                  <h1 className="flex items-center mb-3">
-                    <FaStar className="mr-2 text-pink-600" /> Ratings: {product.rating}
-                  </h1>
-                  <h1 className="flex items-center mb-3">
-                    <FaShoppingCart className="mr-2 text-pink-600" /> Quantity:{" "}
-                    {product.quantity}
-                  </h1>
-                  <h1 className="flex items-center mb-3 w-[10rem]">
-                    <FaBox className="mr-2 text-pink-600" /> In Stock: {product.inStock}
-                  </h1>
-                </div>
-              </div>
+              <dl className="product-facts">
+                <div><dt><FaStore /> Brand</dt><dd>{product.brand || "Local shop"}</dd></div>
+                <div><dt><FaClock /> Listed</dt><dd>{moment(product.createdAt).fromNow()}</dd></div>
+                <div><dt><FaStar /> Reviews</dt><dd>{Number(product.numReviews || 0)} {Number(product.numReviews || 0) === 1 ? "review" : "reviews"}</dd></div>
+                <div><dt><FaShoppingCart /> Available</dt><dd>{Number(product.quantity || 0)}</dd></div>
+                <div><dt><FaBox /> In stock</dt><dd>{Number(product.inStock || 0)}</dd></div>
+              </dl>
 
-              <div className="flex flex-wrap items-center justify-between">
-                <Ratings
-                  value={product.rating}
-                  text={`${product.numReviews} review(s)`}
-                />
+              <div className="product-purchase-row">
+                <div className="product-rating">
+                  <Ratings
+                    value={Number(product.rating || 0)}
+                    text={Number(product.numReviews || 0) === 0
+                      ? "No reviews yet"
+                      : `${product.numReviews} ${Number(product.numReviews) === 1 ? "review" : "reviews"}`}
+                  />
+                </div>
 
                 {product.inStock > 0 && (
-                  <div>
+                  <div className="product-quantity">
+                    <label htmlFor="product-quantity">Quantity</label>
                     <select
+                      id="product-quantity"
                       value={qty}
-                      onChange={(e) => setQty(e.target.value)}
-                      className="p-2 w-[6rem] rounded-md bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-200"
+                      onChange={(e) => setQty(Number(e.target.value))}
                     >
                       {[...Array(product.inStock).keys()].map((x) => (
                         <option key={x + 1} value={x + 1}>
@@ -169,16 +170,16 @@ const ProductDetails = () => {
                 <button
                   onClick={addToCartHandler}
                   disabled={product.inStock === 0}
-                  className="bg-pink-600 hover:bg-pink-700 text-white py-2 px-4 rounded-lg transition-all disabled:opacity-50"
+                  className="product-add-to-cart"
                 >
-                  Add To Cart
+                  {product.inStock > 0 ? "Add to cart" : "Currently out of stock"}
                 </button>
               </div>
             </div>
           </div>
 
           {/* Tabs Section */}
-          <div className="container mx-auto px-4 mt-12">
+          <div className="product-tabs-wrap">
             <ProductTabs
               loadingProductReview={loadingProductReview}
               userInfo={userInfo}
@@ -192,7 +193,7 @@ const ProductDetails = () => {
           </div>
         </>
       )}
-    </>
+    </div>
   );
 };
 

@@ -1,6 +1,6 @@
 // src/components/Footer.jsx
 import React from "react";
-import { FaEnvelope } from "react-icons/fa";
+import { FaBolt, FaEnvelope } from "react-icons/fa";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -24,6 +24,9 @@ const Footer = () => {
           <div style={{ borderTop: "1px solid rgba(15, 23, 42, 0.08)", paddingTop: "14px", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", color: "var(--shoplink-text-soft)", fontSize: "0.82rem" }}>
             <span>© TMcloud {currentYear}</span>
             <span>Fast • trusted • student-first</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "7px", color: "var(--shoplink-text)" }}>
+              Powered by <strong>QUIEKEE VENTURES</strong> <FaBolt aria-hidden="true" style={{ color: "var(--shoplink-accent)" }} />
+            </span>
           </div>
         </div>
       </div>

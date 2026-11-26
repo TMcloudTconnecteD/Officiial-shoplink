@@ -7,8 +7,8 @@
   display: flex;
   align-items: center;
   overflow: hidden;
-  margin-top: 80px;
-  margin-bottom: 60px;
+  margin-top: 0;
+  margin-bottom: 40px;
 }
 
 .hero-background {
@@ -109,17 +109,12 @@
   border: 1px solid rgba(255, 255, 255, 0.75);
   border-radius: 20px;
   box-shadow: 0 14px 32px rgba(6, 48, 44, 0.2);
-  animation: hero-card-float 5s ease-in-out infinite;
-  transition: transform 220ms ease, box-shadow 220ms ease;
-}
-
-.hero-product-card--2 {
-  animation-delay: -2.4s;
+  transition: box-shadow 220ms ease, border-color 220ms ease;
 }
 
 .hero-product-card:hover {
-  transform: translateY(-6px) scale(1.02);
   box-shadow: 0 20px 38px rgba(6, 48, 44, 0.28);
+  border-color: #a7f3d0;
 }
 
 .hero-product-card img {
@@ -192,11 +187,10 @@
   border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 999px;
   backdrop-filter: blur(10px);
-  transition: background 180ms ease, transform 180ms ease;
+  transition: background 180ms ease;
 }
 
 .hero-shop-chip:hover {
-  transform: translateY(-2px);
   background: rgba(255, 255, 255, 0.23);
 }
 
@@ -224,18 +218,23 @@
 }
 
 .hero-section .hero-sell-button {
-  color: #0f766e;
-  background: #ffffff;
+  color: #102a27;
+  background: #fbbf24;
   border: 2px solid #ffffff;
-  box-shadow: 0 10px 24px rgba(5, 50, 46, 0.2);
+  box-shadow: 0 10px 24px rgba(5, 50, 46, 0.24);
 }
 
 .hero-section .hero-sell-button:hover:not(:disabled) {
-  color: #0f766e;
-  background: #ffffff;
+  color: #102a27;
+  background: #fbbf24;
   border-color: #ffffff;
-  box-shadow: 0 10px 24px rgba(5, 50, 46, 0.2);
+  box-shadow: 0 10px 24px rgba(5, 50, 46, 0.24);
   transform: none;
+}
+
+.hero-section .hero-sell-button:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
 }
 
 .hero-empty-link {
@@ -248,15 +247,6 @@
   text-decoration: none;
   background: rgba(255, 255, 255, 0.92);
   border-radius: 999px;
-}
-
-@keyframes hero-card-float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-7px);
-  }
 }
 
 /* Responsive */

@@ -1,6 +1,9 @@
-// Keep local development on the Vite proxy and use the deployed API by default in production.
-export const BASE_URL = import.meta.env.VITE_BASE_URL
-    || (import.meta.env.PROD ? 'https://shoplink-b.onrender.com' : '');
+// Keep local requests on Vite's proxy so cookies and local origins stay same-site.
+const configuredApiUrl = import.meta.env.VITE_BASE_URL || import.meta.env.VITE_API_URL;
+const isLocalApiUrl = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/i.test(configuredApiUrl || "");
+export const BASE_URL = import.meta.env.PROD
+  ? (import.meta.env.VITE_BASE_URL || (configuredApiUrl && !isLocalApiUrl ? configuredApiUrl : 'https://shoplink-b.onrender.com'))
+  : '';
 export const USERS_URL = '/api/users'
 export const CATEGORY_URL = '/api/category'
 export const PRODUCT_URL = '/api/products'

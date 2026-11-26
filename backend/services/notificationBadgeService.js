@@ -24,10 +24,11 @@ const notificationBadgeSchema = new mongoose.Schema({
       id: mongoose.Schema.Types.ObjectId,
       type: {
         type: String,
-        enum: ["order", "payment", "rider", "message", "system", "alert"],
+        enum: ["order", "payment", "rider", "seller", "message", "system", "alert", "cart", "reward", "referral"],
       },
       title: String,
       message: String,
+      link: String,
       read: { type: Boolean, default: false },
       createdAt: { type: Date, default: Date.now },
     },
@@ -44,21 +45,21 @@ const NotificationBadge = mongoose.model(
  */
 const incrementBadge = async (userId, notification) => {
   try {
-    let badge = await NotificationBadge.findOne({ userId });
+    const update = {
+      $inc: { badgeCount: 1 },
+      $push: { unreadNotifications: notification },
+    };
 
-    if (!badge) {
-      badge = new NotificationBadge({
-        userId,
-        badgeCount: 1,
-        unreadNotifications: [notification],
+    try {
+      return await NotificationBadge.findOneAndUpdate({ userId }, update, {
+        new: true,
+        upsert: true,
+        setDefaultsOnInsert: true,
       });
-    } else {
-      badge.badgeCount += 1;
-      badge.unreadNotifications.push(notification);
+    } catch (error) {
+      if (error.code !== 11000) throw error;
+      return await NotificationBadge.findOneAndUpdate({ userId }, update, { new: true });
     }
-
-    await badge.save();
-    return badge;
   } catch (error) {
     console.error("Error incrementing badge:", error);
     throw error;
@@ -87,15 +88,23 @@ const decrementBadge = async (userId) => {
  */
 const resetBadge = async (userId) => {
   try {
-    const badge = await NotificationBadge.findOneAndUpdate(
+    const result = await NotificationBadge.updateOne(
       { userId },
       {
-        badgeCount: 0,
-        unreadNotifications: [],
-      },
-      { new: true, upsert: true }
+        $set: {
+          badgeCount: 0,
+          "unreadNotifications.$[].read": true,
+        },
+      }
     );
-    return badge;
+    if (result.matchedCount > 0) return NotificationBadge.findOne({ userId });
+
+    await NotificationBadge.updateOne(
+      { userId },
+      { $setOnInsert: { badgeCount: 0, unreadNotifications: [] } },
+      { upsert: true }
+    );
+    return NotificationBadge.findOne({ userId });
   } catch (error) {
     console.error("Error resetting badge:", error);
     throw error;
@@ -108,7 +117,9 @@ const resetBadge = async (userId) => {
 const getBadgeCount = async (userId) => {
   try {
     const badge = await NotificationBadge.findOne({ userId });
-    return badge ? badge.badgeCount : 0;
+    return badge
+      ? badge.unreadNotifications.filter((notification) => !notification.read).length
+      : 0;
   } catch (error) {
     console.error("Error getting badge count:", error);
     throw error;
@@ -116,14 +127,38 @@ const getBadgeCount = async (userId) => {
 };
 
 /**
- * Get all unread notifications for a user
+ * Get notification history for a user
  */
 const getUnreadNotifications = async (userId) => {
   try {
     const badge = await NotificationBadge.findOne({ userId });
-    return badge ? badge.unreadNotifications : [];
+    return badge
+      ? [...badge.unreadNotifications].sort((a, b) => b.createdAt - a.createdAt)
+      : [];
   } catch (error) {
     console.error("Error getting unread notifications:", error);
+    throw error;
+  }
+};
+
+const markNotificationRead = async (userId, notificationId) => {
+  try {
+    return NotificationBadge.findOneAndUpdate(
+      {
+        userId,
+        badgeCount: { $gt: 0 },
+        unreadNotifications: {
+          $elemMatch: { _id: notificationId, read: false },
+        },
+      },
+      {
+        $set: { "unreadNotifications.$.read": true },
+        $inc: { badgeCount: -1 },
+      },
+      { new: true }
+    );
+  } catch (error) {
+    console.error("Error marking notification as read:", error);
     throw error;
   }
 };
@@ -151,8 +186,13 @@ const notifyUser = async (userId, notification) => {
   });
 };
 
-const notifyAdmins = async (notification) => {
-  const admins = await User.find({ isAdmin: true }).select("_id").lean();
+const notifyAdmins = async (notification, excludeUserId) => {
+  const filter = { $or: [{ isAdmin: true }, { isSuperAdmin: true }] };
+  const excludedUserIds = Array.isArray(excludeUserId)
+    ? excludeUserId.filter(Boolean)
+    : excludeUserId ? [excludeUserId] : [];
+  if (excludedUserIds.length > 0) filter._id = { $nin: excludedUserIds };
+  const admins = await User.find(filter).select("_id").lean();
   return Promise.all(admins.map(({ _id }) => notifyUser(_id, notification)));
 };
 
@@ -163,6 +203,7 @@ export {
   resetBadge,
   getBadgeCount,
   getUnreadNotifications,
+  markNotificationRead,
   addNotification,
   notifyUser,
   notifyAdmins,

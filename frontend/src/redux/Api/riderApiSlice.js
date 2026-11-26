@@ -16,7 +16,7 @@ export const riderApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body: application,
       }),
-      invalidatesTags: ["RiderApplication"],
+      invalidatesTags: ["RiderApplication", "Notification"],
     }),
     getRiderApplications: builder.query({
       query: () => "/api/riders/applications",
@@ -28,7 +28,7 @@ export const riderApiSlice = apiSlice.injectEndpoints({
         method: "PATCH",
         body: { status },
       }),
-      invalidatesTags: ["RiderApplication", "Rider"],
+      invalidatesTags: ["RiderApplication", "Rider", "Notification"],
     }),
   }),
 });

@@ -31,6 +31,15 @@ router.post('/initiate', authenticate, async (req, res) => {
       if (!order) {
         return res.status(404).json({ success: false, message: 'Order not found' });
       }
+      if (order.user?.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ success: false, message: 'Only the customer who placed this order can initiate its M-Pesa payment' });
+      }
+      if (order.paymentConfirmation?.method === 'Cash') {
+        return res.status(409).json({ success: false, message: 'Cash confirmation has already started. Complete or resolve that confirmation before using M-Pesa.' });
+      }
+      if (order.paymentConfirmation?.gatewayStatus === 'PENDING') {
+        return res.status(409).json({ success: false, message: 'An M-Pesa request is already pending for this order.' });
+      }
       if (order.isPaid) {
         return res.status(400).json({ success: false, message: 'Order already paid' });
       }
@@ -64,6 +73,8 @@ router.post('/initiate', authenticate, async (req, res) => {
           const checkoutId = result.data?.CheckoutRequestID || result.data?.Response?.CheckoutRequestID || null;
           if (checkoutId) {
             order.checkoutRequestId = checkoutId;
+            order.paymentConfirmation.gatewayStatus = 'PENDING';
+            order.paymentConfirmation.gatewayCheckoutRequestId = checkoutId;
             await order.save();
           }
         }
@@ -110,6 +121,21 @@ router.get('/status/:checkoutRequestId', authenticate, async (req, res) => {
     const result = await queryPaymentStatus(checkoutRequestId);
     
     if (result.success) {
+      const Order = (await import('../models/orderModel.js')).default;
+      const order = await Order.findOne({ checkoutRequestId });
+      if (!order) {
+        return res.status(404).json({ success: false, message: 'No order was found for this M-Pesa request' });
+      }
+      if (order.user?.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ success: false, message: 'You cannot check this order payment' });
+      }
+      const resultCode = result.data?.ResultCode;
+      if (resultCode !== undefined && String(resultCode) !== '0') {
+        if (!order.isPaid && order.paymentConfirmation?.gatewayStatus === 'PENDING') {
+          order.paymentConfirmation.gatewayStatus = 'FAILED';
+          await order.save();
+        }
+      }
       res.status(200).json(result);
     } else {
       res.status(400).json(result);

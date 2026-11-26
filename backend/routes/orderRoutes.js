@@ -5,12 +5,14 @@ const router = express.Router();
 import {
   createOrder,
   getAllOrders,
+  getOrderFinancialSummary,
   getUserOrders,
   countTotalOrders,
   calculateTotalSales,
   calculateTotalSalesByDate,
   findOrderById,
   markOrderAsPaid,
+  confirmCashPayment,
   markOrderAsDelivered,
   getReceipt,
 } from "../controllers/orderController.js";
@@ -23,9 +25,11 @@ router
   .get(authenticate, authorizeAdmin, getAllOrders);
 
 router.route("/mine").get(authenticate, getUserOrders);
-router.route("/total-orders").get(countTotalOrders);
-router.route("/total-sales").get(calculateTotalSales);
-router.route("/total-sales-by-date").get(calculateTotalSalesByDate);
+router.route("/total-orders").get(authenticate, countTotalOrders);
+router.route("/total-sales").get(authenticate, calculateTotalSales);
+router.route("/total-sales-by-date").get(authenticate, calculateTotalSalesByDate);
+router.route("/financial-summary").get(authenticate, authorizeAdmin, getOrderFinancialSummary);
+router.route("/:id/confirm-cash").put(authenticate, confirmCashPayment);
 
 // receipt route: allow optional authentication so logged-in users' details can be used in receipts
 router.get("/:id/receipt", optionalAuthenticate, getReceipt);
@@ -33,7 +37,7 @@ router.get("/:id/receipt", optionalAuthenticate, getReceipt);
 router.get("/v2/:id/receipt", optionalAuthenticate, getReceipt);
 
 // allow anyone to fetch an order by id (useful for guests after checkout)
-router.route("/:id").get(findOrderById);
+router.route("/:id").get(optionalAuthenticate, findOrderById);
 router.route("/:id/pay").put(authenticate, markOrderAsPaid);
 router
   .route("/:id/deliver")

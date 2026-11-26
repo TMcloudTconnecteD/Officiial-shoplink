@@ -1,38 +1,84 @@
 import './CategoryStrip.css';
-import { FaShoppingBag, FaTshirt, FaLaptop, FaCar, FaWineGlass, FaBox } from 'react-icons/fa';
+import {
+  FaBaby,
+  FaBook,
+  FaBox,
+  FaCar,
+  FaGift,
+  FaHeartbeat,
+  FaHome,
+  FaLaptop,
+  FaMobileAlt,
+  FaPaw,
+  FaShoppingBag,
+  FaSpa,
+  FaTshirt,
+  FaUtensils,
+  FaWineGlass,
+} from 'react-icons/fa';
 import { useFetchCategoriesQuery } from '../../redux/Api/categoryApiSlice';
 import { useNavigate } from 'react-router-dom';
 
 const iconMap = {
-  'Groceries': FaShoppingBag,
-  'Food': FaShoppingBag,
-  'Produce': FaShoppingBag,
-  'Fashion': FaTshirt,
-  'Clothing': FaTshirt,
-  'Apparel': FaTshirt,
-  'Electronics': FaLaptop,
-  'Tech': FaLaptop,
-  'Transport': FaCar,
-  'Vehicles': FaCar,
-  'Liquor': FaWineGlass,
-  'Beverages': FaWineGlass,
-  'Alcohol': FaWineGlass,
+  groceries: FaShoppingBag,
+  food: FaUtensils,
+  produce: FaShoppingBag,
+  fashion: FaTshirt,
+  clothing: FaTshirt,
+  apparel: FaTshirt,
+  shoes: FaTshirt,
+  electronics: FaLaptop,
+  tech: FaMobileAlt,
+  phones: FaMobileAlt,
+  transport: FaCar,
+  vehicles: FaCar,
+  automotive: FaCar,
+  liquor: FaWineGlass,
+  beverages: FaWineGlass,
+  alcohol: FaWineGlass,
+  home: FaHome,
+  "home and living": FaHome,
+  furniture: FaHome,
+  beauty: FaSpa,
+  wellness: FaHeartbeat,
+  health: FaHeartbeat,
+  books: FaBook,
+  stationery: FaBook,
+  toys: FaGift,
+  gifts: FaGift,
+  baby: FaBaby,
+  pets: FaPaw,
 };
 
 const colorMap = {
-  'Groceries': '#10B981',
-  'Food': '#10B981',
-  'Produce': '#10B981',
-  'Fashion': '#F59E0B',
-  'Clothing': '#F59E0B',
-  'Apparel': '#F59E0B',
-  'Electronics': '#3B82F6',
-  'Tech': '#3B82F6',
-  'Transport': '#EF4444',
-  'Vehicles': '#EF4444',
-  'Liquor': '#8B5CF6',
-  'Beverages': '#8B5CF6',
-  'Alcohol': '#8B5CF6',
+  groceries: '#10B981',
+  food: '#10B981',
+  produce: '#10B981',
+  fashion: '#F59E0B',
+  clothing: '#F59E0B',
+  apparel: '#F59E0B',
+  shoes: '#F59E0B',
+  electronics: '#3B82F6',
+  tech: '#3B82F6',
+  phones: '#3B82F6',
+  transport: '#EF4444',
+  vehicles: '#EF4444',
+  automotive: '#EF4444',
+  liquor: '#8B5CF6',
+  beverages: '#8B5CF6',
+  alcohol: '#8B5CF6',
+  home: '#0F766E',
+  "home and living": '#0F766E',
+  furniture: '#0F766E',
+  beauty: '#DB2777',
+  wellness: '#DB2777',
+  health: '#DB2777',
+  books: '#B45309',
+  stationery: '#B45309',
+  toys: '#EA580C',
+  gifts: '#EA580C',
+  baby: '#EA580C',
+  pets: '#7C3AED',
 };
 
 const normalizeCategoryName = (category) => {
@@ -76,8 +122,9 @@ const CategoryStrip = () => {
         <div className="category-scroll">
           {categories.map((category) => {
             const categoryName = normalizeCategoryName(category);
-            const Icon = iconMap[categoryName] || FaBox;
-            const color = colorMap[categoryName] || '#6B7280';
+            const categoryKey = categoryName.trim().toLowerCase();
+            const Icon = iconMap[categoryKey] || FaBox;
+            const color = colorMap[categoryKey] || '#0F766E';
 
             return (
               <button
@@ -85,6 +132,7 @@ const CategoryStrip = () => {
                 onClick={() => handleCategoryClick(categoryName)}
                 className="category-card"
                 title={categoryName}
+                aria-label={`Browse ${categoryName}`}
               >
                 <div className="category-icon" style={{ backgroundColor: color }}>
                   <Icon size={28} color="white" />

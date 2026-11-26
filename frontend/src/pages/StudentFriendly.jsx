@@ -28,10 +28,15 @@ const StudentFriendly = () => {
         <header className="marketing-page__hero">
           <span className="marketing-eyebrow"><FaGift aria-hidden="true" /> ShopLink rewards</span>
           <h1>Good things come back around.</h1>
-          <p>Earn points when you shop and invite friends. Sign in to see your rewards and referral link.</p>
-          <Link className="marketing-page__copy" to="/login?redirect=%2Fstudent-friendly">
-            <FaSignInAlt aria-hidden="true" /> Sign in to view rewards <FaArrowRight aria-hidden="true" />
-          </Link>
+          <p>Earn points when you shop and invite friends. Create an account to start earning and track your rewards.</p>
+          <div className="marketing-page__signup-actions">
+            <Link className="marketing-page__signup-cta" to="/register?redirect=%2Fstudent-friendly">
+              <span className="marketing-page__signup-icon"><FaGift aria-hidden="true" /></span>
+              <span><strong>Sign up &amp; get rewards</strong><small>It’s free. Start earning with your next order.</small></span>
+              <FaArrowRight className="marketing-page__signup-arrow" aria-hidden="true" />
+            </Link>
+            <p>Already have an account? <Link to="/login?redirect=%2Fstudent-friendly"><FaSignInAlt aria-hidden="true" /> Sign in</Link></p>
+          </div>
         </header>
       </main>
     );

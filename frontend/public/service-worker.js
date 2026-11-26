@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-globals */
-const CACHE_NAME = "shoplink-v2";
+const CACHE_NAME = "shoplink-v3";
 const STATIC_ASSETS = [
   "/",
   "/index.html",
@@ -65,7 +65,16 @@ self.addEventListener('fetch', (event) => {
           const appShell = await cache.match('/index.html');
           if (appShell) return appShell;
         }
-        throw error;
+        if (request.mode === 'navigate') {
+          return new Response(
+            '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ShopLink offline</title><body><main><h1>You’re offline</h1><p>Reconnect and try again.</p></main></body></html>',
+            { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+          );
+        }
+        return new Response('This resource is temporarily unavailable.', {
+          status: 503,
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        });
       }
     })()
   );

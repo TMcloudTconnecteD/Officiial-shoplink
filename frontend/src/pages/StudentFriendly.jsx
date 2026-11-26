@@ -1,9 +1,13 @@
 import { useState } from "react";
+import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+import { FaArrowRight, FaGift, FaSignInAlt } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useGetRewardsQuery } from "../redux/Api/marketingApiSlice";
 
 const StudentFriendly = () => {
-  const { data, isLoading, error } = useGetRewardsQuery();
+  const { userInfo } = useSelector((state) => state.auth);
+  const { data, isLoading, error } = useGetRewardsQuery(undefined, { skip: !userInfo });
   const [referralCopied, setReferralCopied] = useState(false);
 
   const copyReferralLink = async () => {
@@ -18,8 +22,32 @@ const StudentFriendly = () => {
     }
   };
 
+  if (!userInfo) {
+    return (
+      <main className="marketing-page">
+        <header className="marketing-page__hero">
+          <span className="marketing-eyebrow"><FaGift aria-hidden="true" /> ShopLink rewards</span>
+          <h1>Good things come back around.</h1>
+          <p>Earn points when you shop and invite friends. Sign in to see your rewards and referral link.</p>
+          <Link className="marketing-page__copy" to="/login?redirect=%2Fstudent-friendly">
+            <FaSignInAlt aria-hidden="true" /> Sign in to view rewards <FaArrowRight aria-hidden="true" />
+          </Link>
+        </header>
+      </main>
+    );
+  }
+
   if (isLoading) return <main className="marketing-page"><p>Loading rewards…</p></main>;
-  if (error || !data?.user) return <main className="marketing-page"><p role="alert">Your rewards are unavailable right now.</p></main>;
+  if (error || !data?.user) {
+    return (
+      <main className="marketing-page">
+        <section className="marketing-page__section">
+          <h1>Rewards are taking a breather</h1>
+          <p role="alert">We couldn’t load your rewards right now. Please try again in a moment.</p>
+        </section>
+      </main>
+    );
+  }
   const points = data.user.pointsBalance || 0;
   const pointsToNextReward = 1000 - points;
   const progress = Math.min((points / 1000) * 100, 100);

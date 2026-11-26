@@ -5,7 +5,9 @@ import {
   createRoutesFromElements,
   Route,
   RouterProvider,
+  Link,
 } from "react-router-dom";
+import { FaArrowRight, FaHome } from "react-icons/fa";
 import { Provider } from "react-redux";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
@@ -48,7 +50,27 @@ import CommunityPage from "./pages/CommunityPage.jsx";
 import RideBodaPage from "./pages/RideBodaPage.jsx";
 import RiderApplications from "./pages/Admin/RiderApplications.jsx";
 import SellerApplicationPage from "./pages/SellerApplicationPage.jsx";
+import StudentFriendly from "./pages/StudentFriendly.jsx";
 import store from "./redux/features/store.js";
+
+const NotFound = () => (
+  <main className="mx-auto flex min-h-[50vh] max-w-3xl flex-col items-center justify-center px-5 py-16 text-center">
+    <span className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-emerald-100 text-xl text-emerald-800">
+      <FaHome aria-hidden="true" />
+    </span>
+    <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-700">Page not found</p>
+    <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Let’s get you back on track.</h1>
+    <p className="mt-3 max-w-md text-sm leading-6 text-slate-600">That page may have moved. Head home or explore the shops and products.</p>
+    <div className="mt-6 flex flex-wrap justify-center gap-3">
+      <Link to="/" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-800 px-5 font-bold text-white">
+        <FaHome aria-hidden="true" /> Home
+      </Link>
+      <Link to="/shops/all" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-5 font-bold text-slate-800">
+        Explore shops <FaArrowRight aria-hidden="true" />
+      </Link>
+    </div>
+  </main>
+);
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -63,6 +85,7 @@ const router = createBrowserRouter(
       <Route path="community" element={<CommunityPage />} />
       <Route path="ride-boda" element={<RideBodaPage />} />
       <Route path="riders" element={<RideBodaPage />} />
+      <Route path="student-friendly" element={<StudentFriendly />} />
       <Route path="seller/apply" element={<SellerApplicationPage />} />
       <Route path="product/:id" element={<ProductDetails />} />
       <Route path="cart" element={<Cart />} />
@@ -93,6 +116,7 @@ const router = createBrowserRouter(
         <Route path="orderlist" element={<OrderList />} />
         <Route path="riders" element={<RiderApplications />} />
       </Route>
+      <Route path="*" element={<NotFound />} />
     </Route>
   )
 );

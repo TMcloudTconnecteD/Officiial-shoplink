@@ -18,6 +18,9 @@ Add screenshots here after product capture and design sign-off.
 - M-Pesa STK push checkout flow
 - Order timeline and status tracking
 - Approved rider directory, rider applications, and admin review notifications
+- Super admins can suspend approved riders; suspended rider profiles leave the public directory immediately. Suspended riders may appeal directly to super admins. Suspended rider records are deleted after 30 days unless an appeal is awaiting review; reinstating an appeal restores the rider listing.
+- `/shops/all` remains the existing location-based destination experience. The separate `/malls` experience lists explicitly unlocked malls and opens a mall storefront page with child-shop sections, featured products, live activity, and a cross-shop rewards nudge.
+- Shop owners unlock a mall at 5,000 lifetime earned points without spending points. Each 1,000 additional lifetime earned points unlocks another child-shop slot. The mall owner manages the parent and child shops using the existing shop-admin ownership scope.
 - In-app notifications for rider decisions, orders, and payment confirmations
 - Community feed with posts, likes, and comments
 - AI budget planner for product planning
@@ -148,6 +151,9 @@ Safaricom sandbox numbers are usually phone numbers assigned for testing. Use th
 - PayPal and M-Pesa are recorded against their verified gateway transaction references and receive a ShopLink receipt number.
 - Cash is marked paid only after both the order's customer and that shop's administrator confirm the handover. A pending M-Pesa request must first resolve as failed or cancelled before cash can be confirmed.
 - Admin order pages are scoped to the signed-in shop administrator's shops; super admins can see all shops. Payment summaries include confirmed receipts only and split product sales, tax collected, delivery fees, total receipts, and totals by final payment method.
+- Signed-in customers can track orders from `/my-orders`. Shop admins advance paid orders through preparation, shipping, arrival, and delivery; customers confirm receipt to close an order. Each fulfillment change stores its timestamp and actor and notifies the customer and admins. Receipt confirmation credits 10 shop loyalty points, shown in the shop dashboard.
+- Shop admins can edit details, category, location, policies, logo/photo, and cover photo from their own shop workspace; super admins can edit any shop. Uploaded shop images are resized to web-friendly WebP dimensions and previewed before saving.
+- Account settings let signed-in users update their own username/email, change their password by verifying the current password, and optionally receive an in-app password reminder about every 30 days. Passwords are only stored as hashes; notification reminders appear in the navigation inbox.
 - Platform tax and delivery totals are reduced proportionally for checkout discounts. They are not net profit and do not subtract operating costs or tax remittances.
 
 ### ShopLink marketing, referrals, and rewards
@@ -155,10 +161,11 @@ Safaricom sandbox numbers are usually phone numbers assigned for testing. Use th
 - The homepage mounts `SellerSpotlightCard`, `FeaturedProductsStrip`, `FreshDropsCarousel`, and `TrendingNowStrip` from `frontend/src/pages/HomeUpdated1.jsx`. Global welcome and cart activity helpers mount in `frontend/src/App.jsx`; the referral ribbon sits above the footer. The paid-customer order celebration mounts in `frontend/src/pages/Orders/Order.jsx`.
 - Fresh Drops uses products created in the previous seven days, newest first. Trending Now aggregates paid order items from the previous seven days and ranks up to eight products by order count. Shop of the Day rotates deterministically by UTC day unless the super admin selects a featured shop.
 - Customer notifications run from the 5-minute cart-nudge worker started after the backend connects to MongoDB. A reminder is sent after 30 minutes without a cart update and is limited to one successful reminder per account/cart per day.
-- Customers earn 10 points after each paid order. A referrer earns 100 points after the referred customer's first paid order. Every 1,000 points automatically convert into a KES 100 reward credit for an in-app purchase; it is not cash and requires no manual points redemption.
-- At checkout, one available KES 100 reward credit is automatically applied to the signed-in customer's account; customers do not enter a code. The discount is capped at the order amount. If it covers the full amount, the order is settled as paid by ShopLink voucher with a zero balance due, not as a PayPal, M-Pesa, or cash gateway payment.
+- Customers earn 10 points after each paid order. A referrer earns 100 points after the referred customer's first paid order. Each point is worth KES 0.10; customers and shop owners choose how many points to redeem at checkout, with deductions applied only after payment confirmation.
+- Separately from customer rewards, shop owners earn 10 shop loyalty points when a customer confirms receipt of an order; the seller dashboard shows the total credited to the owner's shops.
+- Legacy KES 100 reward credits remain available and auto-apply when the customer does not choose wallet points. Point discounts are capped at the order total; if points cover the full total, the order is settled as paid by ShopLink points with a zero balance due.
 - Customers can track points and all reward-credit states on `/student-friendly`. Credits are tied to the customer's user account (and displayed with that account's email). Super admins can search the full voucher ledger and reversibly disable or re-enable unused credits, or pause the program globally. Pausing preserves points and vouchers but prevents new issuance and checkout use.
-- The Student Friendly rewards page is at `/student-friendly`. Referral links point to `/register?ref=CODE`; registration stores attribution for both standard and Clerk signup flows.
+- The ShopLink Rewards wallet is at `/my-rewards`; the referral and legacy reward-credit page remains at `/student-friendly`. Referral links point to `/register?ref=CODE`; registration stores attribution for both standard and Clerk signup flows.
 - Super admins manage module switches, global featured slots, referral totals, and 30-day promotion analytics from the admin dashboard. Shop admins can feature only products belonging to their own shops; all ownership checks are enforced by the API.
 
 Marketing API routes are mounted under `/api/marketing`:
@@ -184,13 +191,37 @@ This project uses the campus-marketplace BSNO workflow and should preserve the b
 | --- | --- | --- |
 | Auth | `/api/users/login` | User sign-in |
 | Auth | `/api/users/register` | User registration |
+| Account | `GET/PUT /api/users/profile` | Read or update the signed-in user's own profile and password reminder preference |
+| Account | `PUT /api/users/profile/password` | Change the signed-in user's password after current-password verification |
+| Shops | `PUT /api/shops/:id` | Shop owner or super admin: update shop details and policies |
+| Malls | `GET /api/shops/mall-overview` | Public: shops grouped by location with real order/product popularity metrics |
+| Malls | `GET /api/malls` | Public: unlocked malls with shop/product/order/visit metrics |
+| Malls | `GET /api/malls/:mallId` | Public: mall storefront, shop sections, and featured products |
+| Malls | `GET /api/malls/progress/me` | Shop admin: lifetime milestone and mall slot progress |
+| Malls | `POST /api/malls/convert/:shopId` | Shop owner: convert their existing shop to a mall at 5,000 lifetime earned points |
+| Malls | `POST /api/malls/:mallId/shops` | Mall owner: create a child shop if a slot is available and its category is unused |
+| Malls | `GET /api/malls/:mallId/analytics` | Mall owner: shop-level paid orders, revenue, and owner points |
+| Malls | `PATCH /api/malls/:mallId/feature` | Super admin: feature one mall on the homepage |
 | Products | `/api/products` | Fetch products |
 | Categories | `/api/categories` | List categories |
 | Malls | `/api/malls` | List malls |
 | Deals | `/api/deals` | Active discounted products |
 | Orders | `/api/orders` | Order management |
+| Orders | `/api/orders/mine` | Signed-in customer: list own orders and fulfillment timelines |
 | Orders | `/api/orders/financial-summary` | Admin: confirmed payment totals and method breakdown |
 | Orders | `/api/orders/:id/confirm-cash` | Customer/shop admin: confirm cash handover |
+| Orders | `/api/orders/:id/status` | Shop admin: advance their shop's fulfillment status (`shopId` required for multi-shop orders) |
+| Orders | `/api/orders/:id/deliver` | Shop admin: hand-to-hand delivery shortcut (`shopId` required for multi-shop orders) |
+| Orders | `/api/orders/:id/confirm-receipt` | Customer: confirm each delivered shop's items; the order closes after all receipts are confirmed |
+| Orders | `/api/orders/:id/restore-reward-points` | Shop admin/super admin: restore points after an external payment refund, with its refund reference |
+
+### Mall schema migration note
+
+Mall support extends the existing `Shop` collection in place. Existing shop records keep their IDs, products, and order references; the new `type` field defaults to `shop`, `parentMall` defaults to `null`, `childShops` defaults to an empty array, and `level` defaults to zero. No destructive data migration is required. Lifetime point totals are incremented for future earned transactions and backfilled on first mall-progress/unlock access from the user's existing `earned` points transactions; redeemed and refunded points do not create or remove slots. A compound unique index enforces one category per child shop within a mall. Existing `/shops/all` behavior and location grouping remain separate and unchanged.
+
+New checkouts snapshot their participating shops in `Order.shopFulfillments`. Each shop advances delivery and receipt independently; the order closes and the 50-point same-mall cart bonus is credited only after every participating shop's delivery is confirmed by the customer. Existing orders without this snapshot continue through the legacy single-shop status flow. No destructive order migration is needed.
+| Rewards | `/api/marketing/rewards/me` | Signed-in user: points balance and transaction history |
+| Rewards | `/api/marketing/admin/points-analytics` | Super admin: platform-wide points issued, redeemed, refunded, and outstanding |
 | M-Pesa | `/api/mpesa/stk-push` | Initiate STK push |
 | M-Pesa | `/api/mpesa/status/:checkoutRequestId` | Poll payment status |
 | Community | `/api/community` | Community posts |
@@ -200,6 +231,12 @@ This project uses the campus-marketplace BSNO workflow and should preserve the b
 | Riders | `PATCH /api/riders/applications/:id` | Admin: approve or reject an application |
 | Notifications | `GET /api/notifications/notifications` | List unread notifications for the signed-in user |
 | Notifications | `PUT /api/notifications/badge/reset` | Mark all notifications as read |
+| Riders | `GET /api/riders/approved` | Public: list approved riders |
+| Riders | `GET /api/riders/applications` | Super admin: list rider applications |
+| Riders | `PATCH /api/riders/applications/:id` | Super admin: approve or reject a pending rider application |
+| Riders | `PATCH /api/riders/applications/:id/suspend` | Super admin: suspend an approved rider with a reason |
+| Riders | `POST /api/riders/mine/appeal` | Suspended rider: send an appeal to super admins |
+| Riders | `PATCH /api/riders/applications/:id/appeal` | Super admin: reinstate a rider or uphold a suspension appeal |
 | Budget | `/api/budget/plan` | AI budget planner |
 
 ## Run commands

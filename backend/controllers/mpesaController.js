@@ -184,17 +184,31 @@ const handleCallback = async (callbackData) => {
             email_address: '',
             method: 'M-Pesa',
           };
+          const paymentConfirmedEntry = {
+            status: 'payment_confirmed',
+            timestamp: paidAt,
+            actor: null,
+            actorRole: 'system',
+          };
+          const paymentSet = {
+            isPaid: true,
+            paidAt,
+            fulfillmentStatus: 'payment_confirmed',
+            paymentMethod: 'M-Pesa',
+            finalPaymentMethod: 'M-Pesa',
+            paymentConfirmation,
+            paymentResult,
+          };
+          const paymentPush = { statusHistory: paymentConfirmedEntry };
+          if (order.shopFulfillments?.length > 0) {
+            paymentSet['shopFulfillments.$[].fulfillmentStatus'] = 'payment_confirmed';
+            paymentPush['shopFulfillments.$[].statusHistory'] = paymentConfirmedEntry;
+          }
           const settledOrder = await Order.findOneAndUpdate(
             { _id: order._id, isPaid: false },
             {
-              $set: {
-                isPaid: true,
-                paidAt,
-                paymentMethod: 'M-Pesa',
-                finalPaymentMethod: 'M-Pesa',
-                paymentConfirmation,
-                paymentResult,
-              },
+              $set: paymentSet,
+              $push: paymentPush,
             },
             { new: true }
           );

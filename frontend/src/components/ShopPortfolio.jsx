@@ -25,11 +25,12 @@ const ShopPortfolio = ({ shop, products = [] }) => {
     dispatch(addToCart({ ...product, qty: 1 }));
   };
   const shopPhoto = shop.image || "https://res.cloudinary.com/tmcloud/image/upload/w_900,q_auto,f_auto/v1/shop-placeholder";
+  const shopCover = shop.coverImage || shopPhoto;
 
   return (
     <div className="shop-portfolio">
       <section className="shop-portfolio-hero">
-        <img className="shop-portfolio-cover" src={shopPhoto} alt="" />
+        <img className="shop-portfolio-cover" src={shopCover} alt="" />
         <div className="shop-portfolio-overlay" />
         <div className="shop-portfolio-profile">
           <img className="shop-portfolio-logo" src={shopPhoto} alt={shop.name} />
@@ -55,6 +56,12 @@ const ShopPortfolio = ({ shop, products = [] }) => {
           <p className="shop-portfolio-label">About this shop</p>
           <h2>{shop.name}</h2>
           <p>{shop.description || "Curated local products, friendly service, and convenient delivery."}</p>
+          {shop.policies && (
+            <section className="shop-portfolio-policies">
+              <h3>Shop policies</h3>
+              <p>{shop.policies}</p>
+            </section>
+          )}
           <dl>
             <div><dt>Location</dt><dd>{typeof shop.location === "string" ? shop.location : shop.location?.name || "Available locally"}</dd></div>
             <div><dt>Collection</dt><dd>{products.length} products</dd></div>

@@ -6,12 +6,14 @@ import {
   useGetAdminRewardCreditsQuery,
   useGetPromoAdminCatalogQuery,
   useGetPromoAnalyticsQuery,
+  useGetPointsAnalyticsQuery,
   useToggleProductFeatureMutation,
   useUpdateFeaturedSlotMutation,
   useUpdatePromoModulesMutation,
   useUpdateRewardCreditStatusMutation,
   useUpdateRewardProgramMutation,
 } from "../../redux/Api/marketingApiSlice";
+import { useGetMallsQuery, useUpdateMallFeatureMutation } from "../../redux/Api/shopApiSlice.js";
 
 const moduleLabels = [
   ["freshDrops", "Fresh Drops"],
@@ -29,7 +31,9 @@ const PromoAdminPanel = () => {
   const isSuperAdmin = Boolean(userInfo?.isSuperAdmin);
   const { data: catalog, isLoading, error } = useGetPromoAdminCatalogQuery(undefined, { skip: !isAdmin });
   const { data: analytics = [] } = useGetPromoAnalyticsQuery(undefined, { skip: !isSuperAdmin });
+  const { data: pointsAnalytics, error: pointsAnalyticsError } = useGetPointsAnalyticsQuery(undefined, { skip: !isSuperAdmin });
   const { data: referralReport } = useGetAllReferralsQuery(undefined, { skip: !isSuperAdmin });
+  const { data: mallDirectory } = useGetMallsQuery(undefined, { skip: !isSuperAdmin });
   const [voucherPage, setVoucherPage] = useState(1);
   const [voucherStatus, setVoucherStatus] = useState("");
   const [voucherSearch, setVoucherSearch] = useState("");
@@ -42,6 +46,7 @@ const PromoAdminPanel = () => {
   const [updateSlots, { isLoading: savingSlots }] = useUpdateFeaturedSlotMutation();
   const [updateRewardProgram, { isLoading: savingRewardProgram }] = useUpdateRewardProgramMutation();
   const [updateRewardCreditStatus] = useUpdateRewardCreditStatusMutation();
+  const [updateMallFeature] = useUpdateMallFeatureMutation();
   const [modules, setModules] = useState({});
   const [featuredShop, setFeaturedShop] = useState("");
   const [featuredProduct, setFeaturedProduct] = useState("");
@@ -120,8 +125,8 @@ const PromoAdminPanel = () => {
 
           <div className="marketing-admin__rewards-control">
             <div>
-              <h3>Automatic customer rewards</h3>
-              <p>Every 1,000 points unlock KES 100 for that customer's next order. Pausing keeps existing points and vouchers safe.</p>
+              <h3>ShopLink Rewards</h3>
+                <p>Customers and shop owners can redeem points at checkout at 10 points per KES 1. Pausing prevents point redemption and preserves existing balances and legacy reward credits.</p>
             </div>
             <label>
               <input
@@ -154,6 +159,32 @@ const PromoAdminPanel = () => {
           <button type="button" disabled={savingSlots} onClick={saveSlots}>
             {savingSlots ? "Saving…" : "Save featured slots"}
           </button>
+
+          <h3 className="mt-6">Featured mall takeovers</h3>
+          <p>Feature a mall to show its immersive banner on the homepage and add the ⚡ FEATURED ribbon across its mall pages.</p>
+          <div className="marketing-admin__product-list">
+            {(mallDirectory?.malls || []).map((mall) => (
+              <div className="marketing-admin__product" key={mall._id}>
+                <span>{mall.name}{mall.location ? ` · ${mall.location}` : ""}</span>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(mall.isFeaturedMall)}
+                    onChange={async (event) => {
+                      try {
+                        await updateMallFeature({ mallId: mall._id, featured: event.target.checked }).unwrap();
+                        toast.success(`${mall.name} ${event.target.checked ? "featured" : "unfeatured"}`);
+                      } catch (featureError) {
+                        toast.error(featureError?.data?.message || "Could not update mall promotion");
+                      }
+                    }}
+                  />
+                  Feature mall
+                </label>
+              </div>
+            ))}
+            {!mallDirectory?.malls?.length && <p>No malls have been unlocked yet.</p>}
+          </div>
         </>
       )}
 
@@ -192,6 +223,18 @@ const PromoAdminPanel = () => {
               </div>
             ))}
           </div>
+
+          <h3 className="mt-6">Platform points wallet</h3>
+          {pointsAnalyticsError ? (
+            <p role="alert">Platform points analytics could not be loaded.</p>
+          ) : (
+            <div className="marketing-admin__stats">
+              <div className="marketing-admin__stat"><strong>Points issued</strong><span>{Number(pointsAnalytics?.pointsIssued || 0).toLocaleString()}</span></div>
+              <div className="marketing-admin__stat"><strong>Points redeemed</strong><span>{Number(pointsAnalytics?.pointsRedeemed || 0).toLocaleString()}</span></div>
+              <div className="marketing-admin__stat"><strong>Points refunded</strong><span>{Number(pointsAnalytics?.pointsRefunded || 0).toLocaleString()}</span></div>
+              <div className="marketing-admin__stat"><strong>Current balances</strong><span>{Number(pointsAnalytics?.pointsOutstanding || 0).toLocaleString()} points</span></div>
+            </div>
+          )}
 
           <h3 className="mt-6">Referrals</h3>
           <p>

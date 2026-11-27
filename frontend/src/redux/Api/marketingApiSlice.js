@@ -80,6 +80,10 @@ export const marketingApiSlice = apiSlice.injectEndpoints({
       query: () => "/api/marketing/admin/analytics",
       providesTags: ["Promo"],
     }),
+    getPointsAnalytics: builder.query({
+      query: () => "/api/marketing/admin/points-analytics",
+      providesTags: ["Rewards"],
+    }),
     getAllReferrals: builder.query({
       query: () => "/api/marketing/admin/referrals",
       providesTags: ["Rewards"],
@@ -126,6 +130,7 @@ export const {
   useUpdateFeaturedSlotMutation,
   useToggleProductFeatureMutation,
   useGetPromoAnalyticsQuery,
+  useGetPointsAnalyticsQuery,
   useGetAllReferralsQuery,
   useGetAdminRewardCreditsQuery,
   useUpdateRewardProgramMutation,

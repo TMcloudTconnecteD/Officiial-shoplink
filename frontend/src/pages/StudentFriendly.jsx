@@ -54,8 +54,8 @@ const StudentFriendly = () => {
     );
   }
   const points = data.user.pointsBalance || 0;
-  const pointsToNextReward = 1000 - points;
-  const progress = Math.min((points / 1000) * 100, 100);
+  const pointsToNextReward = 1000 - (points % 1000);
+  const progress = ((points % 1000) / 1000) * 100;
   const availableRewardCount = (data.rewardCredits || []).filter((credit) => credit.status === "available").length;
   const rewardsEnabled = data.rewardProgramEnabled !== false;
 
@@ -72,9 +72,10 @@ const StudentFriendly = () => {
       <header className="marketing-page__hero">
         <span className="marketing-eyebrow">ShopLink rewards</span>
         <h1>Student Friendly</h1>
-        <p>Earn points when you shop and invite friends. Your rewards stay in the app—never cash.</p>
+        <p>Earn points when you shop and invite friends. Use points at checkout on products from any ShopLink shop.</p>
         <p>Every paid order earns 10 points. A friend earns their regular points, and you earn 100 points when they complete their first paid order.</p>
         <span className="marketing-page__balance">{points} points</span>
+        <p><Link to="/my-rewards">Open your ShopLink Rewards wallet</Link></p>
         <div
           className="marketing-page__reward-progress"
           role="progressbar"
@@ -89,7 +90,7 @@ const StudentFriendly = () => {
           {!rewardsEnabled
             ? "The rewards program is paused. Your points and vouchers are safe; new rewards and checkout use will resume when it is re-enabled."
             : availableRewardCount
-              ? `You have ${availableRewardCount} KES 100 reward${availableRewardCount === 1 ? "" : "s"} ready. Earn ${pointsToNextReward} more points to unlock another.`
+              ? `You have ${availableRewardCount} earlier KES 100 reward${availableRewardCount === 1 ? "" : "s"} ready. ${pointsToNextReward} points until the next KES 100 off milestone.`
               : `${pointsToNextReward} more points until your next KES 100 reward.`}
         </p>
       </header>
@@ -113,9 +114,9 @@ const StudentFriendly = () => {
       </section>
 
       <section className="marketing-page__section">
-        <h2>Your automatic rewards</h2>
-        <p>Every 1,000 points automatically unlocks a KES 100 in-app discount. At checkout, ShopLink applies one available reward linked to your account email—no code entry is needed. It can cover an order completely, leaving KES 0 to pay.</p>
-        {!rewardsEnabled && <p role="status">Rewards are temporarily paused. Your balance and voucher history are preserved, but vouchers cannot be issued or used until the program resumes.</p>}
+        <h2>Your reward credits</h2>
+        <p>Each point is worth KES 0.10. Choose how many points to use at checkout, or use the maximum available. Any earlier KES 100 reward credits remain available and can still be applied when you do not select points.</p>
+        {!rewardsEnabled && <p role="status">Rewards are temporarily paused. Your balance and voucher history are preserved, but redemption is unavailable until the program resumes.</p>}
         <div className="marketing-page__voucher-grid">
           {(data.rewardCredits || []).map((credit) => (
             <article className="marketing-page__voucher" key={credit._id}>
@@ -124,7 +125,7 @@ const StudentFriendly = () => {
               <span>{getCreditStatus(credit.status)}</span>
             </article>
           ))}
-          {!data.rewardCredits?.length && <p>Your first KES 100 in-app reward will appear here when you reach 1,000 points.</p>}
+          {!data.rewardCredits?.length && <p>Earlier reward credits, if any, will appear here. You can now choose how many wallet points to use at checkout.</p>}
         </div>
       </section>
     </main>

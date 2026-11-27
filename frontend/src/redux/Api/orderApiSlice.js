@@ -47,6 +47,7 @@ export const orderApiSlice = apiSlice.injectEndpoints({
       query: () => ({
         url: `${ORDERS_URL}/mine`,
       }),
+      providesTags: ["Order"],
       keepUnusedDataFor: 50,
     }),
 
@@ -58,10 +59,37 @@ export const orderApiSlice = apiSlice.injectEndpoints({
     }),
 
     deliverOrder: builder.mutation({
-      query: (orderId) => ({
+      query: (input) => {
+        const orderId = typeof input === "string" ? input : input.orderId;
+        const shopId = typeof input === "string" ? null : input.shopId;
+        return {
         url: `${ORDERS_URL}/${orderId}/deliver`,
         method: "PUT",
+        ...(shopId ? { body: { shopId } } : {}),
+        };
+      },
+      invalidatesTags: ["Order", "Notification"],
+    }),
+
+    updateOrderStatus: builder.mutation({
+      query: ({ orderId, shopId, status }) => ({
+        url: `${ORDERS_URL}/${orderId}/status`,
+        method: "PUT",
+        body: { status, ...(shopId ? { shopId } : {}) },
       }),
+      invalidatesTags: ["Order", "Notification"],
+    }),
+
+    confirmOrderReceipt: builder.mutation({
+      query: (input) => {
+        const orderId = typeof input === "string" ? input : input.orderId;
+        const shopId = typeof input === "string" ? null : input.shopId;
+        return {
+        url: `${ORDERS_URL}/${orderId}/confirm-receipt`,
+        method: "PUT",
+        ...(shopId ? { body: { shopId } } : {}),
+        };
+      },
       invalidatesTags: ["Order", "Notification"],
     }),
 
@@ -97,5 +125,7 @@ export const {
   useGetPaypalClientIdQuery,
   useGetMyOrdersQuery,
   useDeliverOrderMutation,
+  useUpdateOrderStatusMutation,
+  useConfirmOrderReceiptMutation,
   useGetOrdersQuery,
 } = orderApiSlice;

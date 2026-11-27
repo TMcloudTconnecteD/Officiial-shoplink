@@ -138,6 +138,7 @@ const getCurrentUserProfile = asyncHandler(async (req, res) => {
             sellerShop: user.sellerShop,
             referralCode: user.referralCode,
             pointsBalance: user.pointsBalance,
+            monthlyPasswordReminderEnabled: user.monthlyPasswordReminderEnabled,
          })
         } else {
             res.status(404)
@@ -148,40 +149,73 @@ const getCurrentUserProfile = asyncHandler(async (req, res) => {
 
 })
 const updateCurrentUserProfile = asyncHandler(async (req, res) => {
-const user = await User.findById(req.user._id);
-if (user) {
-    user.username = req.body.username || user.username
-    user.email = req.body.email || user.email
-    if (req.body.password) {
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(req.body.password, salt);
-        user.password = hashedPassword;
-
+    if (Object.prototype.hasOwnProperty.call(req.body || {}, "password")) {
+        return res.status(400).json({ message: "Change your password using the password form." });
     }
-const updatedUser = await user.save();
-res.json({
-    _id: updatedUser._id,
-    username: updatedUser.username,
-    email: updatedUser.email,
-    isAdmin: updatedUser.isAdmin,
-    isSuperAdmin: updatedUser.isSuperAdmin,
-    isSeller: updatedUser.isSeller,
-    sellerStatus: updatedUser.sellerStatus,
-    sellerShop: updatedUser.sellerShop,
-    referralCode: updatedUser.referralCode,
-    pointsBalance: updatedUser.pointsBalance,
 
-})
+    const username = typeof req.body?.username === "string" ? req.body.username.trim() : "";
+    const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+    if (!username || !email) {
+        return res.status(400).json({ message: "Username and email are required." });
+    }
+    if (typeof req.body?.monthlyPasswordReminderEnabled !== "boolean") {
+        return res.status(400).json({ message: "Choose whether to enable monthly password reminders." });
+    }
 
-} else {
-    res.status(404)
-    throw new Error("User not found!💔")
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found." });
 
-}
+    user.username = username;
+    user.email = email;
+    if (req.body.monthlyPasswordReminderEnabled && !user.monthlyPasswordReminderEnabled) {
+        user.lastPasswordReminderAt = new Date();
+    }
+    user.monthlyPasswordReminderEnabled = req.body.monthlyPasswordReminderEnabled;
 
+    try {
+        const updatedUser = await user.save();
+        return res.json({
+            _id: updatedUser._id,
+            username: updatedUser.username,
+            email: updatedUser.email,
+            isAdmin: updatedUser.isAdmin,
+            isSuperAdmin: updatedUser.isSuperAdmin,
+            isSeller: updatedUser.isSeller,
+            sellerStatus: updatedUser.sellerStatus,
+            sellerShop: updatedUser.sellerShop,
+            referralCode: updatedUser.referralCode,
+            pointsBalance: updatedUser.pointsBalance,
+            monthlyPasswordReminderEnabled: updatedUser.monthlyPasswordReminderEnabled,
+        });
+    } catch (error) {
+        if (error.code === 11000) return res.status(409).json({ message: "That username or email is already in use." });
+        throw error;
+    }
+});
 
+const changeCurrentUserPassword = asyncHandler(async (req, res) => {
+    const { currentPassword, newPassword } = req.body || {};
+    if (typeof currentPassword !== "string" || !currentPassword || typeof newPassword !== "string" || !newPassword) {
+        return res.status(400).json({ message: "Enter your current password and a new password." });
+    }
+    if (newPassword.length < 6) {
+        return res.status(400).json({ message: "Your new password must be at least 6 characters." });
+    }
+    if (currentPassword === newPassword) {
+        return res.status(400).json({ message: "Choose a new password different from your current password." });
+    }
 
-})
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found." });
+    if (!(await bcrypt.compare(currentPassword, user.password))) {
+        return res.status(400).json({ message: "Your current password is incorrect." });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+    return res.json({ message: "Password updated successfully." });
+});
 
 const deleteUserById = asyncHandler(async (req, res) => {
     const user = await User.findById(req.params.id)
@@ -265,6 +299,7 @@ export {createUser,
         getAllUsers,
         getCurrentUserProfile,
         updateCurrentUserProfile,
+        changeCurrentUserPassword,
         deleteUserById,
         getUserById,
         updateUserById

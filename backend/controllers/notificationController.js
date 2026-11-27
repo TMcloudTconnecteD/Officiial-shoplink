@@ -6,7 +6,47 @@ import {
   markNotificationRead,
   addNotification,
   NotificationBadge,
+  notifyUser,
 } from "../services/notificationBadgeService.js";
+import User from "../models/userModel.js";
+
+const createMonthlyPasswordReminder = async (userId) => {
+  const now = new Date();
+  const reminderCutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const user = await User.findOneAndUpdate(
+    {
+      _id: userId,
+      monthlyPasswordReminderEnabled: true,
+      $or: [
+        { lastPasswordReminderAt: null },
+        { lastPasswordReminderAt: { $exists: false } },
+        { lastPasswordReminderAt: { $lte: reminderCutoff } },
+      ],
+    },
+    { $set: { lastPasswordReminderAt: now } },
+    { new: false }
+  ).select("_id lastPasswordReminderAt");
+
+  if (!user) return;
+  try {
+    await notifyUser(userId, {
+      type: "system",
+      title: "Monthly password reminder",
+      message: "It's a good time to update your password and keep your ShopLink account secure.",
+      link: "/profile",
+    });
+  } catch (error) {
+    try {
+      await User.updateOne(
+        { _id: userId, lastPasswordReminderAt: now },
+        { $set: { lastPasswordReminderAt: user.lastPasswordReminderAt || null } }
+      );
+    } catch (rollbackError) {
+      console.error("Could not release monthly password reminder claim:", rollbackError);
+    }
+    throw error;
+  }
+};
 
 /**
  * GET badge count for the authenticated user
@@ -33,6 +73,7 @@ const getUserBadgeCount = asyncHandler(async (req, res) => {
 const getUserNotifications = asyncHandler(async (req, res) => {
   try {
     const userId = req.user._id;
+    await createMonthlyPasswordReminder(userId);
     const notifications = await getUnreadNotifications(userId);
 
     res.json({

@@ -7,6 +7,7 @@ import {
   getFreshDrops,
   getFeaturedProducts,
   getPromoAnalytics,
+  getPointsAnalytics,
   getPublicPromoSettings,
   getRewards,
   getSellerSpotlight,
@@ -44,6 +45,7 @@ router.patch("/admin/reward-credits/:creditId", authenticate, authorizeSuperAdmi
 router.patch("/admin/featured", authenticate, authorizeSuperAdmin, updateFeaturedSlot);
 router.patch("/admin/products/:productId/feature", authenticate, authorizeAdmin, toggleProductFeature);
 router.get("/admin/analytics", authenticate, authorizeSuperAdmin, getPromoAnalytics);
+router.get("/admin/points-analytics", authenticate, authorizeSuperAdmin, getPointsAnalytics);
 router.get("/admin/referrals", authenticate, authorizeSuperAdmin, getAllReferrals);
 
 export default router;

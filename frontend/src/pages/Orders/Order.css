@@ -11,7 +11,8 @@
 }
 
 .order-detail-page > .page-backbar,
-.order-detail-page__header {
+.order-detail-page__header,
+.order-detail-page > .order-timeline {
   grid-column: 1 / -1;
 }
 

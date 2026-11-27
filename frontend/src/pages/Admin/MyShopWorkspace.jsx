@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import Loader from "../../components/Loader";
 import Message from "../../components/Message";
 import { useGetSellerWorkspaceQuery } from "../../redux/Api/sellerApiSlice";
+import MallBuilderPanel from "./MallBuilderPanel.jsx";
 import AdminMenu from "./AdminMenu";
 import "./AdminWorkspace.css";
 
@@ -31,6 +32,7 @@ const MyShopWorkspace = () => {
           <FaPlus aria-hidden="true" /> Add a product
         </Link>
       </header>
+      <MallBuilderPanel />
 
       {isLoading ? (
         <div className="admin-workspace__loading"><Loader /></div>

@@ -11,6 +11,7 @@ const orderSchema = mongoose.Schema(
         qty: { type: Number, required: true },
         image: { type: String, required: true },
         price: { type: Number, required: true },
+        shop: { type: mongoose.Schema.Types.ObjectId, ref: "Shop", default: null },
         product: {
           type: mongoose.Schema.Types.ObjectId,
           required: true,
@@ -35,12 +36,12 @@ const orderSchema = mongoose.Schema(
 
     finalPaymentMethod: {
       type: String,
-      enum: ["PayPal", "M-Pesa", "Cash", "ShopLink voucher"],
+      enum: ["PayPal", "M-Pesa", "Cash", "ShopLink voucher", "ShopLink points"],
       default: null,
     },
 
     paymentConfirmation: {
-      method: { type: String, enum: ["PayPal", "M-Pesa", "Cash", "ShopLink voucher"], default: null },
+      method: {       type: String, enum: ["PayPal", "M-Pesa", "Cash", "ShopLink voucher", "ShopLink points"], default: null },
       gatewayVerified: { type: Boolean, default: false },
       gatewayStatus: { type: String, default: null },
       gatewayCheckoutRequestId: { type: String, default: null },
@@ -92,6 +93,15 @@ const orderSchema = mongoose.Schema(
       type: Date,
       default: null,
     },
+    rewardRedemption: {
+      pointsReserved: { type: Number, default: 0, min: 0 },
+      pointsRedeemed: { type: Number, default: 0, min: 0 },
+      discountAmount: { type: Number, default: 0, min: 0 },
+      reservedAt: { type: Date, default: null },
+      redeemedAt: { type: Date, default: null },
+      refundedAt: { type: Date, default: null },
+      refundReference: { type: String, default: null },
+    },
 
     // Store checkoutRequestId from M-Pesa STK push for reconciliation
     checkoutRequestId: {
@@ -110,6 +120,120 @@ const orderSchema = mongoose.Schema(
 
     deliveredAt: {
       type: Date,
+    },
+
+    fulfillmentStatus: {
+      type: String,
+      enum: [
+        "payment_confirmed",
+        "prepared_for_shipping",
+        "shipped",
+        "arrived",
+        "delivered",
+        "receipt_confirmed",
+      ],
+      default: null,
+    },
+
+    statusHistory: [
+      {
+        status: {
+          type: String,
+          enum: [
+            "payment_confirmed",
+            "prepared_for_shipping",
+            "shipped",
+            "arrived",
+            "delivered",
+            "receipt_confirmed",
+          ],
+          required: true,
+        },
+        timestamp: { type: Date, required: true, default: Date.now },
+        actor: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+        actorRole: {
+          type: String,
+          enum: ["customer", "shop_admin", "super_admin", "system"],
+          default: "system",
+        },
+      },
+    ],
+
+    shopFulfillments: [
+      {
+        shop: { type: mongoose.Schema.Types.ObjectId, ref: "Shop", required: true },
+        fulfillmentStatus: {
+          type: String,
+          enum: [
+            "payment_confirmed",
+            "prepared_for_shipping",
+            "shipped",
+            "arrived",
+            "delivered",
+            "receipt_confirmed",
+          ],
+          default: null,
+        },
+        statusHistory: [
+          {
+            status: {
+              type: String,
+              enum: [
+                "payment_confirmed",
+                "prepared_for_shipping",
+                "shipped",
+                "arrived",
+                "delivered",
+                "receipt_confirmed",
+              ],
+              required: true,
+            },
+            timestamp: { type: Date, required: true, default: Date.now },
+            actor: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+            actorRole: {
+              type: String,
+              enum: ["customer", "shop_admin", "super_admin", "system"],
+              default: "system",
+            },
+          },
+        ],
+        deliveredAt: { type: Date, default: null },
+        receiptConfirmedAt: { type: Date, default: null },
+        receiptConfirmedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+        sellerLoyaltyPointsAwarded: { type: Number, default: 0, min: 0 },
+        sellerLoyaltyPointsAwardedAt: { type: Date, default: null },
+      },
+    ],
+
+    receiptConfirmedAt: {
+      type: Date,
+      default: null,
+    },
+
+    receiptConfirmedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    sellerLoyaltyPointsAwarded: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    sellerLoyaltyPointsAwardedAt: {
+      type: Date,
+      default: null,
+    },
+    mallBonusPointsAwardedAt: {
+      type: Date,
+      default: null,
+    },
+    mallBonusEligibility: {
+      mall: { type: mongoose.Schema.Types.ObjectId, ref: "Shop", default: null },
+      shops: [{ type: mongoose.Schema.Types.ObjectId, ref: "Shop" }],
+      eligible: { type: Boolean, default: false },
     },
 
     referralVoucher: {

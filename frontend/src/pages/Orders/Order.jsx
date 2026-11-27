@@ -9,21 +9,30 @@ import Loader from "../../components/Loader";
 import PageBackButton from "../../components/PageBackButton";
 import {
   useDeliverOrderMutation,
+  useConfirmOrderReceiptMutation,
   useConfirmCashPaymentMutation,
   useGetOrderDetailsQuery,
   useGetPaypalClientIdQuery,
   usePayOrderMutation,
+  useUpdateOrderStatusMutation,
 } from "../../redux/Api/orderApiSlice";
 import MpesaButton from "../../components/MpesaButton";
+import OrderTimeline from "../../components/orders/OrderTimeline";
+import { ORDER_STATUS_STEPS } from "../../components/orders/orderStatus";
 import "./Order.css";
 import PostOrderDelight from "../../components/marketing/PostOrderDelight";
 
 const Order = () => {
   const { id: orderId } = useParams();
-  const { data: order, refetch, isLoading, error } = useGetOrderDetailsQuery(orderId);
+  const { data: order, refetch, isLoading, error } = useGetOrderDetailsQuery(orderId, {
+    pollingInterval: 20000,
+    refetchOnFocus: true,
+  });
   const [payOrder, { isLoading: loadingPay }] = usePayOrderMutation();
   const [confirmCashPayment, { isLoading: confirmingCash }] = useConfirmCashPaymentMutation();
   const [deliverOrder, { isLoading: loadingDeliver }] = useDeliverOrderMutation();
+  const [confirmOrderReceipt, { isLoading: confirmingReceipt }] = useConfirmOrderReceiptMutation();
+  const [updateOrderStatus, { isLoading: updatingFulfillment }] = useUpdateOrderStatusMutation();
   const { userInfo } = useSelector((state) => state.auth);
   const [{ isPending }, paypalDispatch] = usePayPalScriptReducer();
   const { data: paypal, isLoading: loadingPayPal, error: errorPayPal } = useGetPaypalClientIdQuery();
@@ -95,9 +104,34 @@ const Order = () => {
   }, [refetch]);
 
   const apiUrl = import.meta.env.VITE_API_URL;
-  const deliverHandler = async () => {
-    await deliverOrder(orderId);
-    refetch();
+  const deliverHandler = async (shopId = null) => {
+    try {
+      await deliverOrder(shopId ? { orderId, shopId } : orderId).unwrap();
+      toast.success("Order marked as delivered.");
+      refetch();
+    } catch (err) {
+      toast.error(err?.data?.message || err?.message || "Could not update delivery status.");
+    }
+  };
+
+  const confirmReceiptHandler = async (shopId = null) => {
+    try {
+      await confirmOrderReceipt(shopId ? { orderId, shopId } : orderId).unwrap();
+      toast.success("Receipt confirmed. 10 loyalty points were added to the shop owner.");
+      refetch();
+    } catch (err) {
+      toast.error(err?.data?.message || err?.message || "Could not confirm receipt.");
+    }
+  };
+
+  const updateFulfillmentHandler = async (shopId, status) => {
+    try {
+      await updateOrderStatus({ orderId, shopId, status }).unwrap();
+      toast.success("Shop order status updated.");
+      refetch();
+    } catch (err) {
+      toast.error(err?.data?.message || err?.message || "Could not update shop order status.");
+    }
   };
 
   const downloadReceipt = async () => {
@@ -192,6 +226,12 @@ const Order = () => {
     userInfo?.isAdmin && currentUserId && shopOwnerId === currentUserId
   ));
   const canManageShopPayment = isShopAdminForOrder && !isBuyer;
+  const canManageFulfillment = (fulfillment) => {
+    const ownerId = fulfillment.shop?.owner?._id?.toString() || fulfillment.shop?.owner?.toString();
+    return Boolean(userInfo?.isSuperAdmin || (
+      userInfo?.isAdmin && currentUserId && ownerId === currentUserId
+    ));
+  };
   const customerCashConfirmed = Boolean(order.paymentConfirmation?.customerConfirmedAt);
   const shopCashConfirmed = Boolean(order.paymentConfirmation?.shopConfirmedAt);
 
@@ -204,9 +244,82 @@ const Order = () => {
           <h1>Your order</h1>
         </div>
         <span className={`order-detail-page__status${order.isDelivered ? " is-delivered" : order.isPaid ? " is-paid" : ""}`}>
-          {order.isDelivered ? "Delivered" : order.isPaid ? "Payment confirmed" : "Payment pending"}
+          {order.receiptConfirmedAt
+            ? "Receipt confirmed"
+            : order.isDelivered
+              ? "Delivered"
+              : order.isPaid
+                ? "Payment confirmed"
+                : "Payment pending"}
         </span>
       </header>
+      <OrderTimeline order={order} />
+      {order.shopFulfillments?.length > 0 && (
+        <section className="order-detail-page__card" aria-label="Delivery by shop">
+          <h2>Delivery by shop</h2>
+          <p>Each shop updates its own items. Confirm each delivery to complete this order.</p>
+          <div className="space-y-4">
+            {order.shopFulfillments.map((fulfillment) => {
+              const shopId = fulfillment.shop?._id || fulfillment.shop;
+              const currentStatus = fulfillment.fulfillmentStatus || "payment_confirmed";
+              const currentIndex = ORDER_STATUS_STEPS.findIndex((step) => step.status === currentStatus);
+              const nextStep = currentIndex >= 0 && currentIndex < 4
+                ? ORDER_STATUS_STEPS[currentIndex + 1]
+                : null;
+              const isShopAdmin = canManageFulfillment(fulfillment);
+              const fulfillmentOrder = {
+                ...order,
+                fulfillmentStatus: currentStatus,
+                statusHistory: fulfillment.statusHistory || [],
+                isDelivered: ["delivered", "receipt_confirmed"].includes(currentStatus),
+                deliveredAt: fulfillment.deliveredAt,
+                receiptConfirmedAt: fulfillment.receiptConfirmedAt,
+              };
+              return (
+                <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm" key={String(shopId)}>
+                  <h3 className="mb-3 text-lg font-bold">{fulfillment.shop?.name || "Shop"}</h3>
+                  <OrderTimeline order={fulfillmentOrder} compact />
+                  {isBuyer && currentStatus === "delivered" && !fulfillment.receiptConfirmedAt && (
+                    <button
+                      type="button"
+                      className="order-detail-page__action order-detail-page__action--receipt"
+                      disabled={confirmingReceipt}
+                      onClick={() => confirmReceiptHandler(shopId)}
+                    >
+                      {confirmingReceipt ? "Confirming receipt..." : `Confirm Receipt from ${fulfillment.shop?.name || "Shop"}`}
+                    </button>
+                  )}
+                  {isBuyer && fulfillment.receiptConfirmedAt && (
+                    <p className="order-detail-page__payment-note">Receipt confirmed for {fulfillment.shop?.name || "this shop"}.</p>
+                  )}
+                  {isShopAdmin && order.isPaid && nextStep && (
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        className="order-detail-page__action order-detail-page__action--deliver"
+                        disabled={updatingFulfillment}
+                        onClick={() => updateFulfillmentHandler(shopId, nextStep.status)}
+                      >
+                        {updatingFulfillment ? "Updating..." : `Mark ${nextStep.label}`}
+                      </button>
+                      {currentStatus !== "delivered" && (
+                        <button
+                          type="button"
+                          className="order-detail-page__action order-detail-page__action--deliver"
+                          disabled={loadingDeliver}
+                          onClick={() => deliverHandler(shopId)}
+                        >
+                          {loadingDeliver ? "Updating..." : "Confirm Delivered"}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
       {isBuyer && !userInfo?.isAdmin && !userInfo?.isSuperAdmin && <PostOrderDelight order={order} />}
       {/* Order Items */}
       <section className="order-detail-page__items-panel">
@@ -294,7 +407,13 @@ const Order = () => {
             <div><span>Shipping</span><span>KES {order.shippingPrice}</span></div>
             <div><span>Tax</span><span>KES {order.taxPrice}</span></div>
             {Number(order.referralVoucher?.discountAmount) > 0 && (
-              <div><span>Reward voucher</span><span>− KES {Number(order.referralVoucher.discountAmount).toFixed(2)}</span></div>
+              <div><span>Reward voucher</span><span>- KES {Number(order.referralVoucher.discountAmount).toFixed(2)}</span></div>
+            )}
+            {Number(order.rewardRedemption?.discountAmount) > 0 && (
+              <div>
+                <span>Rewards discount ({Number(order.rewardRedemption.pointsRedeemed || order.rewardRedemption.pointsReserved).toLocaleString()} points)</span>
+                <span>- KES {Number(order.rewardRedemption.discountAmount).toFixed(2)}</span>
+              </div>
             )}
             <div className="order-detail-page__grand-total"><span>Total</span><strong>KES {order.totalPrice}</strong></div>
           </div>
@@ -405,13 +524,28 @@ const Order = () => {
 
           {/* Deliver */}
           {loadingDeliver && <Loader />}
-          {userInfo?.isAdmin && order.isPaid && !order.isDelivered && (
+          {!order.shopFulfillments?.length && isBuyer && order.isDelivered && !order.receiptConfirmedAt && order.fulfillmentStatus !== "receipt_confirmed" && (
+            <button
+              type="button"
+              className="order-detail-page__action order-detail-page__action--receipt"
+              disabled={confirmingReceipt}
+              onClick={confirmReceiptHandler}
+            >
+              {confirmingReceipt ? "Confirming receipt..." : "Confirm Receipt"}
+            </button>
+          )}
+          {!order.shopFulfillments?.length && isBuyer && order.receiptConfirmedAt && (
+            <p className="order-detail-page__payment-note">Receipt confirmed. This order is complete.</p>
+          )}
+
+          {!order.shopFulfillments?.length && canManageShopPayment && order.isPaid && !order.isDelivered && (
             <button
               type="button"
               className="order-detail-page__action order-detail-page__action--deliver"
+              disabled={loadingDeliver}
               onClick={deliverHandler}
             >
-              Mark As Delivered
+              {loadingDeliver ? "Updating delivery..." : "Confirm Delivered"}
             </button>
             
           )}

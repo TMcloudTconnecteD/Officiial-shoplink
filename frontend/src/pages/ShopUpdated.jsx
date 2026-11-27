@@ -1,11 +1,12 @@
 // src/pages/ShopUpdated.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   useGetFilteredProductsQuery,
   useGetProductsQuery,
 } from "../redux/Api/productApiSlice";
+import { useFetchShopsQuery } from "../redux/Api/shopApiSlice";
 import { useFetchCategoriesQuery } from "../redux/Api/categoryApiSlice";
 import { setCategories, setProducts, setChecked } from "../redux/features/shop/shopSlice";
 import Loader from "../components/Loader";
@@ -29,8 +30,10 @@ const ShopUpdated = () => {
   const keyword = queryParams.get("keyword") || "";
   const categoryParam = queryParams.get("category") || "";
   const [searchText, setSearchText] = useState(keyword);
+  const [debouncedSearch, setDebouncedSearch] = useState(keyword);
   const [sortMode, setSortMode] = useState("featured");
   const { data: promoSettings } = useGetPromoSettingsQuery();
+  const { data: shopsData = [] } = useFetchShopsQuery();
 
   const categoriesQuery = useFetchCategoriesQuery(undefined, {
     refetchOnMountOrArgChange: false,
@@ -44,6 +47,32 @@ const ShopUpdated = () => {
   useEffect(() => {
     setSearchText(keyword);
   }, [keyword]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(searchText.trim()), 250);
+    return () => window.clearTimeout(timer);
+  }, [searchText]);
+
+  const liveSearchQuery = useGetProductsQuery(
+    { keyword: debouncedSearch },
+    { skip: debouncedSearch.length < 2 }
+  );
+  const liveSearchProducts = Array.isArray(liveSearchQuery.data)
+    ? liveSearchQuery.data
+    : Array.isArray(liveSearchQuery.data?.products) ? liveSearchQuery.data.products : [];
+  const availableShops = useMemo(() => (
+    Array.isArray(shopsData?.data)
+      ? shopsData.data
+      : Array.isArray(shopsData) ? shopsData : []
+  ), [shopsData]);
+  const matchingShops = useMemo(() => {
+    const searchTerm = (keyword || debouncedSearch).trim().toLowerCase();
+    if (searchTerm.length < 2) return [];
+    return availableShops
+      .filter((shop) => [shop.name, shop.location, shop.description]
+        .some((value) => String(value || "").toLowerCase().includes(searchTerm)))
+      .slice(0, 6);
+  }, [availableShops, keyword, debouncedSearch]);
 
   const filteredProductsQuery = useGetFilteredProductsQuery(
     { checked, radio },
@@ -82,7 +111,9 @@ const ShopUpdated = () => {
   useEffect(() => {
     if (keyword.length > 0) {
       if (searchedProductsQuery.data) {
-        let filtered = searchedProductsQuery.data;
+        let filtered = Array.isArray(searchedProductsQuery.data)
+          ? searchedProductsQuery.data
+          : searchedProductsQuery.data?.products || [];
         if (priceFilter) {
           filtered = filtered.filter((p) => p.price.toString().includes(priceFilter));
         }
@@ -116,14 +147,18 @@ const ShopUpdated = () => {
 
   const uniqueBrands = [
     ...new Set(
-      (keyword.length > 0 ? searchedProductsQuery.data : filteredProductsQuery.data)
+      (keyword.length > 0
+        ? (Array.isArray(searchedProductsQuery.data) ? searchedProductsQuery.data : searchedProductsQuery.data?.products || [])
+        : (Array.isArray(filteredProductsQuery.data) ? filteredProductsQuery.data : filteredProductsQuery.data?.products || []))
         ?.map((p) => p.brand)
         .filter((b) => typeof b === "string" && b.trim())
     ),
   ];
 
   const handleBrandClick = (brand) => {
-    const sourceData = keyword.length > 0 ? searchedProductsQuery.data : filteredProductsQuery.data;
+    const sourceData = keyword.length > 0
+      ? (Array.isArray(searchedProductsQuery.data) ? searchedProductsQuery.data : searchedProductsQuery.data?.products || [])
+      : (Array.isArray(filteredProductsQuery.data) ? filteredProductsQuery.data : filteredProductsQuery.data?.products || []);
     const filtered = sourceData?.filter((p) => p.brand === brand);
     dispatch(setProducts(filtered));
   };
@@ -133,12 +168,16 @@ const ShopUpdated = () => {
   const resetFilters = () => {
     dispatch(setChecked([]));
     setPriceFilter("");
-    const sourceData = keyword.length > 0 ? searchedProductsQuery.data : filteredProductsQuery.data;
+    const sourceData = keyword.length > 0
+      ? (Array.isArray(searchedProductsQuery.data) ? searchedProductsQuery.data : searchedProductsQuery.data?.products || [])
+      : (Array.isArray(filteredProductsQuery.data) ? filteredProductsQuery.data : filteredProductsQuery.data?.products || []);
     if (sourceData) dispatch(setProducts(sourceData));
   };
 
   const handleMallClick = () => {
-    const sourceData = keyword.length > 0 ? searchedProductsQuery.data : filteredProductsQuery.data;
+    const sourceData = keyword.length > 0
+      ? (Array.isArray(searchedProductsQuery.data) ? searchedProductsQuery.data : searchedProductsQuery.data?.products || [])
+      : (Array.isArray(filteredProductsQuery.data) ? filteredProductsQuery.data : filteredProductsQuery.data?.products || []);
     if (sourceData) dispatch(setProducts(sourceData));
   };
 
@@ -188,17 +227,47 @@ const ShopUpdated = () => {
               <span className="shop-catalog-hero__eyebrow"><FaBolt aria-hidden="true" /> Your next great find starts here</span>
               <h1>Good finds.<br /><span>Closer than you think.</span></h1>
               <p>Explore independent local shops, discover something unexpected, and check out in one place.</p>
-              <form className="shop-catalog-hero__search" onSubmit={submitSearch} role="search">
-                <FaSearch aria-hidden="true" />
-                <input
-                  type="search"
-                  placeholder="What are you looking for?"
-                  value={searchText}
-                  onChange={(event) => setSearchText(event.target.value)}
-                  aria-label="Search products and brands"
-                />
-                <button type="submit">Search</button>
-              </form>
+              <div className="shop-catalog-search-wrap">
+                <form className="shop-catalog-hero__search" onSubmit={submitSearch} role="search">
+                  <FaSearch aria-hidden="true" />
+                  <input
+                    type="search"
+                    placeholder="Search products, shops, or locations"
+                    value={searchText}
+                    onChange={(event) => setSearchText(event.target.value)}
+                    aria-label="Search products, shops, or locations"
+                    autoComplete="off"
+                  />
+                  <button type="submit">Search</button>
+                </form>
+                {searchText.trim().length >= 2 && (
+                  <div className="shop-catalog-search-suggestions" role="listbox" aria-label="Live search results">
+                    {liveSearchQuery.isFetching && <span className="shop-catalog-search-suggestions__loading">Searching ShopLink…</span>}
+                    {!liveSearchQuery.isFetching && !liveSearchProducts.length && !matchingShops.length && (
+                      <span className="shop-catalog-search-suggestions__loading">No matching products or shops yet.</span>
+                    )}
+                    {liveSearchProducts.slice(0, 4).map((product) => (
+                      <Link key={product._id} to={`/product/${product._id}`} role="option" className="shop-catalog-search-suggestion">
+                        <img src={getOptimizedProductImage(product.image, 100)} alt="" />
+                        <span><strong>{product.name}</strong><small>{product.shop?.name || "ShopLink product"} · KES {Number(product.price || 0).toLocaleString()}</small></span>
+                      </Link>
+                    ))}
+                    {availableShops
+                      .filter((shop) => [shop.name, shop.location, shop.description]
+                        .some((value) => String(value || "").toLowerCase().includes(debouncedSearch.toLowerCase())))
+                      .slice(0, 4)
+                      .map((shop) => (
+                        <Link key={shop._id} to={shop.type === "mall" ? `/malls/${shop._id}` : `/shops/${shop._id}`} role="option" className="shop-catalog-search-suggestion">
+                          <span className="shop-catalog-search-suggestion__shop"><FaStore aria-hidden="true" /></span>
+                          <span><strong>{shop.name}</strong><small>{shop.location} · {shop.type === "mall" ? "Mall" : "Shop"}</small></span>
+                        </Link>
+                      ))}
+                    <Link to={`/shop?keyword=${encodeURIComponent(searchText.trim())}`} className="shop-catalog-search-suggestions__all">
+                      See all results for “{searchText.trim()}” <FaArrowRight />
+                    </Link>
+                  </div>
+                )}
+              </div>
               <div className="shop-catalog-hero__actions">
                 <Link to="/shops/all">Explore local shops <FaArrowRight aria-hidden="true" /></Link>
                 <span><FaStore aria-hidden="true" /> {productCount} finds ready to explore</span>
@@ -335,6 +404,21 @@ const ShopUpdated = () => {
                   </label>
                 </div>
               </div>
+
+              {keyword && matchingShops.length > 0 && (
+                <section className="shop-search-shops" aria-label="Matching shops">
+                  <div><span>LOCAL STOREFRONTS</span><h3>Shops matching “{keyword}”</h3></div>
+                  <div className="shop-search-shops__grid">
+                    {matchingShops.map((shop) => (
+                      <Link to={shop.type === "mall" ? `/malls/${shop._id}` : `/shops/${shop._id}`} key={shop._id}>
+                        <img src={getOptimizedProductImage(shop.image, 180)} alt="" loading="lazy" />
+                        <span><strong>{shop.name}</strong><small>{shop.location} · {shop.type === "mall" ? "Mall" : "Shop"}</small></span>
+                        <FaArrowRight aria-hidden="true" />
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
 
               {Object.keys(grouped).length === 0 ? (
                 <div className="shop-catalog-empty">

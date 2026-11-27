@@ -10,6 +10,7 @@ import connectDB from './config/db.js';
 import userRoutes from './routes/userRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import shopRoutes from './routes/shopRoutes.js';
+import mallRoutes from './routes/mallRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
@@ -20,6 +21,7 @@ import riderRoutes from './routes/riderRoutes.js';
 import sellerRoutes from './routes/sellerRoutes.js';
 import marketingRoutes from './routes/marketingRoutes.js';
 import { startCartNudgeWorker } from './controllers/marketingController.js';
+import { startRiderSuspensionCleanupWorker } from './controllers/riderController.js';
 
 dotenv.config();
 const port = process.env.PORT || 8000;
@@ -105,6 +107,7 @@ app.use('/api/category', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/shops', shopRoutes);
+app.use('/api/malls', mallRoutes);
 app.use("/api/orders", orderRoutes);
 app.use('/api/payments', mpesaRoutes);
 app.use('/api/crops', cropRoutes);
@@ -174,6 +177,7 @@ const startServer = async () => {
   app.listen(port, '0.0.0.0', () => {
     console.log(`server is running on port: ${port}`);
     startCartNudgeWorker();
+    startRiderSuspensionCleanupWorker();
   });
 };
 

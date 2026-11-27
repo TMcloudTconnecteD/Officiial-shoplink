@@ -2,6 +2,7 @@ import { randomBytes } from "crypto";
 import asyncHandler from "../middlewares/asyncHandler.js";
 import CartActivity from "../models/cartActivityModel.js";
 import Order from "../models/orderModel.js";
+import PointsTransaction from "../models/pointsTransactionModel.js";
 import Product from "../models/productModel.js";
 import PromoImpression from "../models/promoImpressionModel.js";
 import PromoSettings from "../models/promoSettingsModel.js";
@@ -11,7 +12,6 @@ import Shop from "../models/shopModel.js";
 import User from "../models/userModel.js";
 import VoucherRedemption from "../models/voucherRedemptionModel.js";
 import { notifyUser } from "../services/notificationBadgeService.js";
-import { issueAutomaticRewardCredits } from "../services/rewardService.js";
 
 const MODULES = [
   "freshDrops",
@@ -307,11 +307,34 @@ const getPromoAnalytics = asyncHandler(async (req, res) => {
   res.json(analytics);
 });
 
+const getPointsAnalytics = asyncHandler(async (req, res) => {
+  if (!req.user.isSuperAdmin) return res.status(403).json({ message: "Points analytics are available to the super admin only." });
+  const [transactions, outstandingBalance] = await Promise.all([
+    PointsTransaction.aggregate([
+      { $group: { _id: "$type", points: { $sum: "$points" }, transactions: { $sum: 1 } } },
+    ]),
+    User.aggregate([
+      { $group: { _id: null, pointsBalance: { $sum: "$pointsBalance" }, pointsReserved: { $sum: "$pointsReserved" } } },
+    ]),
+  ]);
+  const totals = Object.fromEntries(transactions.map(({ _id, points, transactions: count }) => [_id, { points, transactions: count }]));
+  res.json({
+    pointsIssued: totals.earned?.points || 0,
+    pointsRedeemed: Math.max(0, (totals.spent?.points || 0) - (totals.refunded?.points || 0)),
+    pointsRefunded: totals.refunded?.points || 0,
+    pointsOutstanding: outstandingBalance[0]?.pointsBalance || 0,
+    pointsReserved: outstandingBalance[0]?.pointsReserved || 0,
+    transactionCounts: {
+      earned: totals.earned?.transactions || 0,
+      spent: totals.spent?.transactions || 0,
+      refunded: totals.refunded?.transactions || 0,
+    },
+  });
+});
+
 const getRewards = asyncHandler(async (req, res) => {
-  if (req.user.isAdmin || req.user.isSuperAdmin) return res.status(403).json({ message: "Rewards are available to customer accounts." });
-  await issueAutomaticRewardCredits(req.user._id);
   const [user, settings] = await Promise.all([
-    User.findById(req.user._id).select("referralCode pointsBalance username email"),
+    User.findById(req.user._id).select("referralCode pointsBalance pointsReserved username email"),
     PromoSettings.findOne({ key: "global" }).select("rewardProgramEnabled").lean(),
   ]);
   if (!user) return res.status(404).json({ message: "User not found." });
@@ -319,17 +342,26 @@ const getRewards = asyncHandler(async (req, res) => {
     user.referralCode = randomBytes(5).toString("hex").toUpperCase();
     await user.save();
   }
-  const [referrals, redemptions, rewardCredits] = await Promise.all([
+  const [referrals, redemptions, rewardCredits, transactions] = await Promise.all([
     Referral.find({ referrer: req.user._id }).populate("referredUser", "username").sort({ createdAt: -1 }).limit(50).lean(),
     VoucherRedemption.find({ user: req.user._id }).populate("voucher", "title description discountType discountValue").sort({ createdAt: -1 }).limit(50).lean(),
     RewardCredit.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(50).lean(),
+    PointsTransaction.find({ user: req.user._id }).populate("order", "_id totalPrice").sort({ createdAt: -1 }).limit(100).lean(),
   ]);
   res.json({
-    user: { username: user.username, email: user.email, referralCode: user.referralCode, pointsBalance: user.pointsBalance || 0 },
+    user: {
+      username: user.username,
+      email: user.email,
+      referralCode: user.referralCode,
+      pointsBalance: user.pointsBalance || 0,
+      pointsReserved: user.pointsReserved || 0,
+      availablePoints: Math.max(0, Number(user.pointsBalance || 0) - Number(user.pointsReserved || 0)),
+    },
     rewardProgramEnabled: settings?.rewardProgramEnabled !== false,
     referrals,
     redemptions,
     rewardCredits,
+    transactions,
   });
 });
 
@@ -405,6 +437,7 @@ export {
   updateFeaturedSlot,
   toggleProductFeature,
   getPromoAnalytics,
+  getPointsAnalytics,
   getRewards,
   getAllReferrals,
   startCartNudgeWorker,

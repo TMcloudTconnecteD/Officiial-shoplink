@@ -105,6 +105,7 @@ const getSellerAnalytics = asyncHandler(async (req, res) => {
     mostFavorited,
     salesTrend,
     recentOrders,
+    loyaltyPointsSummary,
   ] = await Promise.all([
     Product.countDocuments(shopFilter),
     Order.countDocuments(orderFilter),
@@ -142,6 +143,10 @@ const getSellerAnalytics = asyncHandler(async (req, res) => {
     ]),
     Order.find(orderFilter).sort({ createdAt: -1 }).limit(8)
       .populate("shop", "name").populate("user", "username").lean(),
+    Order.aggregate([
+      { $match: { ...orderFilter, sellerLoyaltyPointsAwardedAt: { $ne: null } } },
+      { $group: { _id: null, points: { $sum: "$sellerLoyaltyPointsAwarded" } } },
+    ]),
   ]);
   const paid = paidSummary[0] || { sales: 0, count: 0 };
 
@@ -154,6 +159,7 @@ const getSellerAnalytics = asyncHandler(async (req, res) => {
       pendingOrderCount,
       paidOrderCount: paid.count,
       totalSales: Number(paid.sales.toFixed(2)),
+      sellerLoyaltyPoints: loyaltyPointsSummary[0]?.points || 0,
     },
     bestSellers,
     mostReviewed,

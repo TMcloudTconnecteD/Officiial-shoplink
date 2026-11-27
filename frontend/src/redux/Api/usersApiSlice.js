@@ -43,7 +43,16 @@ export const usersApiSlice = apiSlice.injectEndpoints({
             url: `${USERS_URL}/profile`,
             method: 'PUT',
             body:data,
-          })
+          }),
+          invalidatesTags: ['User'],
+        }),
+
+        changePassword: builder.mutation({
+          query: data => ({
+            url: `${USERS_URL}/profile/password`,
+            method: 'PUT',
+            body: data,
+          }),
         }),
 
         getCurrentUserProfile: builder.query({
@@ -99,6 +108,7 @@ export const { useLoginMutation,
                 useLogoutMutation ,
                 useRegisterMutation,
                 useProfileMutation,
+                useChangePasswordMutation,
                 useGetCurrentUserProfileQuery,
                 useGetUsersQuery,
                 useDeleteUserMutation,

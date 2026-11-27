@@ -1,5 +1,5 @@
 import express from "express";
-import { createUser, deleteUserById, getAllUsers, getCurrentUserProfile, getUserById, logUser,logoutCurrentUser, updateCurrentUserProfile, updateUserById } from "../controllers/userController.js";
+import { changeCurrentUserPassword, createUser, deleteUserById, getAllUsers, getCurrentUserProfile, getUserById, logUser,logoutCurrentUser, updateCurrentUserProfile, updateUserById } from "../controllers/userController.js";
 import { authenticate, authorizeAdmin, authorizeSuperAdmin } from "../middlewares/authMiddlewares.js";
 import { get } from "mongoose";
 const router = express.Router();
@@ -87,6 +87,7 @@ router.post('/logout', logoutCurrentUser)
 router.route('/profile')
 .get(authenticate, getCurrentUserProfile)
 .put( authenticate, updateCurrentUserProfile)
+router.put('/profile/password', authenticate, changeCurrentUserPassword)
 
 
 //admin routes!!👇

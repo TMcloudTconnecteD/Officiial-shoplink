@@ -13,7 +13,10 @@ import {
   findOrderById,
   markOrderAsPaid,
   confirmCashPayment,
+  updateOrderStatus,
   markOrderAsDelivered,
+  confirmOrderReceipt,
+  restoreOrderRewardPoints,
   getReceipt,
 } from "../controllers/orderController.js";
 
@@ -30,6 +33,9 @@ router.route("/total-sales").get(authenticate, calculateTotalSales);
 router.route("/total-sales-by-date").get(authenticate, calculateTotalSalesByDate);
 router.route("/financial-summary").get(authenticate, authorizeAdmin, getOrderFinancialSummary);
 router.route("/:id/confirm-cash").put(authenticate, confirmCashPayment);
+router.route("/:id/status").put(authenticate, updateOrderStatus);
+router.route("/:id/confirm-receipt").put(authenticate, confirmOrderReceipt);
+router.route("/:id/restore-reward-points").post(authenticate, restoreOrderRewardPoints);
 
 // receipt route: allow optional authentication so logged-in users' details can be used in receipts
 router.get("/:id/receipt", optionalAuthenticate, getReceipt);

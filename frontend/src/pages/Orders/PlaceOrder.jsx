@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
@@ -16,15 +16,24 @@ const PlaceOrder = () => {
 
   const cart = useSelector((state) => state.cart);
   const { userInfo } = useSelector((state) => state.auth);
-  const isCustomer = Boolean(userInfo && !userInfo.isAdmin && !userInfo.isSuperAdmin);
   const { data: promoSettings } = useGetPromoSettingsQuery();
-  const { data: rewards } = useGetRewardsQuery(undefined, { skip: !isCustomer });
-  const hasAvailableReward = Boolean(
-    promoSettings?.rewardProgramEnabled !== false
-    && rewards?.rewardProgramEnabled !== false
-    && rewards?.rewardCredits?.some((credit) => credit.status === "available")
-  );
+  const { data: rewards, isLoading: loadingRewards, error: rewardsError } = useGetRewardsQuery(undefined, { skip: !userInfo });
+  const [rewardPointsToUse, setRewardPointsToUse] = useState(0);
   const [createOrder, { isLoading, error }] = useCreateOrderMutation();
+  const availablePoints = Number(rewards?.user?.availablePoints || 0);
+  const maxRedeemablePoints = Math.min(availablePoints, Math.floor(Number(cart.totalPrice || 0) * 10));
+  const appliedPoints = Math.min(
+    Math.max(0, Math.floor(Number(rewardPointsToUse) || 0)),
+    maxRedeemablePoints
+  );
+  const rewardsDiscount = Number((appliedPoints / 10).toFixed(2));
+  const legacyRewardCredit = rewards?.rewardCredits?.find((credit) => credit.status === "available");
+  const legacyRewardDiscount = appliedPoints === 0 && legacyRewardCredit
+    ? Math.min(Number(cart.totalPrice || 0), Number(legacyRewardCredit.discountAmount || 0))
+    : 0;
+  const finalTotal = Math.max(0, Number((Number(cart.totalPrice || 0) - rewardsDiscount - legacyRewardDiscount).toFixed(2)));
+  const rewardsEnabled = promoSettings?.rewardProgramEnabled !== false
+    && rewards?.rewardProgramEnabled !== false;
 
   useEffect(() => {
     if (!cart.shippingAddress.phone) {
@@ -47,6 +56,7 @@ const PlaceOrder = () => {
         shippingPrice: cart.shippingPrice,
         taxPrice: cart.taxPrice,
         totalPrice: cart.totalPrice,
+        rewardPointsToUse: appliedPoints,
         shop: cart.cartItems.length > 0 ? (typeof cart.cartItems[0].shop === 'object' ? cart.cartItems[0].shop._id : cart.cartItems[0].shop) : undefined,
       }).unwrap();
 
@@ -117,7 +127,22 @@ const PlaceOrder = () => {
                 <span className="font-semibold mb-4 block">Tax:</span> KES {cart.taxPrice}
               </li>
               <li>
-                <span className="font-semibold mb-4 block">Total:</span> KES {cart.totalPrice}
+                <span className="font-semibold mb-4 block">Subtotal:</span> KES {Number(cart.totalPrice || 0).toFixed(2)}
+              </li>
+              {appliedPoints > 0 && (
+                <li className="text-emerald-950">
+                  <span className="font-semibold mb-4 block">
+                    Rewards discount: -KES {rewardsDiscount.toFixed(2)} (from {appliedPoints.toLocaleString()} points)
+                  </span>
+                </li>
+              )}
+              {legacyRewardDiscount > 0 && (
+                <li className="text-emerald-950">
+                  <span className="font-semibold mb-4 block">Existing reward credit: -KES {legacyRewardDiscount.toFixed(2)}</span>
+                </li>
+              )}
+              <li>
+                <span className="font-semibold mb-4 block">Final total:</span> KES {finalTotal.toFixed(2)}
               </li>
             </ul>
 
@@ -136,20 +161,61 @@ const PlaceOrder = () => {
             </div>
           </div>
 
-          <div className={`mt-4 rounded-2xl border p-4 ${hasAvailableReward ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-slate-50"}`}>
-            <p className="font-semibold text-emerald-950">
-              {hasAvailableReward ? "Your KES 100 reward will apply automatically" : "ShopLink Rewards"}
-            </p>
+          <div className={`mt-4 rounded-2xl border p-4 ${userInfo ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-slate-50"}`}>
+            <p className="font-semibold text-emerald-950">ShopLink Rewards</p>
             <p className="mt-1 text-sm text-emerald-900">
-              {hasAvailableReward
-                ? `A reward linked to ${rewards.user.email} will be applied to this order. If it covers the total, you'll owe KES 0.`
-                : promoSettings?.rewardProgramEnabled === false
-                  ? "Rewards are temporarily paused. Your existing points and vouchers are kept safe."
-                  : isCustomer
-                    ? `${rewards?.user?.email || userInfo.email} earns 10 points per paid order. At 1,000 points, KES 100 is automatically saved for the next order.`
-                    : "Sign in to earn 10 points per paid order. Every 1,000 points unlocks KES 100 off a future order."}
+              {userInfo
+                ? `${availablePoints.toLocaleString()} points available. Every point is worth KES 0.10; points are deducted after payment is confirmed.`
+                : "Sign in to use your points at checkout. Earn points when you pay for orders and when friends you refer complete their first order."}
             </p>
-            {!userInfo && <Link to="/login?redirect=%2Fstudent-friendly" className="mt-2 inline-flex font-semibold text-emerald-800 underline">Sign in to track rewards</Link>}
+            {userInfo && (
+              <div className="mt-3 flex flex-wrap items-end gap-3">
+                <label className="grid gap-1 text-sm font-semibold text-emerald-950">
+                  Points to use
+                  <input
+                    type="number"
+                    min="0"
+                    max={maxRedeemablePoints}
+                    step="1"
+                    value={rewardPointsToUse}
+                    disabled={!rewardsEnabled || loadingRewards || !rewards?.user || maxRedeemablePoints === 0}
+                    onChange={(event) => setRewardPointsToUse(Math.max(0, Math.floor(Number(event.target.value) || 0)))}
+                    className="min-h-10 w-36 rounded-lg border border-emerald-200 bg-white px-3"
+                    aria-label="Reward points to use"
+                  />
+                </label>
+                <button
+                  type="button"
+                  disabled={!rewardsEnabled || loadingRewards || !rewards?.user || maxRedeemablePoints === 0}
+                  onClick={() => setRewardPointsToUse(maxRedeemablePoints)}
+                  className="min-h-10 rounded-lg border border-emerald-700 px-3 text-sm font-bold text-emerald-800 disabled:opacity-50"
+                >
+                  Use maximum
+                </button>
+                <Link to="/my-rewards" className="text-sm font-bold text-emerald-800 underline">
+                  My Rewards
+                </Link>
+              </div>
+            )}
+            {userInfo && appliedPoints > 0 && (
+              <p className="mt-3 text-sm font-bold text-emerald-950">
+                Rewards discount: -KES {rewardsDiscount.toFixed(2)} (from {appliedPoints.toLocaleString()} points)
+              </p>
+            )}
+            {userInfo && legacyRewardDiscount > 0 && (
+              <p className="mt-2 text-sm font-bold text-emerald-950">
+                Your existing KES {Number(legacyRewardCredit?.discountAmount || 0).toFixed(2)} reward credit applies when you don't select points.
+              </p>
+            )}
+            {userInfo && !rewardsEnabled && (
+              <p className="mt-2 text-sm text-amber-800" role="status">Rewards redemption is temporarily paused.</p>
+            )}
+            {userInfo && rewardsError && (
+              <p className="mt-2 text-sm text-red-700" role="alert">
+                Your points wallet could not be loaded. Refresh checkout before applying rewards.
+              </p>
+            )}
+            {!userInfo && <Link to="/login?redirect=%2Fplaceorder" className="mt-2 inline-flex font-semibold text-emerald-800 underline">Sign in to use points</Link>}
           </div>
 
           {error && (

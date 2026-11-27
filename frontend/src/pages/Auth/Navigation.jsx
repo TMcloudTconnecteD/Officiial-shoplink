@@ -6,12 +6,17 @@ import {
   AiOutlineShoppingCart,
   AiOutlineSearch,
 } from "react-icons/ai";
-import { FaBell, FaHeart, FaRegHeart, FaStore, FaDownload, FaGraduationCap } from "react-icons/fa";
+import { FaBell, FaHeart, FaStore, FaDownload } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useGetCurrentUserProfileQuery, useLogoutMutation } from "../../redux/Api/usersApiSlice.js";
-import { logout, setCredentials } from "../../redux/features/auth/authSlice.js";
-import ShopLinkMark from "../../components/ShopLinkMark.jsx";
+import { useLogoutMutation } from "../../redux/Api/usersApiSlice.js";
+import { useGetProductsQuery } from "../../redux/Api/productApiSlice.js";
+import { useFetchShopsQuery } from "../../redux/Api/shopApiSlice.js";
+import { logout } from "../../redux/features/auth/authSlice.js";
+import {
+  useGetNotificationsQuery,
+  useMarkNotificationReadMutation,
+} from "../../redux/Api/notificationApiSlice.js";
 
 import {
   clearCartItems,
@@ -21,15 +26,6 @@ import {
   clearFavorites,
   loadFavoritesForUser,
 } from "../../redux/features/favorites/favoriteSlice.js";
-import {
-  useGetNotificationsQuery,
-  useMarkNotificationReadMutation,
-  useMarkNotificationsReadMutation,
-} from "../../redux/Api/notificationApiSlice.js";
-import { apiSlice } from "../../redux/Api/apiSlice.js";
-import { toast } from "react-toastify";
-import { useGetCartNudgeStatusQuery, useLogPromoEventMutation } from "../../redux/Api/marketingApiSlice.js";
-import { reportPromoEvent } from "../../components/marketing/marketingUtils.js";
 
 const Navigation = () => {
   const { userInfo } = useSelector((state) => state.auth);
@@ -38,105 +34,50 @@ const Navigation = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const [logoutApiCall] = useLogoutMutation();
-  const { data: currentProfile } = useGetCurrentUserProfileQuery(undefined, {
-    skip: !userInfo,
-    refetchOnMountOrArgChange: true,
-  });
-
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const searchRef = useRef();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const { data: notificationData, isError: notificationsError, refetch: refetchNotifications } = useGetNotificationsQuery(userInfo?._id || userInfo?.id, {
+  const [logoutApiCall] = useLogoutMutation();
+  const { data: notificationData, isLoading: loadingNotifications, error: notificationError } = useGetNotificationsQuery(undefined, {
     skip: !userInfo,
-    pollingInterval: userInfo ? 10000 : 0,
-    skipPollingIfUnfocused: true,
-    refetchOnFocus: true,
-    refetchOnReconnect: true,
+    pollingInterval: 60000,
   });
-  const [markNotificationsRead, { isLoading: isMarkingRead }] = useMarkNotificationsReadMutation();
   const [markNotificationRead] = useMarkNotificationReadMutation();
-  const notifications = notificationData?.notifications || [];
-  const notificationCount = Number(notificationData?.count || 0);
-  const isAdmin = Boolean(userInfo?.isAdmin || userInfo?.isSuperAdmin);
-  const isSuperAdmin = Boolean(userInfo?.isSuperAdmin);
+  const { data: searchData, isFetching: searchingProducts } = useGetProductsQuery(
+    { keyword: debouncedSearch },
+    { skip: debouncedSearch.length < 2 }
+  );
+  const { data: shopData = [] } = useFetchShopsQuery();
+  const products = Array.isArray(searchData)
+    ? searchData
+    : Array.isArray(searchData?.products) ? searchData.products : [];
+  const shops = Array.isArray(shopData?.data) ? shopData.data : Array.isArray(shopData) ? shopData : [];
+  const matchingShops = shops
+    .filter((shop) => [shop.name, shop.location, shop.description]
+      .some((value) => String(value || "").toLowerCase().includes(debouncedSearch.toLowerCase())))
+    .slice(0, 4);
 
   useEffect(() => {
-    const roleChanged = currentProfile && userInfo && (
-      Boolean(currentProfile.isAdmin) !== Boolean(userInfo.isAdmin)
-      || Boolean(currentProfile.isSuperAdmin) !== Boolean(userInfo.isSuperAdmin)
-      || Boolean(currentProfile.isSeller) !== Boolean(userInfo.isSeller)
-      || currentProfile.sellerStatus !== userInfo.sellerStatus
-    );
-    if (roleChanged) {
-      dispatch(setCredentials({
-        ...userInfo,
-        ...currentProfile,
-        token: userInfo.token,
-      }));
-    }
-  }, [currentProfile, dispatch, userInfo]);
+    const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 250);
+    return () => window.clearTimeout(timer);
+  }, [search]);
 
-  const favoriteCount = favorites.filter((product) => (
-    product && typeof product === "object" && typeof product._id === "string" && product._id.trim()
-  )).length;
+  const favoriteCount = Number(Array.isArray(favorites) ? favorites.length : 0);
   const cartCount = cartItems?.reduce((a, c) => a + (c.qty || 1), 0) || 0;
-  const { data: cartNudge } = useGetCartNudgeStatusQuery(undefined, {
-    skip: !userInfo || userInfo.isAdmin || userInfo.isSuperAdmin,
-    pollingInterval: userInfo && !userInfo.isAdmin && !userInfo.isSuperAdmin ? 60000 : 0,
-    skipPollingIfUnfocused: true,
-  });
-  const [logPromoEvent] = useLogPromoEventMutation();
-  const cartNudgeSeen = useRef(false);
-  useEffect(() => {
-    if (cartNudge?.show && !cartNudgeSeen.current) {
-      reportPromoEvent(logPromoEvent, "cartNudge", "impression");
-      cartNudgeSeen.current = true;
-    } else if (!cartNudge?.show) {
-      cartNudgeSeen.current = false;
-    }
-  }, [cartNudge?.show, logPromoEvent]);
 
   const logoutHandler = async () => {
     try {
       await logoutApiCall().unwrap();
-    } catch {
-      // ignore errors; still clear local session
+    } catch (error) {
+      console.error("Could not log out cleanly:", error);
     } finally {
       dispatch(clearCartItems());
       dispatch(clearFavorites());
       dispatch(logout());
-      dispatch(apiSlice.util.resetApiState());
       navigate("/login");
     }
-  };
-  const openNotification = async (notification) => {
-    const notificationId = notification._id || notification.id;
-    if (notificationId && !notification.read) {
-      try {
-        await markNotificationRead(notificationId).unwrap();
-      } catch (error) {
-        toast.error(error?.data?.message || "Could not update notification status");
-      }
-    }
-
-    const orderId = notification.message?.match(/order\s+([a-f\d]{24})/i)?.[1];
-    const fallbackLink = notification.type === "order" || notification.type === "payment"
-      ? (orderId ? `/order/${orderId}` : userInfo?.isAdmin ? "/admin/orderlist" : "/profile")
-      : notification.type === "rider"
-        ? (userInfo?.isAdmin ? "/admin/riders" : "/ride-boda")
-        : notification.type === "seller"
-        ? (userInfo?.isSuperAdmin ? "/admin/shops" : userInfo?.isAdmin ? "/admin/my-shop" : "/shops/all")
-          : userInfo?.isAdmin ? "/admin/dashboard" : "/profile";
-    const link = typeof notification.link === "string"
-      && notification.link.startsWith("/")
-      && !notification.link.startsWith("//")
-      ? notification.link
-      : fallbackLink;
-
-    setNotificationsOpen(false);
-    navigate(link);
   };
 
   const handleDownloadApp = () => {
@@ -145,18 +86,16 @@ const Navigation = () => {
 
   const toggleDropdown = () => setDropdownOpen((prev) => !prev);
   const handleOptionClick = () => setDropdownOpen(false);
-  const toggleNotifications = () => {
-    const willOpen = !notificationsOpen;
-    setNotificationsOpen(willOpen);
-    if (willOpen) refetchNotifications();
-  };
-  const handleMarkNotificationsRead = async () => {
-    try {
-      await markNotificationsRead().unwrap();
-    } catch (error) {
-      console.error("Could not mark notifications as read:", error);
-      toast.error(error?.data?.message || "Could not mark notifications as read");
+  const openNotification = async (notification) => {
+    if (!notification.read) {
+      try {
+        await markNotificationRead(notification._id).unwrap();
+      } catch (error) {
+        console.error("Could not mark notification as read:", error);
+      }
     }
+    setNotificationsOpen(false);
+    if (notification.link) navigate(notification.link);
   };
 
   useEffect(() => {
@@ -191,8 +130,8 @@ const Navigation = () => {
   const bottomNavItems = [
     { name: "Home", icon: <AiOutlineHome size={24} />, path: "/" },
     { name: "Shop", icon: <AiOutlineShop size={24} />, path: "/shop" },
-    { name: "Malls", icon: <FaStore size={22} />, path: "/shops/all" },
-    { name: "Favorites", icon: favoriteCount > 0 ? <FaHeart size={22} /> : <FaRegHeart size={22} />, path: "/favorite" },
+    { name: "Malls", icon: <FaStore size={22} />, path: "/malls" },
+    { name: "Favorites", icon: <FaHeart size={22} />, path: "/favorite" },
     { name: "Cart", icon: <AiOutlineShoppingCart size={24} />, path: "/cart" },
   ];
 
@@ -201,7 +140,7 @@ const Navigation = () => {
       <nav className="shoplink-header" aria-label="Main navigation">
         <div className="shoplink-shell shoplink-header__inner">
           <Link to="/" className="shoplink-brand" aria-label="ShopLink home">
-            <ShopLinkMark />
+            <span className="shoplink-brand__mark">S</span>
             <span className="shoplink-brand__text-wrap">
               <span className="shoplink-brand__name">ShopLink</span>
               <span className="shoplink-brand__tag">Campus shopping</span>
@@ -216,9 +155,49 @@ const Navigation = () => {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleSearchKey}
-                placeholder="Search products, brands..."
-                aria-label="Search products"
+                placeholder="Search products, shops, or locations..."
+                aria-label="Search products, shops, or locations"
+                autoComplete="off"
               />
+              {search.trim().length >= 2 && (
+                <div className="shoplink-search-results" role="listbox" aria-label="Live search results">
+                  {searchingProducts && <p className="shoplink-search-results__empty">Searching ShopLink…</p>}
+                  {!searchingProducts && products.length === 0 && matchingShops.length === 0 && (
+                    <p className="shoplink-search-results__empty">No matching products or shops yet.</p>
+                  )}
+                  {products.slice(0, 4).map((product) => (
+                    <Link
+                      key={product._id}
+                      to={`/product/${product._id}`}
+                      role="option"
+                      className="shoplink-search-results__item"
+                      onClick={() => setSearch("")}
+                    >
+                      <img src={product.image} alt="" loading="lazy" />
+                      <span><strong>{product.name}</strong><small>{product.shop?.name || "ShopLink product"} · KES {Number(product.price || 0).toLocaleString()}</small></span>
+                    </Link>
+                  ))}
+                  {matchingShops.map((shop) => (
+                    <Link
+                      key={shop._id}
+                      to={shop.type === "mall" ? `/malls/${shop._id}` : `/shops/${shop._id}`}
+                      role="option"
+                      className="shoplink-search-results__item"
+                      onClick={() => setSearch("")}
+                    >
+                      <span className="shoplink-search-results__shop-icon"><FaStore /></span>
+                      <span><strong>{shop.name}</strong><small>{shop.location} · {shop.type === "mall" ? "Mall" : "Shop"}</small></span>
+                    </Link>
+                  ))}
+                  <Link
+                    to={`/shop?keyword=${encodeURIComponent(search.trim())}`}
+                    className="shoplink-search-results__all"
+                    onClick={() => setSearch("")}
+                  >
+                    View all matches <span aria-hidden="true">→</span>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
 
@@ -226,89 +205,64 @@ const Navigation = () => {
             <Link to="/shop" className="shoplink-header__link shoplink-header__link--desktop">
               Shop
             </Link>
-            <Link to="/shops/all" className="shoplink-header__icon" aria-label="Browse malls">
+            <Link to="/malls" className="shoplink-header__icon" aria-label="Browse malls">
               <FaStore />
             </Link>
-            <Link
-              to="/favorite"
-              className={`shoplink-header__icon${favoriteCount > 0 ? " shoplink-header__icon--fav" : " shoplink-header__icon--fav-empty"}`}
-              aria-label={favoriteCount > 0 ? `Favorites, ${favoriteCount} selected` : "Favorites"}
-            >
-              {favoriteCount > 0 ? <FaHeart /> : <FaRegHeart className="shoplink-header__fav-empty" />}
+            <Link to="/favorite" className="shoplink-header__icon shoplink-header__icon--fav" aria-label="Favorites">
+              <FaHeart />
               {favoriteCount > 0 && (
                 <span className="shoplink-header__badge">
-                  {favoriteCount > 99 ? "99+" : favoriteCount}
+                  {favoriteCount}
                 </span>
               )}
             </Link>
-            <Link
-              to="/cart"
-              className="shoplink-header__icon"
-              aria-label={cartNudge?.show ? `Cart, ${cartNudge.itemCount} items waiting` : "Cart"}
-              onClick={() => cartNudge?.show && reportPromoEvent(logPromoEvent, "cartNudge", "click")}
-            >
-              <AiOutlineShoppingCart />
-              {cartCount > 0 && <span className="shoplink-header__badge shoplink-header__badge--cart">{cartCount}</span>}
-              {cartNudge?.show && <span className="shoplink-cart-nudge">{cartNudge.itemCount} waiting</span>}
-            </Link>
             {userInfo && (
-              <div className="shoplink-header__notifications">
+              <div className="shoplink-notifications">
                 <button
                   type="button"
-                  className="shoplink-header__icon"
-                  aria-label={`Notifications${notificationCount ? `, ${notificationCount} unread` : ""}`}
+                  className="shoplink-header__icon shoplink-notifications__button"
+                  aria-label="Notifications"
                   aria-expanded={notificationsOpen}
-                  onClick={toggleNotifications}
+                  onClick={() => setNotificationsOpen((open) => !open)}
                 >
                   <FaBell />
-                  {notificationCount > 0 && (
-                    <span className="shoplink-header__badge">{notificationCount > 99 ? "99+" : notificationCount}</span>
+                  {notificationData?.count > 0 && (
+                    <span className="shoplink-header__badge">{notificationData.count}</span>
                   )}
                 </button>
                 {notificationsOpen && (
-                  <section className="shoplink-notification-panel" aria-label="Notifications">
-                    <div className="shoplink-notification-panel__header">
+                  <section className="shoplink-notifications__panel" aria-label="Your notifications">
+                    <div className="shoplink-notifications__heading">
                       <strong>Notifications</strong>
-                      {notificationCount > 0 && (
+                      <span>{notificationData?.count || 0} unread</span>
+                    </div>
+                    {loadingNotifications && <p className="shoplink-notifications__empty">Loading notifications…</p>}
+                    {notificationError && <p className="shoplink-notifications__empty" role="alert">Notifications could not be loaded.</p>}
+                    {!loadingNotifications && !notificationError && !notificationData?.notifications?.length && (
+                      <p className="shoplink-notifications__empty">You’re all caught up.</p>
+                    )}
+                    <div className="shoplink-notifications__list">
+                      {notificationData?.notifications?.slice(0, 12).map((notification) => (
                         <button
                           type="button"
-                          onClick={handleMarkNotificationsRead}
-                          disabled={isMarkingRead}
+                          key={notification._id}
+                          className={`shoplink-notifications__item ${notification.read ? "" : "is-unread"}`}
+                          onClick={() => openNotification(notification)}
                         >
-                          Mark all read
+                          <strong>{notification.title}</strong>
+                          <span>{notification.message}</span>
+                          <time dateTime={notification.createdAt}>{new Date(notification.createdAt).toLocaleString()}</time>
                         </button>
-                      )}
+                      ))}
                     </div>
-                    {notificationsError ? (
-                      <p role="alert" className="shoplink-notification-empty">Notifications are unavailable right now.</p>
-                    ) : notifications.length > 0 ? (
-                      <ul className="shoplink-notification-list">
-                        {notifications.slice(0, 8).map((notification) => (
-                          <li key={notification._id || notification.id}>
-                            <button
-                              type="button"
-                              className={`shoplink-notification-item${notification.read ? " is-read" : ""}`}
-                              onClick={() => openNotification(notification)}
-                            >
-                              <span className="shoplink-notification-item__title">
-                                <strong>{notification.title}</strong>
-                                {!notification.read && <span className="shoplink-notification-item__unread" aria-label="Unread" />}
-                              </span>
-                              <span className="shoplink-notification-item__message">{notification.message}</span>
-                              <time dateTime={notification.createdAt}>
-                                {new Date(notification.createdAt).toLocaleString()}
-                              </time>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="shoplink-notification-empty">You’re all caught up.</p>
-                    )}
                   </section>
                 )}
               </div>
             )}
+            <Link to="/cart" className="shoplink-header__icon" aria-label="Cart">
+              <AiOutlineShoppingCart />
+              {cartCount > 0 && <span className="shoplink-header__badge shoplink-header__badge--cart">{cartCount}</span>}
+            </Link>
 
             <button
               type="button"
@@ -337,25 +291,22 @@ const Navigation = () => {
 
                 {dropdownOpen && (
                   <ul className="shoplink-header__dropdown">
-                    {isAdmin && (
+                    <li><Link to="/my-orders" onClick={handleOptionClick}>My Orders</Link></li>
+                    <li><Link to="/my-rewards" onClick={handleOptionClick}>My Rewards</Link></li>
+                    <li><Link to="/profile" onClick={handleOptionClick}>Account settings</Link></li>
+                    {userInfo.isAdmin && (
                       <>
-                        <li><Link to="/admin/dashboard" onClick={handleOptionClick}>Admin dashboard</Link></li>
-                        <li><Link to={isSuperAdmin ? "/admin/shops" : "/admin/my-shop"} onClick={handleOptionClick}>{isSuperAdmin ? "All shops" : "My shop"}</Link></li>
-                        <li><Link to="/admin/productlist" onClick={handleOptionClick}>Create product</Link></li>
-                        <li><Link to="/admin/allproductslist" onClick={handleOptionClick}>Manage products</Link></li>
+                        <li><Link to="/admin/productlist" onClick={handleOptionClick}>Products</Link></li>
                         <li><Link to="/admin/orderlist" onClick={handleOptionClick}>Orders</Link></li>
                       </>
                     )}
-                    {isSuperAdmin && (
+                    {userInfo.isSuperAdmin && (
                       <>
-                        <li><Link to="/admin/shop/add" onClick={handleOptionClick}>Add shop</Link></li>
+                        <li><Link to="/admin/shops" onClick={handleOptionClick}>Shops</Link></li>
                         <li><Link to="/admin/users" onClick={handleOptionClick}>Users</Link></li>
                         <li><Link to="/admin/categories" onClick={handleOptionClick}>Categories</Link></li>
-                        <li><Link to="/admin/sellers" onClick={handleOptionClick}>Seller applications</Link></li>
-                        <li><Link to="/admin/riders" onClick={handleOptionClick}>Rider applications</Link></li>
                       </>
                     )}
-                    {!isAdmin && <li><Link to="/student-friendly" onClick={handleOptionClick}><FaGraduationCap aria-hidden="true" /> Student Friendly</Link></li>}
                     <li><button type="button" onClick={logoutHandler}>Logout</button></li>
                   </ul>
                 )}
@@ -378,12 +329,10 @@ const Navigation = () => {
             <Link
               key={item.name}
               to={item.path}
-              onClick={() => item.name === "Cart" && cartNudge?.show && reportPromoEvent(logPromoEvent, "cartNudge", "click")}
               className={`shoplink-bottom-nav__item ${isActive ? 'is-active' : ''}`}
             >
               {item.icon}
               {badge > 0 && <span className="shoplink-bottom-nav__badge">{badge}</span>}
-              {item.name === "Cart" && cartNudge?.show && <span className="shoplink-bottom-nav__badge shoplink-cart-nudge-dot">{cartNudge.itemCount}</span>}
               <span>{item.name}</span>
             </Link>
           );

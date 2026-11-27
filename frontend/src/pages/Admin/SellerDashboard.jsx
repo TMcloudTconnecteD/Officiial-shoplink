@@ -12,6 +12,7 @@ import Loader from "../../components/Loader";
 import Message from "../../components/Message";
 import { useGetSellerAnalyticsQuery } from "../../redux/Api/sellerApiSlice";
 import AdminMenu from "./AdminMenu";
+import MallBuilderPanel from "./MallBuilderPanel.jsx";
 import "./AdminWorkspace.css";
 
 const money = (value) => `KES ${Number(value || 0).toLocaleString()}`;
@@ -70,6 +71,7 @@ const SellerDashboard = () => {
     { label: "Orders", value: summary.orderCount || 0, icon: FaClipboardList, tone: "orders" },
     { label: "Waiting for payment", value: summary.pendingOrderCount || 0, icon: FaClock, tone: "pending" },
     { label: "Products", value: summary.productCount || 0, icon: FaBoxOpen, tone: "products" },
+    { label: "Receipt-confirmed points", value: summary.sellerLoyaltyPoints || 0, icon: FaStar, tone: "loyalty" },
   ];
 
   return (
@@ -85,6 +87,8 @@ const SellerDashboard = () => {
           <FaBoxOpen aria-hidden="true" /> Manage my shop
         </Link>
       </header>
+
+      <MallBuilderPanel />
 
       <section className="seller-dashboard__stats" aria-label="Shop performance">
         {stats.map(({ label, value, icon: Icon, tone }) => (

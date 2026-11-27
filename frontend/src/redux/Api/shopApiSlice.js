@@ -15,6 +15,56 @@ export const shopApiSlice = apiSlice.injectEndpoints({
             providesTags: ['Shop'],
             
         }),
+        getMallOverview: builder.query({
+            query: () => `${SHOP_URL}/mall-overview`,
+            providesTags: ['Shop', 'Products'],
+        }),
+        getMalls: builder.query({
+            query: () => "/api/malls",
+            providesTags: ["Mall"],
+        }),
+        getMallDetails: builder.query({
+            query: (mallId) => `/api/malls/${mallId}`,
+            providesTags: (_result, _error, mallId) => [{ type: "Mall", id: mallId }],
+        }),
+        getMallProgress: builder.query({
+            query: () => "/api/malls/progress/me",
+            providesTags: ["Mall", "Shop"],
+        }),
+        getMallAnalytics: builder.query({
+            query: (mallId) => `/api/malls/${mallId}/analytics`,
+            providesTags: (_result, _error, mallId) => [{ type: "Mall", id: `analytics-${mallId}` }],
+        }),
+        recordMallVisit: builder.mutation({
+            query: ({ mallId, visitorKey }) => ({
+                url: `/api/malls/${mallId}/visit`,
+                method: "POST",
+                body: { visitorKey },
+            }),
+        }),
+        convertShopToMall: builder.mutation({
+            query: (shopId) => ({
+                url: `/api/malls/convert/${shopId}`,
+                method: "POST",
+            }),
+            invalidatesTags: ["Mall", "Shop"],
+        }),
+        createMallChildShop: builder.mutation({
+            query: ({ mallId, formData }) => ({
+                url: `/api/malls/${mallId}/shops`,
+                method: "POST",
+                body: formData,
+            }),
+            invalidatesTags: (_result, _error, { mallId }) => ["Mall", "Shop", { type: "Mall", id: `analytics-${mallId}` }],
+        }),
+        updateMallFeature: builder.mutation({
+            query: ({ mallId, featured }) => ({
+                url: `/api/malls/${mallId}/feature`,
+                method: "PATCH",
+                body: { featured },
+            }),
+            invalidatesTags: ["Mall"],
+        }),
 
         // Create a new shop
         createShop: builder.mutation({
@@ -81,6 +131,15 @@ export const {
     useUpdateShopMutation,
     useDeleteShopMutation,
     useFetchShopsQuery,
+    useGetMallOverviewQuery,
+    useGetMallsQuery,
+    useGetMallDetailsQuery,
+    useGetMallProgressQuery,
+    useGetMallAnalyticsQuery,
+    useRecordMallVisitMutation,
+    useConvertShopToMallMutation,
+    useCreateMallChildShopMutation,
+    useUpdateMallFeatureMutation,
     useFetchShopsByCategoryQuery,
     useUploadShopImageMutation,
     useGetShopDetailsQuery,

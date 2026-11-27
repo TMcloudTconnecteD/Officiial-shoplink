@@ -1,0 +1,237 @@
+.shoplink-rewards {
+  width: min(940px, 100%);
+  min-height: 65vh;
+  margin: 0 auto;
+  padding: 18px 18px 54px;
+  color: #233943;
+}
+
+.shoplink-rewards__hero,
+.shoplink-rewards__history,
+.shoplink-rewards__error {
+  border: 1px solid #e1eae8;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgb(24 53 60 / 5%);
+}
+
+.shoplink-rewards__hero {
+  padding: clamp(24px, 5vw, 42px);
+  background:
+    radial-gradient(circle at 88% 12%, rgb(253 230 138 / 50%), transparent 25%),
+    linear-gradient(135deg, #f1fbf7, #fff8f1);
+  text-align: center;
+}
+
+.shoplink-rewards__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #087c71;
+  font-size: .72rem;
+  font-weight: 850;
+  letter-spacing: .13em;
+}
+
+.shoplink-rewards__hero h1 {
+  margin: 10px 0 8px;
+  color: #172b3a;
+  font-size: clamp(1.8rem, 4vw, 2.7rem);
+  font-weight: 800;
+  letter-spacing: -.04em;
+}
+
+.shoplink-rewards__hero > p {
+  margin: 0 auto;
+  color: #64777d;
+  font-size: .92rem;
+  line-height: 1.55;
+}
+
+.shoplink-rewards__balance {
+  display: grid;
+  gap: 2px;
+  margin: 25px 0 16px;
+}
+
+.shoplink-rewards__balance strong {
+  color: #087c71;
+  font-size: clamp(2.4rem, 8vw, 4rem);
+  font-weight: 850;
+  letter-spacing: -.06em;
+  line-height: 1;
+}
+
+.shoplink-rewards__balance span {
+  margin-top: 6px;
+  color: #536a70;
+  font-size: .85rem;
+  font-weight: 700;
+}
+
+.shoplink-rewards__progress {
+  overflow: hidden;
+  width: min(520px, 100%);
+  height: 12px;
+  margin: 0 auto;
+  border-radius: 999px;
+  background: #dcebe5;
+}
+
+.shoplink-rewards__progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #0e9b83, #67c89d);
+  transition: width 180ms ease;
+}
+
+.shoplink-rewards__hero > .shoplink-rewards__milestone {
+  margin-top: 11px;
+  color: #16463f;
+  font-size: .87rem;
+  font-weight: 750;
+}
+
+.shoplink-rewards__hero > .shoplink-rewards__available {
+  margin-top: 5px;
+  color: #718087;
+  font-size: .75rem;
+}
+
+.shoplink-rewards__history {
+  margin-top: 18px;
+  padding: 22px;
+}
+
+.shoplink-rewards__section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 14px;
+}
+
+.shoplink-rewards__section-heading > div > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #087c71;
+  font-size: .66rem;
+  font-weight: 850;
+  letter-spacing: .1em;
+}
+
+.shoplink-rewards__section-heading h2 {
+  margin: 5px 0 0;
+  color: #172b3a;
+  font-size: 1.15rem;
+  font-weight: 780;
+}
+
+.shoplink-rewards__section-heading > a {
+  color: #087c71;
+  font-size: .8rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.shoplink-rewards__transactions {
+  display: grid;
+}
+
+.shoplink-rewards__transactions article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 0;
+  border-top: 1px solid #edf2f1;
+}
+
+.shoplink-rewards__transactions article > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.shoplink-rewards__transactions article > div > strong {
+  color: #263b42;
+  font-size: .87rem;
+}
+
+.shoplink-rewards__transactions article > div > span,
+.shoplink-rewards__transactions time,
+.shoplink-rewards__transactions a {
+  overflow-wrap: anywhere;
+  color: #718087;
+  font-size: .74rem;
+}
+
+.shoplink-rewards__transactions a {
+  color: #087c71;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.shoplink-rewards__points {
+  flex: 0 0 auto;
+  font-size: .95rem;
+  font-weight: 800;
+}
+
+.shoplink-rewards__points--earned,
+.shoplink-rewards__points--refunded {
+  color: #087c71;
+}
+
+.shoplink-rewards__points--spent {
+  color: #b4534b;
+}
+
+.shoplink-rewards__empty,
+.shoplink-rewards__notice,
+.shoplink-rewards__error {
+  color: #64777d;
+  font-size: .85rem;
+  line-height: 1.5;
+}
+
+.shoplink-rewards__empty {
+  margin: 0;
+  padding: 24px 0 8px;
+  border-top: 1px solid #edf2f1;
+}
+
+.shoplink-rewards__notice {
+  margin-top: 14px;
+  padding: 13px 15px;
+  border: 1px solid #f1d88a;
+  border-radius: 12px;
+  background: #fffbeb;
+  color: #875f12;
+}
+
+.shoplink-rewards__error {
+  padding: 22px;
+}
+
+.shoplink-rewards__error h1 {
+  margin: 0 0 8px;
+  color: #172b3a;
+}
+
+@media (max-width: 560px) {
+  .shoplink-rewards {
+    padding: 12px 12px 40px;
+  }
+
+  .shoplink-rewards__history {
+    padding: 17px 14px;
+  }
+
+  .shoplink-rewards__section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

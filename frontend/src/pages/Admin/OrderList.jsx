@@ -1,11 +1,16 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { FaBoxOpen, FaSearch } from "react-icons/fa";
+import { toast } from "react-toastify";
 import Message from "../../components/Message";
 import Loader from "../../components/Loader";
+import { ORDER_STATUS_STEPS, getOrderFulfillmentStatus } from "../../components/orders/orderStatus";
 import {
+  useDeliverOrderMutation,
   useGetOrderFinancialSummaryQuery,
   useGetOrdersQuery,
+  useUpdateOrderStatusMutation,
 } from "../../redux/Api/orderApiSlice";
 import AdminMenu from "./AdminMenu";
 import "./AdminWorkspace.css";
@@ -22,8 +27,13 @@ const getOrderSearchText = (order) => [
   order?.paymentResult?.id,
   order?.checkoutRequestId,
   order?.shop?.name,
+  ...(order?.shopFulfillments || []).map((fulfillment) => fulfillment.shop?.name),
   ...(order?.orderItems || []).map((item) => item?.name),
 ].filter(Boolean).join(" ").toLowerCase();
+
+const getStatusLabel = (status) => (
+  ORDER_STATUS_STEPS.find((step) => step.status === status)?.label || "Awaiting payment"
+);
 
 const OrderList = ({ showMenu = true }) => {
   const { data: orders = [], isLoading, error } = useGetOrdersQuery(undefined, {
@@ -34,7 +44,37 @@ const OrderList = ({ showMenu = true }) => {
     pollingInterval: 30000,
     refetchOnFocus: true,
   });
+  const { userInfo } = useSelector((state) => state.auth);
   const [search, setSearch] = useState("");
+  const [updatingOrderId, setUpdatingOrderId] = useState(null);
+  const [updateOrderStatus] = useUpdateOrderStatusMutation();
+  const [deliverOrder] = useDeliverOrderMutation();
+
+  const moveOrderForward = async (order, status, shopId = null) => {
+    const updateKey = `${order._id}:${shopId || ""}`;
+    setUpdatingOrderId(updateKey);
+    try {
+      await updateOrderStatus({ orderId: order._id, shopId, status }).unwrap();
+      toast.success(`Order ${getStatusLabel(status).toLowerCase()}.`);
+    } catch (err) {
+      toast.error(err?.data?.message || err?.message || "Could not update order status.");
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  };
+
+  const confirmDelivered = async (order, shopId = null) => {
+    const updateKey = `${order._id}:${shopId || ""}`;
+    setUpdatingOrderId(updateKey);
+    try {
+      await deliverOrder(shopId ? { orderId: order._id, shopId } : order._id).unwrap();
+      toast.success("Order marked as delivered.");
+    } catch (err) {
+      toast.error(err?.data?.message || err?.message || "Could not mark order delivered.");
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  };
 
   const visibleOrders = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -135,6 +175,19 @@ const OrderList = ({ showMenu = true }) => {
         ) : (
           <div className="admin-orders__list">
             {visibleOrders.map((order) => {
+              const status = getOrderFulfillmentStatus(order);
+              const orderFulfillments = (order.shopFulfillments?.length
+                ? order.shopFulfillments
+                : [{
+                  shop: order.shop,
+                  fulfillmentStatus: status,
+                  statusHistory: order.statusHistory,
+                  isLegacy: true,
+                }]).filter((fulfillment) => (
+                !userInfo?._id
+                || userInfo.isSuperAdmin
+                || String(fulfillment.shop?.owner?._id || fulfillment.shop?.owner || "") === String(userInfo._id)
+              ));
               const reference = order.paymentConfirmation?.receiptNumber
                 || order.paymentResult?.id
                 || order.checkoutRequestId;
@@ -174,8 +227,8 @@ const OrderList = ({ showMenu = true }) => {
                       <span className={`admin-status ${order.isPaid ? "admin-status--success" : "admin-status--pending"}`}>
                         {order.isPaid ? "Paid" : "Payment pending"}
                       </span>
-                      <span className={`admin-status ${order.isDelivered ? "admin-status--success" : "admin-status--neutral"}`}>
-                        {order.isDelivered ? "Delivered" : "Processing"}
+                      <span className={`admin-status ${order.receiptConfirmedAt ? "admin-status--success" : order.isDelivered ? "admin-status--success" : "admin-status--neutral"}`}>
+                        {order.receiptConfirmedAt ? "Receipt confirmed" : getStatusLabel(status)}
                       </span>
                     </div>
                     <Link className="admin-workspace__action" to={`/order/${order._id}`}>
@@ -197,6 +250,79 @@ const OrderList = ({ showMenu = true }) => {
                     )}
                     <span><b>Delivery</b>{order.shippingAddress?.city || "—"}, {order.shippingAddress?.country || "—"}</span>
                   </div>
+                  {order.statusHistory?.length > 0 && (
+                    <ol className="admin-order-card__history" aria-label="Order status audit history">
+                      {order.statusHistory.map((entry, index) => (
+                        <li key={`${entry.status}-${entry.timestamp}-${index}`}>
+                          <strong>{getStatusLabel(entry.status)}</strong>
+                          <span>{entry.timestamp ? new Date(entry.timestamp).toLocaleString() : "Timestamp unavailable"}</span>
+                          <span>{entry.actor?.username || (entry.actorRole === "system" ? "System" : entry.actorRole || "Unknown actor")}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                  {orderFulfillments.map((fulfillment) => {
+                    const fulfillmentStatus = fulfillment.fulfillmentStatus || "payment_confirmed";
+                    const statusIndex = ORDER_STATUS_STEPS.findIndex((step) => step.status === fulfillmentStatus);
+                    const nextStep = statusIndex >= 0 && statusIndex < 4
+                      ? ORDER_STATUS_STEPS[statusIndex + 1]
+                      : null;
+                    const shopId = fulfillment.shop?._id || fulfillment.shop;
+                    const updateKey = `${order._id}:${fulfillment.isLegacy ? "" : shopId}`;
+                    const isUpdating = updatingOrderId === updateKey;
+                    return (
+                      <div className="admin-order-card__fulfillment" key={String(shopId)}>
+                        <span>
+                          {orderFulfillments.length > 1 && <strong>{fulfillment.shop?.name || "Shop"} · </strong>}
+                          {nextStep
+                            ? <>Next step: <strong>{nextStep.label}</strong></>
+                            : fulfillmentStatus === "receipt_confirmed"
+                              ? "Receipt confirmed"
+                              : "Waiting for customer receipt confirmation"}
+                        </span>
+                        {order.isPaid && nextStep && (
+                          <div>
+                            <button
+                              type="button"
+                              disabled={isUpdating}
+                              onClick={() => moveOrderForward(
+                                order,
+                                nextStep.status,
+                                fulfillment.isLegacy ? null : shopId
+                              )}
+                            >
+                              {isUpdating ? "Updating..." : `Mark ${nextStep.label}`}
+                            </button>
+                            {fulfillmentStatus !== "delivered" && (
+                              <button
+                                type="button"
+                                className="is-shortcut"
+                                disabled={isUpdating}
+                                onClick={() => confirmDelivered(
+                                  order,
+                                  fulfillment.isLegacy ? null : shopId
+                                )}
+                                title="Use for hand-to-hand sales where no shipping updates are needed"
+                              >
+                                Confirm Delivered
+                              </button>
+                            )}
+                          </div>
+                        )}
+                        {fulfillment.statusHistory?.length > 0 && (
+                          <ol className="admin-order-card__history" aria-label={`${fulfillment.shop?.name || "Shop"} fulfillment audit history`}>
+                            {fulfillment.statusHistory.map((entry, index) => (
+                              <li key={`${entry.status}-${entry.timestamp}-${index}`}>
+                                <strong>{getStatusLabel(entry.status)}</strong>
+                                <span>{entry.timestamp ? new Date(entry.timestamp).toLocaleString() : "Timestamp unavailable"}</span>
+                                <span>{entry.actor?.username || (entry.actorRole === "system" ? "System" : entry.actorRole || "Unknown actor")}</span>
+                              </li>
+                            ))}
+                          </ol>
+                        )}
+                      </div>
+                    );
+                  })}
                 </article>
               );
             })}

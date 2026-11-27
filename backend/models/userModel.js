@@ -56,12 +56,30 @@ const userSchema = mongoose.Schema({
         default: 0,
         min: 0,
     },
+    lifetimePointsEarned: {
+        type: Number,
+        default: 0,
+        min: 0,
+    },
+    pointsReserved: {
+        type: Number,
+        default: 0,
+        min: 0,
+    },
     pointsVouchersIssued: {
         type: Number,
         default: 0,
         min: 0,
     },
     welcomeToastShownAt: {
+        type: Date,
+        default: null,
+    },
+    monthlyPasswordReminderEnabled: {
+        type: Boolean,
+        default: false,
+    },
+    lastPasswordReminderAt: {
         type: Date,
         default: null,
     }

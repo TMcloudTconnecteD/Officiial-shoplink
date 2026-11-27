@@ -30,6 +30,30 @@ export const riderApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["RiderApplication", "Rider", "Notification"],
     }),
+    suspendRider: builder.mutation({
+      query: ({ riderId, reason }) => ({
+        url: `/api/riders/applications/${riderId}/suspend`,
+        method: "PATCH",
+        body: { reason },
+      }),
+      invalidatesTags: ["RiderApplication", "Rider", "Notification"],
+    }),
+    submitRiderAppeal: builder.mutation({
+      query: (message) => ({
+        url: "/api/riders/mine/appeal",
+        method: "POST",
+        body: { message },
+      }),
+      invalidatesTags: ["RiderApplication", "Rider", "Notification"],
+    }),
+    reviewRiderAppeal: builder.mutation({
+      query: ({ riderId, decision, note }) => ({
+        url: `/api/riders/applications/${riderId}/appeal`,
+        method: "PATCH",
+        body: { decision, note },
+      }),
+      invalidatesTags: ["RiderApplication", "Rider", "Notification"],
+    }),
   }),
 });
 
@@ -39,4 +63,7 @@ export const {
   useApplyAsRiderMutation,
   useGetRiderApplicationsQuery,
   useReviewRiderApplicationMutation,
+  useSuspendRiderMutation,
+  useSubmitRiderAppealMutation,
+  useReviewRiderAppealMutation,
 } = riderApiSlice;

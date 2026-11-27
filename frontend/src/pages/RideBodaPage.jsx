@@ -7,6 +7,7 @@ import {
   useApplyAsRiderMutation,
   useGetApprovedRidersQuery,
   useGetMyRiderApplicationQuery,
+  useSubmitRiderAppealMutation,
 } from "../redux/Api/riderApiSlice.js";
 
 const initialForm = {
@@ -18,20 +19,20 @@ const initialForm = {
   experience: "",
 };
 
-const formatWhatsappNumber = (phone) => phone.replace(/\D/g, "");
-
 const RideBodaPage = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const [form, setForm] = useState(initialForm);
   const [selectedRiderId, setSelectedRiderId] = useState("");
+  const [appealMessage, setAppealMessage] = useState("");
   const { data: riders = [], isLoading: loadingRiders, isError: ridersError } = useGetApprovedRidersQuery(undefined, {
     pollingInterval: 30000,
   });
-  const { data: application, isLoading: loadingApplication } = useGetMyRiderApplicationQuery(userInfo?._id || userInfo?.id, {
+  const { data: application, isLoading: loadingApplication, isError: applicationError } = useGetMyRiderApplicationQuery(undefined, {
     skip: !userInfo,
     pollingInterval: userInfo ? 30000 : 0,
   });
   const [applyAsRider, { isLoading: submitting }] = useApplyAsRiderMutation();
+  const [submitAppeal, { isLoading: submittingAppeal }] = useSubmitRiderAppealMutation();
   const selectedRider = riders.find((rider) => rider._id === selectedRiderId);
 
   useEffect(() => {
@@ -39,6 +40,18 @@ const RideBodaPage = () => {
       setForm((current) => ({ ...current, fullName: current.fullName || userInfo.username }));
     }
   }, [userInfo?.username]);
+
+  useEffect(() => {
+    if (!application || application.status === "approved") return;
+    setForm({
+      fullName: application.fullName || userInfo?.username || "",
+      phone: application.phone || "",
+      location: application.location || "",
+      vehicleType: application.vehicleType || "Motorbike",
+      plateNumber: application.plateNumber || "",
+      experience: application.experience || "",
+    });
+  }, [application, userInfo?.username]);
 
   const updateForm = (event) => {
     const { name, value } = event.target;
@@ -51,22 +64,33 @@ const RideBodaPage = () => {
       await applyAsRider(form).unwrap();
       toast.success("Application sent. We’ll notify you when it’s reviewed.");
     } catch (error) {
-      toast.error(error?.data?.message || "Could not submit your application");
+      toast.error(error?.data?.message || "Could not submit your application.");
+    }
+  };
+
+  const submitSuspensionAppeal = async (event) => {
+    event.preventDefault();
+    try {
+      await submitAppeal(appealMessage).unwrap();
+      setAppealMessage("");
+      toast.success("Your appeal has been sent to the super admin.");
+    } catch (error) {
+      toast.error(error?.data?.message || "Could not submit your appeal.");
     }
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 md:py-12">
+    <main className="mx-auto max-w-6xl px-4 py-8 md:py-12">
       <section className="overflow-hidden rounded-[30px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 shadow-xl">
         <div className="p-6 md:p-10">
           <div className="mb-9 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div className="max-w-3xl">
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-700">ShopLink Boda</p>
               <h1 className="mt-3 text-3xl font-black leading-tight text-slate-900 md:text-5xl">
-                A trusted rider, just around the corner.
+                Trusted local riders, ready when you need them.
               </h1>
               <p className="mt-4 max-w-2xl text-slate-600">
-                Choose an approved local rider to arrange a pickup or delivery, or apply to ride with ShopLink.
+                Contact an approved community rider to arrange a pickup or delivery, or apply to join the network.
               </p>
             </div>
             <Link to="/shops/all" className="inline-flex w-fit items-center rounded-full bg-emerald-700 px-5 py-3 font-bold text-white shadow-lg transition-colors hover:bg-emerald-800">
@@ -128,15 +152,10 @@ const RideBodaPage = () => {
                 </div>
                 <div className="flex gap-2">
                   <a href={`tel:${selectedRider.phone}`} className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 font-bold text-slate-900">
-                    <FaPhone /> Call
+                    <FaPhone aria-hidden="true" /> Call
                   </a>
-                  <a
-                    href={`https://wa.me/${formatWhatsappNumber(selectedRider.phone)}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 font-bold text-white"
-                  >
-                    <FaWhatsapp /> Hire
+                  <a href={`https://wa.me/${String(selectedRider.phone).replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 font-bold text-white">
+                    <FaWhatsapp aria-hidden="true" /> WhatsApp
                   </a>
                 </div>
               </div>
@@ -150,11 +169,6 @@ const RideBodaPage = () => {
               <p className="mt-3 text-sm leading-6 text-slate-300">
                 Join the campus rider network. Admins review every application before a rider profile appears publicly.
               </p>
-              <ul className="mt-5 space-y-2 text-sm text-slate-200">
-                <li>✓ Verified rider profiles</li>
-                <li>✓ Reach nearby campus customers</li>
-                <li>✓ Updates when your application is reviewed</li>
-              </ul>
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
@@ -166,6 +180,8 @@ const RideBodaPage = () => {
                 </div>
               ) : loadingApplication ? (
                 <p className="py-8 text-center text-slate-500">Loading your rider application…</p>
+              ) : applicationError ? (
+                <p role="alert" className="py-8 text-center text-rose-700">Your application status could not be loaded. Please refresh and try again.</p>
               ) : application?.status === "pending" ? (
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
                   <p className="font-bold text-amber-900">Application under review</p>
@@ -176,6 +192,54 @@ const RideBodaPage = () => {
                 <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
                   <p className="font-bold text-emerald-900">You’re an approved ShopLink rider!</p>
                   <p className="mt-1 text-sm text-emerald-800">Your profile is listed above for customers to choose and hire.</p>
+                </div>
+              ) : application?.status === "suspended" ? (
+                <div className="space-y-4 rounded-2xl border border-rose-200 bg-rose-50 p-5">
+                  <div>
+                    <p className="font-bold text-rose-950">Your rider profile is suspended</p>
+                    <p className="mt-1 text-sm text-rose-900">
+                      Reason: {application.suspensionReason || "Not provided"}
+                    </p>
+                    <p className="mt-2 text-sm text-slate-700">
+                      Suspended {application.suspendedAt ? new Date(application.suspendedAt).toLocaleDateString() : "date unavailable"}. Rider records are deleted after 30 suspended days unless an appeal is awaiting review.
+                    </p>
+                  </div>
+                  {application.appealStatus === "pending" ? (
+                    <div className="rounded-xl bg-white p-4">
+                      <p className="font-bold text-amber-900">Your appeal is with the super admin</p>
+                      <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{application.appealMessage}</p>
+                      <p className="mt-2 text-xs text-slate-500">
+                        Submitted {application.appealedAt ? new Date(application.appealedAt).toLocaleString() : ""}
+                      </p>
+                    </div>
+                  ) : (
+                    <form onSubmit={submitSuspensionAppeal} className="rounded-xl bg-white p-4">
+                      <label className="block text-sm font-bold text-slate-800">
+                        Appeal to the super admin
+                        <textarea
+                          required
+                          minLength={20}
+                          maxLength={2000}
+                          rows={5}
+                          value={appealMessage}
+                          onChange={(event) => setAppealMessage(event.target.value)}
+                          placeholder="Explain why your rider account should be reinstated (20–2,000 characters)."
+                          className="mt-2 w-full rounded-xl border border-slate-300 p-3 font-normal"
+                        />
+                      </label>
+                      {application.appealStatus === "rejected" && (
+                        <p className="mt-2 text-sm text-rose-800">
+                          Your previous appeal was declined{application.appealDecision ? `: ${application.appealDecision}` : ""}. You may submit another appeal while suspended.
+                        </p>
+                      )}
+                      <button
+                        disabled={submittingAppeal || appealMessage.trim().length < 20}
+                        className="mt-3 rounded-xl bg-emerald-700 px-5 py-3 font-bold text-white disabled:opacity-50"
+                      >
+                        {submittingAppeal ? "Sending appeal…" : "Submit appeal"}
+                      </button>
+                    </form>
+                  )}
                 </div>
               ) : (
                 <form onSubmit={submitApplication} className="grid gap-4 sm:grid-cols-2">
@@ -222,7 +286,7 @@ const RideBodaPage = () => {
           </section>
         </div>
       </section>
-    </div>
+    </main>
   );
 };
 
